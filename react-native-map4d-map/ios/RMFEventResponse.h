@@ -20,6 +20,7 @@
 @class MFPOI;
 @class MFProjection;
 @class MFCameraPosition;
+@class MFCoordinateBounds;
 
 @interface RMFEventResponse : NSObject
 
@@ -38,6 +39,7 @@
 + (NSDictionary*)eventFromUserPOI:(RMFPOI*) poi action:(NSString*)action;
 
 + (NSDictionary*)eventFromCameraPosition:(MFCameraPosition*) position;
++ (NSDictionary*)eventFromCoordinateBounds:(MFCoordinateBounds*)bounds;
 + (NSDictionary*)eventFromCGPoint:(CGPoint) point;
 + (NSDictionary*)eventFromCLLocation:(CLLocation*) location;
 

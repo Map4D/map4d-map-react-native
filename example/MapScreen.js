@@ -45,7 +45,8 @@ export default class MapScreen extends React.Component {
   }
 
   handleClick() {
-    this.fitBounds();
+    this.getBounds();
+    // this.fitBounds();
     // this.enable3DMode();
     // this.updateCircle1();
     // this.updatePolyline();
@@ -131,6 +132,11 @@ export default class MapScreen extends React.Component {
     return camera
   }
 
+  async getBounds() {
+    const bounds = await this.map.getBounds()
+    console.log('bounds:', bounds)
+  }
+
   onPressCircle(event) {
     console.log('press circle:', event.nativeEvent)
   }
@@ -151,7 +157,7 @@ export default class MapScreen extends React.Component {
     console.log('on press coordinate:', event.nativeEvent)
   }
 
-  moveCamera() {    
+  moveCamera() {
     this.map.moveCamera({
       tilt: 0,
       bearing: 0,

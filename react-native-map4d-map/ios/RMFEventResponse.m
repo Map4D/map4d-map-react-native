@@ -136,6 +136,22 @@
   });
 }
 
++ (NSDictionary*)eventFromCoordinateBounds:(MFCoordinateBounds*)bounds {
+  if (bounds == nil) {
+    return @{};
+  }
+  return @{
+    @"northEast": @{
+      @"latitude": @(bounds.northEast.latitude),
+      @"longitude": @(bounds.northEast.longitude)
+    },
+    @"southWest": @{
+      @"latitude": @(bounds.southWest.latitude),
+      @"longitude": @(bounds.southWest.longitude)
+    }
+  };
+}
+
 + (NSDictionary*)eventFromCGPoint:(CGPoint) point {
   return (@{ @"x": @(point.x), @"y": @(point.y) });
 }

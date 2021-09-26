@@ -83,6 +83,22 @@ RCT_EXPORT_METHOD(getCamera:(nonnull NSNumber *)reactTag
   }];
 }
 
+RCT_EXPORT_METHOD(getBounds:(nonnull NSNumber *)reactTag
+                  resolver: (RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[RMFMapView class]]) {
+      reject(@"Invalid argument", [NSString stringWithFormat:@"Invalid view returned from registry, expecting RMFMapView, got: %@", view], NULL);
+    } else {
+      RMFMapView *mapView = (RMFMapView *)view;
+      MFCoordinateBounds* bounds = [mapView getBounds];
+      resolve([RMFEventResponse eventFromCoordinateBounds:bounds]);
+    }
+  }];
+}
+
 RCT_EXPORT_METHOD(cameraForBounds:(nonnull NSNumber *)reactTag
                   withData:(id)json
                   resolver: (RCTPromiseResolveBlock)resolve
