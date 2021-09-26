@@ -40,6 +40,7 @@
 //@property (nonatomic, assign) MKCoordinateRegion initialRegion;
 //@property (nonatomic, assign) MKCoordinateRegion region;
 @property (nonatomic, assign) MFCameraPosition *cameraProp;   // Because the base class already has a "camera" prop.
+@property (nonatomic, assign) NSString* mapTypeProp;
 //@property (nonatomic, assign) GMSCameraPosition *initialCamera;
 //@property (nonatomic, assign) NSString *customMapStyleString;
 //@property (nonatomic, assign) UIEdgeInsets mapPadding;

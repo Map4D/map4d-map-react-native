@@ -60,7 +60,7 @@ RCT_EXPORT_VIEW_PROPERTY(onMyLocationButtonPress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onShouldChangeMapMode, RCTDirectEventBlock)
 
 RCT_REMAP_VIEW_PROPERTY(camera, cameraProp, MFCameraPosition)
-
+RCT_REMAP_VIEW_PROPERTY(mapType, mapTypeProp, NSString)
 RCT_EXPORT_VIEW_PROPERTY(showsBuildings, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(showsPOIs, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(showsMyLocation, BOOL)
@@ -264,35 +264,6 @@ RCT_EXPORT_METHOD(setPOIsEnabled:(nonnull NSNumber *)reactTag
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
       [mapView setPOIsEnabled:enable];
-    }
-  }];
-}
-
-RCT_EXPORT_METHOD(setSwitchMode:(nonnull NSNumber *)reactTag
-                  mode:(NSInteger)mode) {
-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-    id view = viewRegistry[reactTag];
-    if (![view isKindOfClass:[RMFMapView class]]) {
-      
-    } else {
-      RMFMapView *mapView = (RMFMapView *)view;
-      switch (mode) {
-        case 1:
-          [mapView setSwitchMode:MFSwitchModeAuto2DTo3D];
-        break;
-        case 2:
-          [mapView setSwitchMode:MFSwitchModeAuto3DTo2D];
-          break;
-        case 3:
-          [mapView setSwitchMode:MFSwitchModeAuto];
-          break;
-        case 4:
-          [mapView setSwitchMode:MFSwitchModeManual];
-          break;
-        default:
-          [mapView setSwitchMode:MFSwitchModeDefault];
-          break;
-      }
     }
   }];
 }

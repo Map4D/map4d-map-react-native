@@ -197,6 +197,7 @@ export default class MapScreen extends React.Component {
               this.moveCamera()
             }
           }
+          mapType="roadmap"
           onShouldChangeMapMode={this.onShouldChangeMapMode}
           onPoiPress={(event)=>{console.log('place:', event.nativeEvent)}}
           onBuildingPress={this.onPressBuilding}

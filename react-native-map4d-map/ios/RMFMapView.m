@@ -121,6 +121,16 @@
   self.camera = cameraProp;
 }
 
+- (void)setMapTypeProp:(NSString *)mapTypeProp {
+  _mapTypeProp = mapTypeProp;
+  if ([@"raster" caseInsensitiveCompare:mapTypeProp] == NSOrderedSame) {
+    self.mapType = MFMapTypeRaster;
+  }
+  else {
+    self.mapType = MFMapTypeRoadmap;
+  }
+}
+
 - (void)setShowsBuildings:(BOOL)showsBuildings {
   _showsBuildings = showsBuildings;
   [self setBuildingsEnabled:showsBuildings];

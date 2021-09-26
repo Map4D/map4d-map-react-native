@@ -56,6 +56,11 @@ const propTypes = {
   camera: CameraShape,
 
   /**
+   * Type of map tiles to be rendered.
+   */
+  mapType: PropTypes.oneOf(['roadmap', 'raster']),
+
+  /**
    * Callback that is called once the map is fully loaded.
    * @platform android
    */
