@@ -182,6 +182,18 @@
   });
 }
 
+- (void)didTapPlaceWithName:(NSString*)name location:(CLLocationCoordinate2D)location {
+  if (!self.onPlacePress) return;
+  self.onPlacePress(@{
+    @"action":@"place-press",
+    @"name": name,
+    @"location": @{
+      @"latitude": @(location.latitude),
+      @"longitude": @(location.longitude)
+    }
+  });
+}
+
 - (BOOL)didTapMyLocationButton {
   if (self.onMyLocationButtonPress) {
     self.onMyLocationButtonPress(@{});

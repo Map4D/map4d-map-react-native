@@ -150,7 +150,11 @@ export default class MapScreen extends React.Component {
   }
 
   onPressBuilding(event) {
-    console.log('press building:', event.nativeEvent)
+    console.log('press map building:', event.nativeEvent)
+  }
+
+  onPressPlace(event) {
+    console.log('press map place:', event.nativeEvent)
   }
 
   onPressMapView(event) {
@@ -205,8 +209,9 @@ export default class MapScreen extends React.Component {
           }
           mapType="roadmap"
           onShouldChangeMapMode={this.onShouldChangeMapMode}
-          onPoiPress={(event)=>{console.log('place:', event.nativeEvent)}}
+          onPoiPress={(event)=>{console.log('press map poi:', event.nativeEvent)}}
           onBuildingPress={this.onPressBuilding}
+          onPlacePress={this.onPressPlace}
           onCameraMove={this.onCameraMove}
           onCameraMoveStart={this.onCameraMoveStart}
           onCameraIdle={this.onCameraIdle}

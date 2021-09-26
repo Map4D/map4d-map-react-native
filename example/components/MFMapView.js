@@ -77,9 +77,14 @@ const propTypes = {
   onPoiPress: PropTypes.func,
 
   /**
-   * Callback that is called when user taps on the POIs
+   * Callback that is called when user taps on the Buildings
    */
   onBuildingPress: PropTypes.func,
+
+  /**
+   * Callback that is called when user taps on the Places
+   */
+  onPlacePress: PropTypes.func,
 
   /**
    * Callback that is called when change 3d mode
