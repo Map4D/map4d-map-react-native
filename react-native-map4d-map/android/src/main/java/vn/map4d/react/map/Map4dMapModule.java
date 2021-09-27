@@ -86,6 +86,35 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void getBounds(final int tag, final Promise promise) {
+    getView(tag, new ResolveViewCallback() {
+      @Override
+      public void found(View view) {
+        RMFMapView mapView = (RMFMapView) view;
+        MFCoordinateBounds bounds = mapView.map.getBounds();
+        WritableMap boundsJson = new WritableNativeMap();
+        if (bounds == null) {
+          boundsJson.putNull("southWest");
+          boundsJson.putNull("northEast");
+        }
+        else {
+          WritableMap southWest = new WritableNativeMap();
+          southWest.putDouble("latitude", bounds.getSouthwest().getLatitude());
+          southWest.putDouble("longitude", bounds.getSouthwest().getLongitude());
+
+          WritableMap northEast = new WritableNativeMap();
+          northEast.putDouble("latitude", bounds.getNortheast().getLatitude());
+          northEast.putDouble("longitude", bounds.getNortheast().getLongitude());
+
+          boundsJson.putMap("southWest", southWest);
+          boundsJson.putMap("northEast", northEast);
+        }
+        promise.resolve(boundsJson);
+      }
+    });
+  }
+
+  @ReactMethod
   public void getMyLocation(final int tag, final Promise promise) {
     getView(tag, new ResolveViewCallback() {
       @Override
