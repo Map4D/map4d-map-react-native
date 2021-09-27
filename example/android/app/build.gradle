@@ -195,8 +195,8 @@ dependencies {
     implementation "vn.map4d:react-native-map4d-map"  // From node_modules
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
-    implementation 'vn.map4d:Map4dTypes:1.0.6'
-    implementation 'vn.map4d:Map4dMap:1.4.7'
+    implementation 'vn.map4d:Map4dTypes:1.1.0'
+    implementation 'vn.map4d:Map4dMap:2.0.0'
 
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {

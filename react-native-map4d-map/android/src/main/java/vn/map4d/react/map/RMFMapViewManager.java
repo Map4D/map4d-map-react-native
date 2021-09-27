@@ -155,4 +155,9 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
   public void setPOIsEnabled(RMFMapView view, boolean enable) {
     view.setPOIsEnabled(enable);
   }
+
+  @ReactProp(name = "mapType")
+  public void setMapType(RMFMapView view, String mapType) {
+    view.setMapType(mapType);
+  }
 }

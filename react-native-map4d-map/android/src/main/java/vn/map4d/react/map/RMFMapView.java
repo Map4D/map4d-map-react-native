@@ -427,6 +427,16 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
     map.enable3DMode(enable);
   }
 
+  public void setMapType(String mapType) {
+    if (map == null) return;
+    if (mapType.equals("raster")) {
+      map.setMapType(MFMapType.RASTER);
+    }
+    else {
+      map.setMapType(MFMapType.ROADMAP);
+    }
+  }
+
   public void setPOIsEnabled(Boolean enable) {
     if (map == null) return;
     map.setPOIsEnabled(enable);
