@@ -13,7 +13,7 @@
     "baseUrl": "https://github.com/map4d/map4d-map-react-native"
   },
   "keywords": [
-    "react-native"
+    "react", "react-native", "react-component", "map", "mapview", "map4d", "iotlink"
   ],
   "author": {
     "name": "IOTLink",
