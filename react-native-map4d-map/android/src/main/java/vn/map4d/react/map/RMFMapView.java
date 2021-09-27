@@ -1,24 +1,17 @@
 package vn.map4d.react.map;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.view.ViewTreeObserver;
-import android.util.Log;
 
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.Callback;
+import androidx.annotation.NonNull;
+
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.bridge.ReadableMap;
 
 import java.util.Date;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +21,7 @@ import vn.map4d.map.camera.*;
 import vn.map4d.map.annotations.*;
 import vn.map4d.types.MFLocationCoordinate;
 
-public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
+public class RMFMapView extends MFMapView implements OnMapReadyCallback {
 
   public Map4D map;
 
@@ -78,7 +71,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
         WritableMap event = getMarkerEventData(marker);
         event.putString("action", "marker-drag");
         manager.pushEvent(getContext(), view, "onMarkerDrag", event);
-        
+
         //Event for MFMarker
         event = getMarkerEventData(marker);
         event.putString("action", "marker-drag");
@@ -218,6 +211,20 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
       }
     });
 
+    map.setOnPlaceClickListener(new Map4D.OnPlaceClickListener() {
+      @Override
+      public void onPlaceClick(@NonNull String name, @NonNull MFLocationCoordinate location) {
+        WritableMap event = new WritableNativeMap();
+        WritableMap locationMap = new WritableNativeMap();
+        locationMap.putDouble("latitude", location.getLatitude());
+        locationMap.putDouble("longitude", location.getLongitude());
+        event.putMap("coordinate", locationMap);
+        event.putString("name", name);
+        event.putString("action", "place-press");
+        manager.pushEvent(getContext(), view, "onPlacePress", event);
+      }
+    });
+
     map.setOnMapModeChange(new Map4D.OnMapModeChangeListener() {
       @Override
       public void onMapModeChange(boolean is3DMode) {
@@ -294,7 +301,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
     location.putDouble("latitude", circle.getCenter().getLatitude());
     location.putDouble("longitude", circle.getCenter().getLongitude());
     event.putMap("coordinate", location);
-    Object userData = circle.getUserData();      
+    Object userData = circle.getUserData();
     if (userData != null) {
       String userDataByString = "";
       userDataByString = userData.toString();
@@ -345,7 +352,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
     location.putDouble("longitude", coordinate.getLongitude());
     event.putMap("coordinate", location);
     Object userData = polyline.getUserData();
-    
+
     if (userData != null) {
       String userDataByString = "";
       userDataByString = userData.toString();
@@ -353,7 +360,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
       int end = userDataByString.length() - 2;
       userDataByString = userDataByString.substring(begin, end);
       event.putString("userData", userDataByString);
-    }      
+    }
     return event;
   }
 
@@ -365,7 +372,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
     location.putDouble("longitude", coordinate.getLongitude());
     event.putMap("coordinate", location);
     Object userData = polygon.getUserData();
-    
+
     if (userData != null) {
       String userDataByString = "";
       userDataByString = userData.toString();
@@ -373,7 +380,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
       int end = userDataByString.length() - 2;
       userDataByString = userDataByString.substring(begin, end);
       event.putString("userData", userDataByString);
-    }      
+    }
     return event;
   }
 
@@ -385,9 +392,9 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
     event.putDouble("tilt", pos.getTilt());
     WritableMap target = new WritableNativeMap();
     target.putDouble("latitude", pos.getTarget().getLatitude());
-    target.putDouble("longitude", pos.getTarget().getLongitude());      
+    target.putDouble("longitude", pos.getTarget().getLongitude());
     event.putMap("center", target);
-    return event;      
+    return event;
   }
 
   private MFCameraPosition parseCamera(ReadableMap camera) {
@@ -431,8 +438,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback  {
     if (map == null) return;
     if (mapType.equals("raster")) {
       map.setMapType(MFMapType.RASTER);
-    }
-    else {
+    } else {
       map.setMapType(MFMapType.ROADMAP);
     }
   }

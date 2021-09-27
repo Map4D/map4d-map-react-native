@@ -53,7 +53,8 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
         "onPress", MapBuilder.of("registrationName", "onPress"),
         "onShouldChangeMapMode", MapBuilder.of("registrationName", "onShouldChangeMapMode"),
         "onPoiPress", MapBuilder.of("registrationName", "onPoiPress"),
-        "onBuildingPress", MapBuilder.of("registrationName", "onBuildingPress")
+        "onBuildingPress", MapBuilder.of("registrationName", "onBuildingPress"),
+        "onPlacePress", MapBuilder.of("registrationName", "onPlacePress")
       ));
       return map;
     }
