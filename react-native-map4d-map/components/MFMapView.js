@@ -56,6 +56,11 @@ const propTypes = {
   camera: CameraShape,
 
   /**
+   * Type of map tiles to be rendered.
+   */
+  mapType: PropTypes.oneOf(['roadmap', 'raster']),
+
+  /**
    * Callback that is called once the map is fully loaded.
    * @platform android
    */
@@ -72,9 +77,14 @@ const propTypes = {
   onPoiPress: PropTypes.func,
 
   /**
-   * Callback that is called when user taps on the POIs
+   * Callback that is called when user taps on the Buildings
    */
   onBuildingPress: PropTypes.func,
+
+  /**
+   * Callback that is called when user taps on the Places
+   */
+  onPlacePress: PropTypes.func,
 
   /**
    * Callback that is called when change 3d mode
@@ -137,6 +147,15 @@ class MFMapView extends React.Component {
       return NativeModules.Map4dMap.getCamera(this._getHandle());
     } else if (Platform.OS === 'ios') {
       return this._runCommand('getCamera', []);
+    }
+    return Promise.reject('Function not supported on this platform');
+  }
+
+  getBounds() {
+    if (Platform.OS === 'android') {
+      return NativeModules.Map4dMap.getBounds(this._getHandle());
+    } else if (Platform.OS === 'ios') {
+      return this._runCommand('getBounds', []);
     }
     return Promise.reject('Function not supported on this platform');
   }
