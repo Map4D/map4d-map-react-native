@@ -1,7 +1,7 @@
 {
   "name": "react-native-map4d-map",
   "title": "React Native Map4dMap",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Map4dMap SDK for React Native",
   "main": "index.js",
   "scripts": {
@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sua8051/map4d-react-native.git",
-    "baseUrl": "https://github.com/sua8051/map4d-react-native"
+    "url": "git+https://github.com/map4d/map4d-map-react-native.git",
+    "baseUrl": "https://github.com/map4d/map4d-map-react-native"
   },
   "keywords": [
     "react-native"
   ],
   "author": {
-    "name": "Sua Le",
-    "email": "sua8051@gmail.com"
+    "name": "IOTLink",
+    "email": "admin@iotlink.com.vn"
   },
   "license": "MIT",
   "licenseFilename": "LICENSE",
