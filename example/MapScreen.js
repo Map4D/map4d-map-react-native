@@ -23,6 +23,7 @@ import {MFCircle} from './components/MFCircle'
 import {MFPolyline} from './components/MFPolyline'
 import {MFPolygon} from './components/MFPolygon'
 import {MFPOI} from './components/MFPOI'
+import {MFDirectionsRenderer} from './components/MFDirectionsRenderer'
 import { Navigation } from 'react-native-navigation';
 
 //From NPM
@@ -203,12 +204,12 @@ export default class MapScreen extends React.Component {
             data => {
               this.map.setMyLocationEnabled(true)
               // this.map.setPOIsEnabled(false)
-              this.getCamera();
-              this.moveCamera()
+              // this.getCamera();
+              // this.moveCamera()
             }
           }
           mapType="roadmap"
-          onShouldChangeMapMode={this.onShouldChangeMapMode}
+          // onShouldChangeMapMode={this.onShouldChangeMapMode}
           onPoiPress={(event)=>{console.log('press map poi:', event.nativeEvent)}}
           onBuildingPress={this.onPressBuilding}
           onPlacePress={this.onPressPlace}
@@ -222,12 +223,44 @@ export default class MapScreen extends React.Component {
           showsBuildings={true}
           showsPOIs={true}
           camera={{
-            center: {latitude: 10.7881732, longitude: 106.7000933},
+            center: { latitude: 16.078814, longitude: 108.221592 },
+            // center: {latitude: 10.7881732, longitude: 106.7000933},
             zoom: 16,
             bearing: 0,
             tilt: 0,
           }}
-          >         
+          >
+          <MFDirectionsRenderer
+            ref={ref => this.directions = ref}
+            routes={[
+              [
+                { latitude: 16.078814, longitude: 108.221592 },
+                { latitude: 16.078972, longitude: 108.223034 },
+                { latitude: 16.075353, longitude: 108.223513 },
+              ],
+              [
+                { latitude: 16.078814, longitude: 108.221592 },
+                { latitude: 16.077491, longitude: 108.221735 },
+                { latitude: 16.077659, longitude: 108.223212 },
+                { latitude: 16.075353, longitude: 108.223513 }
+              ]
+            ]}
+            activedIndex={1}
+            activeStrokeWidth={12}
+            activeStrokeColor="#FF0000"
+            activeOutlineWidth={5}
+            activeOutlineColor="#00FF00"
+            inactiveStrokeWidth={12}
+            inactiveStrokeColor="#0000FF"
+            inactiveOutlineWidth={5}
+            inactiveOutlineColor="#FF00FF"
+            onPress={
+              (event) => {
+                console.log("Press Directions Renderer:", event.nativeEvent)
+                this.directions.setActivedIndex(event.nativeEvent.routeIndex)
+              }
+            }
+          />
           <MFMarker
             draggable={true}
             ref={ref => this.marker = ref}
@@ -245,12 +278,11 @@ export default class MapScreen extends React.Component {
             }}
             anchor={{x: 0.0, y: 0.0}}
             coordinate={{latitude: 10.7881732, longitude: 106.7000933}}>
-              <View style={{
+            <View style={{
               width:30,
               height:35,
               borderWidth:1,
-              borderColor:'yellow'
-            }}>
+              borderColor:'yellow'}}>
               <Image source={{ uri: 'https://b.thumbs.redditmedia.com/F82n9T2HtoYxNmxbe1CL0RKxBdeUEw-HVyd-F-Lb91o.png' }}
             style={{width:25, height:31}} resizeMode={'contain'} />
             </View>

@@ -17,6 +17,7 @@
 #import "RMFPolyline.h"
 #import "RMFPolygon.h"
 #import "RMFPOI.h"
+#import "RMFDirectionsRenderer.h"
 #import "RMFEventResponse.h"
 
 @class GLKView;
@@ -71,15 +72,20 @@
   else if ([subview isKindOfClass:[RMFPOI class]]) {
     RMFPOI* poi = (RMFPOI*)subview;
     [poi setMapView:self];
-//    [super insertReactSubview:poi atIndex:atIndex];
-  } else {
+    //[super insertReactSubview:poi atIndex:atIndex];
+  }
+  else if ([subview isKindOfClass:[RMFDirectionsRenderer class]]) {
+    RMFDirectionsRenderer* renderer = (RMFDirectionsRenderer*)subview;
+    [renderer setMapView:self];
+  }
+  else {
     NSArray<id<RCTComponent>> *childSubviews = [subview reactSubviews];
     for (int i = 0; i < childSubviews.count; i++) {
       [self insertReactSubview:(UIView *)childSubviews[i] atIndex:atIndex];
     }
   }
 
-    [_reactSubviews insertObject:(UIView *)subview atIndex:(NSUInteger) atIndex];
+  [_reactSubviews insertObject:(UIView *)subview atIndex:(NSUInteger) atIndex];
 }
 #pragma clang diagnostic pop
 
@@ -105,6 +111,10 @@
   else if ([subview isKindOfClass:[RMFPOI class]]) {
     RMFPOI* poi = (RMFPOI*)subview;
     poi.map4dPOI.map = nil;
+  }
+  else if ([subview isKindOfClass:[RMFDirectionsRenderer class]]) {
+    RMFDirectionsRenderer* renderer = (RMFDirectionsRenderer*)subview;
+    [renderer setMapView:nil];
   }
   else {
     NSArray<id<RCTComponent>> *childSubviews = [subview reactSubviews];
