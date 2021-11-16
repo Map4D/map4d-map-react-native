@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
   requireNativeComponent,
   Platform,
+  Image,
   NativeModules,
   ViewPropTypes,
   ColorPropType,
@@ -82,7 +83,47 @@ const propTypes = {
   inactiveOutlineColor: ColorPropType,
 
   /**
-   * Callback that is called when the user presses on the routes
+   * The options of the origin POI.
+   */
+  originPOIOptions: PropTypes.shape({
+    coordinate: PropTypes.shape({
+      latitude: PropTypes.number.isRequired,
+      longitude: PropTypes.number.isRequired,
+    }),
+
+    icon: PropTypes.shape({
+      uri: PropTypes.any.isRequired
+    }),
+
+    title: PropTypes.string,
+
+    titleColor: ColorPropType,
+
+    visible: PropTypes.bool,
+  }),
+
+  /**
+   * The options of the destination POI.
+   */
+  destinationPOIOptions: PropTypes.shape({
+    coordinate: PropTypes.shape({
+      latitude: PropTypes.number.isRequired,
+      longitude: PropTypes.number.isRequired,
+    }),
+
+    icon: PropTypes.shape({
+      uri: PropTypes.any.isRequired
+    }),
+
+    title: PropTypes.string,
+
+    titleColor: ColorPropType,
+
+    visible: PropTypes.bool,
+  }),
+
+  /**
+   * Callback that is called when the user presses on the routes.
    */
   onPress: PropTypes.func,
 };
@@ -107,8 +148,32 @@ class MFDirectionsRenderer extends React.Component {
   }
 
   render() {
+    let originPOIOptions = this.props.originPOIOptions
+    if (originPOIOptions) {
+      if (originPOIOptions.titleColor) {
+        originPOIOptions.titleColor = processColor(originPOIOptions.titleColor)
+      }
+      if (originPOIOptions.icon) {
+        let uri = Image.resolveAssetSource(originPOIOptions.icon.uri) || {uri: originPOIOptions.icon.uri};
+        originPOIOptions.icon = {uri: uri.uri}
+      }
+    }
+
+    let destinationPOIOptions = this.props.destinationPOIOptions
+    if (destinationPOIOptions) {
+      if (destinationPOIOptions.titleColor) {
+        destinationPOIOptions.titleColor = processColor(destinationPOIOptions.titleColor)
+      }
+      if (destinationPOIOptions.icon) {
+        let uri = Image.resolveAssetSource(destinationPOIOptions.icon.uri) || {uri: destinationPOIOptions.icon.uri};
+        destinationPOIOptions.icon = {uri: uri.uri}
+      }
+    }
+
     return <RMFDirectionsRenderer
       {...this.props}
+      originPOIOptions={originPOIOptions}
+      destinationPOIOptions={destinationPOIOptions}
       ref={this._ref}
       onPress={this._onPress}
     />;

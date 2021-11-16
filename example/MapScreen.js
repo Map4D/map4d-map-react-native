@@ -195,8 +195,8 @@ export default class MapScreen extends React.Component {
 
 
   render() {
-    // let markerIcon = require('./assets/ic_marker_tracking.png')
-    let markerIcon = 'https://b.thumbs.redditmedia.com/F82n9T2HtoYxNmxbe1CL0RKxBdeUEw-HVyd-F-Lb91o.png'
+    let markerIcon1 = require('./assets/ic_marker_tracking.png')
+    let markerIcon2 = 'https://b.thumbs.redditmedia.com/F82n9T2HtoYxNmxbe1CL0RKxBdeUEw-HVyd-F-Lb91o.png'
     return(
       <SafeAreaView style={this.styles.safeView}>        
         <MFMapView ref={ref => this.map = ref}
@@ -254,6 +254,16 @@ export default class MapScreen extends React.Component {
             inactiveStrokeColor="#0000FF"
             inactiveOutlineWidth={5}
             inactiveOutlineColor="#FF00FF"
+            originPOIOptions={{
+              coordinate: { latitude: 16.079774, longitude: 108.220534 },
+              title: "abc",
+              titleColor: "#FF0000",
+              icon:{ uri: markerIcon1 }
+            }}
+            destinationPOIOptions={{
+              title: "xyz",
+              icon:{ uri: markerIcon2 }
+            }}
             onPress={
               (event) => {
                 console.log("Press Directions Renderer:", event.nativeEvent)

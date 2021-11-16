@@ -15,6 +15,7 @@
 @class MFCameraPosition;
 @class RMFIcon;
 @class MFCoordinateBounds;
+@class RMFDirectionsMarkerOptions;
 
 @interface RCTConvert(Map4dMap)
 
@@ -25,6 +26,7 @@
 + (MFCameraPosition *)MFCameraPosition:(id)json withDefaultCamera:(MFCameraPosition*)camera;
 + (RMFIcon *)RMFIcon:(id)json;
 + (MFCoordinateBounds *)MFCoordinateBounds:(id)json;
++ (RMFDirectionsMarkerOptions *)RMFDirectionsMarkerOptions:(id)json;
 
 @end
 
