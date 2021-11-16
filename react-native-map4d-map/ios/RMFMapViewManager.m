@@ -13,6 +13,7 @@
 #import "RMFPolyline.h"
 #import "RMFPolygon.h"
 #import "RMFPOI.h"
+#import "RMFDirectionsRenderer.h"
 #import <Foundation/Foundation.h>
 #import <React/RCTLog.h>
 #import <React/RCTBridge.h>
@@ -397,6 +398,11 @@ RCT_EXPORT_METHOD(setTime:(nonnull NSNumber *)reactTag
 - (void)mapView:(MFMapView *)mapView didTapPlaceWithName:(NSString *)name location:(CLLocationCoordinate2D)location {
   RMFMapView* reactMapView = (RMFMapView*) mapView;
   [reactMapView didTapPlaceWithName:name location:location];
+}
+
+- (void)mapView:(MFMapView *)mapView didTapDirectionsRenderer:(MFDirectionsRenderer *)renderer routeIndex:(NSUInteger)routeIndex {
+  RMFDirectionsRendererMap4d* rRenderer = (RMFDirectionsRendererMap4d*)renderer;
+  [rRenderer.reactRenderer didTapRouteWithIndex:routeIndex];
 }
 
 - (void)mapView: (MFMapView*)  mapView didTapMyLocation: (CLLocationCoordinate2D) location {

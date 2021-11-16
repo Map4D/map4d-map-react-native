@@ -94,6 +94,14 @@ class MFDirectionsRenderer extends React.Component {
     this._onPress = this._onPress.bind(this)
   }
 
+  setActivedIndex(index) {
+    this._runCommand("setActivedIndex", [index])
+  }
+
+  setDirections(directions) {
+    this._runCommand("setDirections", [directions])
+  }
+
   render() {
     return <RMFDirectionsRenderer
       {...this.props}
