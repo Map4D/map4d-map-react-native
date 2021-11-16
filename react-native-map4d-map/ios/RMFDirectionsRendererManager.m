@@ -34,6 +34,9 @@ RCT_EXPORT_VIEW_PROPERTY(inactiveStrokeColor, UIColor)
 RCT_EXPORT_VIEW_PROPERTY(inactiveOutlineWidth, CGFloat)
 RCT_EXPORT_VIEW_PROPERTY(inactiveOutlineColor, UIColor)
 
+RCT_EXPORT_VIEW_PROPERTY(originPOIOptions, RMFDirectionsMarkerOptions)
+RCT_EXPORT_VIEW_PROPERTY(destinationPOIOptions, RMFDirectionsMarkerOptions)
+
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 
 RCT_EXPORT_METHOD(setActivedIndex:(nonnull NSNumber *)reactTag

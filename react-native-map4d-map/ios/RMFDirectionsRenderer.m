@@ -13,9 +13,6 @@
   if (self = [super init]) {
     _map4dDirectionsRenderer = [[RMFDirectionsRendererMap4d alloc] init];
     _map4dDirectionsRenderer.reactRenderer = self;
-
-    _map4dDirectionsRenderer.originTitle = @"Origin";
-    _map4dDirectionsRenderer.destinationTitle = @"Destination";
     
     _routes = nil;
     _directions = nil;
@@ -31,13 +28,16 @@
     _inactiveStrokeWidth = _map4dDirectionsRenderer.inactiveStrokeWidth;
     _inactiveOutlineColor = _map4dDirectionsRenderer.inactiveOutlineColor;
     _inactiveOutlineWidth = _map4dDirectionsRenderer.inactiveOutlineWidth;
+    
+    _originPOIOptions = nil;
+    _destinationPOIOptions = nil;
   }
   return self;
 }
 
 - (void)setMapView:(RMFMapView *)mapView {
   _map4dDirectionsRenderer.activedIndex = _activedIndex;
-  _map4dDirectionsRenderer.map = mapView;
+  _map4dDirectionsRenderer.map = (MFMapView*)mapView;
 }
 
 - (void)didTapRouteWithIndex:(NSUInteger)routeIndex {
@@ -117,6 +117,58 @@
 - (void)setInactiveOutlineWidth:(CGFloat)width {
   _inactiveOutlineWidth = width;
   _map4dDirectionsRenderer.inactiveOutlineWidth = width;
+}
+
+- (void)setOriginPOIOptions:(RMFDirectionsMarkerOptions *)options {
+  _originPOIOptions = options;
+  
+  _map4dDirectionsRenderer.originPosition = options.coordinate;
+  _map4dDirectionsRenderer.originTitle = options.title;
+  _map4dDirectionsRenderer.originTitleColor = options.titleColor;
+  
+  if (options.icon == nil || options.icon.uri == nil) {
+    _map4dDirectionsRenderer.originIcon = nil;
+  }
+  else {
+    dispatch_async(dispatch_get_global_queue(0,0), ^{
+      NSData * imageData = [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString: options.icon.uri]];
+      if (imageData != nil) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          UIImage* icon = [UIImage imageWithData:imageData];
+          UIImage* scaleIcon = [UIImage imageWithCGImage:[icon CGImage]
+                                                   scale:[UIScreen mainScreen].scale
+                                             orientation:icon.imageOrientation];
+          self->_map4dDirectionsRenderer.originIcon = scaleIcon;
+        });
+      }
+    });
+  }
+}
+
+- (void)setDestinationPOIOptions:(RMFDirectionsMarkerOptions *)options {
+  _destinationPOIOptions = options;
+  
+  _map4dDirectionsRenderer.destinationPosition = options.coordinate;
+  _map4dDirectionsRenderer.destinationTitle = options.title;
+  _map4dDirectionsRenderer.destinationTitleColor = options.titleColor;
+  
+  if (options.icon == nil || options.icon.uri == nil) {
+    _map4dDirectionsRenderer.destinationIcon = nil;
+  }
+  else {
+    dispatch_async(dispatch_get_global_queue(0,0), ^{
+      NSData * imageData = [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString: options.icon.uri]];
+      if (imageData != nil) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          UIImage* icon = [UIImage imageWithData:imageData];
+          UIImage* scaleImage = [UIImage imageWithCGImage:[icon CGImage]
+                                                    scale:[UIScreen mainScreen].scale
+                                              orientation:icon.imageOrientation];
+          self->_map4dDirectionsRenderer.destinationIcon = scaleImage;
+        });
+      }
+    });
+  }
 }
 
 @end

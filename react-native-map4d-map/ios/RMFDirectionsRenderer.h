@@ -12,6 +12,7 @@
 #import <Map4dMap/Map4dMap.h>
 #import "RMFDirectionsRendererMap4d.h"
 #import "RMFCoordinate.h"
+#import "RMFDirectionsMarkerOptions.h"
 
 @class RMFMapView;
 
@@ -34,6 +35,9 @@
 @property(nonatomic, strong, nullable) UIColor* inactiveStrokeColor;
 @property(nonatomic, assign) CGFloat inactiveOutlineWidth;
 @property(nonatomic, strong, nullable) UIColor* inactiveOutlineColor;
+
+@property(nonatomic, strong, nullable) RMFDirectionsMarkerOptions* originPOIOptions;
+@property(nonatomic, strong, nullable) RMFDirectionsMarkerOptions* destinationPOIOptions;
 
 - (void)setMapView:(RMFMapView* _Nullable)mapView;
 - (void)didTapRouteWithIndex:(NSUInteger)routeIndex;

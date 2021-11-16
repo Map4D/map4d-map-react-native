@@ -11,6 +11,7 @@
 #import <Map4dMap/Map4dMap.h>
 #import "RMFCoordinate.h"
 #import "RMFIcon.h"
+#import "RMFDirectionsMarkerOptions.h"
 
 @implementation RCTConvert(Map4dMap)
 
@@ -83,6 +84,29 @@ RCT_ARRAY_CONVERTER(RMFCoordinate)
   CLLocationCoordinate2D northEast = [self CLLocationCoordinate2D:json[@"northEast"]];
   CLLocationCoordinate2D southWest = [self CLLocationCoordinate2D:json[@"southWest"]];
   return [[MFCoordinateBounds alloc] initWithCoordinate:northEast coordinate1:southWest];
+}
+
++ (RMFDirectionsMarkerOptions *)RMFDirectionsMarkerOptions:(id)json {
+  json = [self NSDictionary:json];
+  RMFDirectionsMarkerOptions* options = [[RMFDirectionsMarkerOptions alloc] init];
+  
+  if (json[@"coordinate"]) {
+    options.coordinate = [self CLLocationCoordinate2D:json[@"coordinate"]];
+  }
+  if (json[@"icon"]) {
+    options.icon = [self RMFIcon:json[@"icon"]];
+  }
+  if (json[@"title"]) {
+    options.title = [self NSString:json[@"title"]];
+  }
+  if (json[@"titleColor"]) {
+    options.titleColor = [self UIColor:json[@"titleColor"]];
+  }
+  if (json[@"visible"]) {
+    options.visible = [self BOOL:json[@"visible"]];
+  }
+  
+  return options;
 }
 
 @end
