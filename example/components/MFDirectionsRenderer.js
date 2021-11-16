@@ -98,6 +98,10 @@ class MFDirectionsRenderer extends React.Component {
     this._runCommand("setActivedIndex", [index])
   }
 
+  setRoutes(routes) {
+    this._runCommand("setRoutes", [routes])
+  }
+
   setDirections(directions) {
     this._runCommand("setDirections", [directions])
   }

@@ -7,6 +7,7 @@
 
 #import "RMFDirectionsRendererManager.h"
 #import "RMFDirectionsRenderer.h"
+#import "RCTConvert+Map4dMap.h"
 #import <React/RCTBridge.h>
 #import <React/RCTUIManager.h>
 
@@ -45,6 +46,20 @@ RCT_EXPORT_METHOD(setActivedIndex:(nonnull NSNumber *)reactTag
     } else {
       RMFDirectionsRenderer* renderer = (RMFDirectionsRenderer*)view;
       renderer.activedIndex = routeIndex;
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(setRoutes:(nonnull NSNumber *)reactTag
+                  withRoutes:(id)routes)
+{
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[RMFDirectionsRenderer class]]) {
+      RCTLogError(@"Invalid view returned from registry, expecting RMFPolygon, got: %@", view);
+    } else {
+      RMFDirectionsRenderer* renderer = (RMFDirectionsRenderer*)view;
+      [renderer setRoutes:[RCTConvert RMFCoordinateArrayArray:routes]];
     }
   }];
 }
