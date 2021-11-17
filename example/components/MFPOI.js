@@ -3,6 +3,7 @@ import React from 'react';
 import {
   requireNativeComponent,
   Platform,
+  Image,
   NativeModules,
   ViewPropTypes,
   ColorPropType,
@@ -48,7 +49,9 @@ const propTypes = {
   /**
    * POI icon to render.
    */
-  icon: PropTypes.any,
+  icon: PropTypes.shape({
+    uri: PropTypes.any.isRequired
+  }),
 
   /**
    * zIndex
@@ -106,7 +109,8 @@ class MFPOI extends React.Component {
     this._runCommand("setPoiType", [type])
   }
   setIcon(icon) {
-    this._runCommand("setIcon", [icon])
+    let uri = Image.resolveAssetSource(icon.uri) || { uri: icon.uri }
+    this._runCommand("setIcon", [ { uri: uri.uri } ])
   }
   setZIndex(zIndex) {
     this._runCommand("setZIndex", [zIndex])
@@ -160,13 +164,14 @@ class MFPOI extends React.Component {
   }
 
   render() {
-    let icon = {};
+    let icon = {}
     if (this.props.icon) {
-      icon = Image.resolveAssetSource(this.props.icon) || {};
+      let uri = Image.resolveAssetSource(this.props.icon.uri) || {uri: this.props.icon.uri}
+      icon = { uri: uri.uri }
     }
     return <RMFPOI
       {...this.props}
-      icon={icon.uri}
+      icon={icon}
       ref={this._ref}
       onPress={this._onPress}
     />;

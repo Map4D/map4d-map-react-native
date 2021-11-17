@@ -12,10 +12,11 @@
 #import <React/UIView+React.h>
 #import "RMFPOIMap4d.h"
 #import "RMFMapView.h"
+#import "RMFIcon.h"
 
 @interface RMFPOI : UIView
 
-@property (nonatomic, strong) RMFPOIMap4d * map4dPOI;
+@property (nonatomic, strong, nonnull) RMFPOIMap4d * map4dPOI;
 
 @property (nonatomic, copy) RCTBubblingEventBlock _Nullable onPress;
 
@@ -24,7 +25,7 @@
 @property (nonatomic, strong, nullable) UIColor* titleColor;
 @property (nonatomic, strong, nullable) NSString* subtitle;
 @property (nonatomic, strong, nullable) NSString* poiType;
-@property (nonatomic, copy, nullable) NSString *iconSrc;
+@property (nonatomic, copy, nullable) RMFIcon *icon;
 @property (nonatomic, assign) float zIndex;
 @property (nonatomic, assign) BOOL visible;
 @property (nonatomic, copy, nullable) NSDictionary * userData;

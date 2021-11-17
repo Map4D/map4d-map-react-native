@@ -10,10 +10,6 @@
 #import <Foundation/Foundation.h>
 #import "RMFEventResponse.h"
 
-@interface RMFPOI()
-@property (nonatomic, copy, nullable) UIImage* iconImage;
-@end
-
 @implementation RMFPOI
 
 - (instancetype)init {
@@ -26,7 +22,7 @@
     _titleColor = _map4dPOI.titleColor;
     _subtitle = nil;//_map4dPOI.subtitle;
     _poiType = nil;//_map4dPOI.type;
-    _iconSrc = nil;
+    _icon = nil;
     _zIndex = _map4dPOI.zIndex;
     _visible = true;//!_map4dPOI.isHidden;
     _userData = nil;
@@ -35,11 +31,6 @@
 }
 
 - (void)setMapView:(RMFMapView *)mapView {
-  if (mapView != nil && self.iconImage != nil) {
-    _map4dPOI.icon = [UIImage imageWithCGImage:self.iconImage.CGImage
-                                         scale:[mapView contentScaleFactor]
-                                   orientation:self.iconImage.imageOrientation];
-  }
   _map4dPOI.map = mapView;
 }
 
@@ -69,20 +60,21 @@
   _poiType = poiType;
   _map4dPOI.type = poiType;
 }
+- (void)setIcon:(RMFIcon *)icon {
+  _icon = icon;
+  if (icon == nil || icon.uri == nil) {
+    _map4dPOI.icon = nil;
+    return;
+  }
 
-- (void)setIconSrc:(NSString *)iconSrc {
-  _iconSrc = iconSrc;
   dispatch_async(dispatch_get_global_queue(0,0), ^{
-    NSData * imageData = [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString: iconSrc]];
+    NSData * imageData = [[NSData alloc] initWithContentsOfURL: [NSURL URLWithString: icon.uri]];
     if (imageData != nil) {
       dispatch_async(dispatch_get_main_queue(), ^{
         UIImage* icon = [UIImage imageWithData:imageData];
-        self->_iconImage = icon;
-        if (self->_map4dPOI.map != nil) {
-          self->_map4dPOI.icon = [UIImage imageWithCGImage:[icon CGImage]
-                                                     scale:[self->_map4dPOI.map contentScaleFactor]
-                                               orientation:icon.imageOrientation];
-        }
+        self->_map4dPOI.icon = [UIImage imageWithCGImage:[icon CGImage]
+                                                   scale:[UIScreen mainScreen].scale
+                                             orientation:icon.imageOrientation];
       });
     }
   });

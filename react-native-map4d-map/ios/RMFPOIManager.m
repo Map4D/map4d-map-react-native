@@ -8,6 +8,7 @@
 
 #import "RMFPOIManager.h"
 #import "RMFPOI.h"
+#import "RCTConvert+Map4dMap.h"
 #import <React/RCTBridge.h>
 #import <React/RCTUIManager.h>
 #import <React/RCTConvert+CoreLocation.h>
@@ -27,7 +28,7 @@ RCT_EXPORT_VIEW_PROPERTY(title, NSString)
 RCT_EXPORT_VIEW_PROPERTY(titleColor, UIColor)
 RCT_EXPORT_VIEW_PROPERTY(subtitle, NSString)
 RCT_EXPORT_VIEW_PROPERTY(poiType, NSString)
-RCT_REMAP_VIEW_PROPERTY(icon, iconSrc, NSString)
+RCT_EXPORT_VIEW_PROPERTY(icon, RMFIcon)
 RCT_EXPORT_VIEW_PROPERTY(zIndex, float)
 RCT_EXPORT_VIEW_PROPERTY(visible, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(userData, NSDictionary)
@@ -109,7 +110,7 @@ RCT_EXPORT_METHOD(setPoiType:(nonnull NSNumber *)reactTag
 }
 
 RCT_EXPORT_METHOD(setIcon:(nonnull NSNumber *)reactTag
-                  withIconSrc:(NSString*)iconSrc)
+                  withIcon:(id)json)
 {
   [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
     id view = viewRegistry[reactTag];
@@ -117,7 +118,7 @@ RCT_EXPORT_METHOD(setIcon:(nonnull NSNumber *)reactTag
       RCTLogError(@"Invalid view returned from registry, expecting RMFMarker, got: %@", view);
     } else {
       RMFPOI *poi = (RMFPOI *)view;
-      [poi setIconSrc:iconSrc];
+      [poi setIcon:[RCTConvert RMFIcon:json]];
     }
   }];
 }
