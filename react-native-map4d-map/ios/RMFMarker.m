@@ -48,7 +48,7 @@
     if (self.icon == nil) {
       _map4dMarker.icon = nil;
     } else {
-      _map4dMarker.icon = [UIImage imageWithCGImage:self.icon.image.CGImage scale:[mapView contentScaleFactor] orientation:self.icon.image.imageOrientation];
+      _map4dMarker.icon = [UIImage imageWithCGImage:self.icon.image.CGImage scale:[UIScreen mainScreen].scale orientation:self.icon.image.imageOrientation];
     }
   }
   _map4dMarker.map = mapView;
@@ -108,7 +108,7 @@
       dispatch_async(dispatch_get_main_queue(), ^{
         self->_icon.image = [UIImage imageWithData:imageData];
         if (self->_map4dMarker.map != nil) {
-          CGFloat scale = [self->_map4dMarker.map contentScaleFactor];
+          CGFloat scale = [UIScreen mainScreen].scale;
           self->_map4dMarker.icon = [UIImage imageWithCGImage:[self->_icon.image CGImage] scale:scale orientation:self->_icon.image.imageOrientation];
         }
       });
