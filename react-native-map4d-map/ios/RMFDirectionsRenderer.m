@@ -122,6 +122,7 @@
 - (void)setOriginPOIOptions:(RMFDirectionsMarkerOptions *)options {
   _originPOIOptions = options;
   
+  _map4dDirectionsRenderer.hideOriginPOI = !options.visible;
   _map4dDirectionsRenderer.originPosition = options.coordinate;
   _map4dDirectionsRenderer.originTitle = options.title;
   _map4dDirectionsRenderer.originTitleColor = options.titleColor;
@@ -148,6 +149,7 @@
 - (void)setDestinationPOIOptions:(RMFDirectionsMarkerOptions *)options {
   _destinationPOIOptions = options;
   
+  _map4dDirectionsRenderer.hideDestinationPOI = !options.visible;
   _map4dDirectionsRenderer.destinationPosition = options.coordinate;
   _map4dDirectionsRenderer.destinationTitle = options.title;
   _map4dDirectionsRenderer.destinationTitleColor = options.titleColor;

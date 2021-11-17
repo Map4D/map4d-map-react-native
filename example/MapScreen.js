@@ -258,11 +258,13 @@ export default class MapScreen extends React.Component {
               coordinate: { latitude: 16.079774, longitude: 108.220534 },
               title: "abc",
               titleColor: "#FF0000",
-              icon:{ uri: markerIcon1 }
+              icon:{ uri: markerIcon1 },
+              visible: true
             }}
             destinationPOIOptions={{
               title: "xyz",
-              icon:{ uri: markerIcon2 }
+              icon:{ uri: markerIcon2 },
+              visible: false
             }}
             onPress={
               (event) => {
