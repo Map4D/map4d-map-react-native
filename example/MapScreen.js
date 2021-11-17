@@ -366,15 +366,17 @@ export default class MapScreen extends React.Component {
             userData={{ten: "Dung", id: 10}}
             visible={true}
           />
+          */}
           <MFPOI ref={ref => this.poi = ref}
             userData={{name: "POI 1", arr:[1, 5, 9], obj:{x:10, y:11}}}
             coordinate={{latitude: 16.075671439786362, longitude: 108.22427988052367}}
             title="Map4D React-Native"
             titleColor="#00FF00FF"
-            poiType="cafe"
+            // poiType="cafe"
+            icon={{uri: markerIcon2}}
             onPress={this.onPressPOI}
             zIndex={10}
-          /> */}
+          />
           <MFPolyline ref={ref => this.polyline = ref}
             coordinates={[
               { longitude: 106.69870376586914, latitude: 10.787569188027405 },
@@ -425,7 +427,7 @@ export default class MapScreen extends React.Component {
         </MFMapView>
         <Button title={"Rotate image"} onPress={() => this.rotateImage()}>
         </Button>
-        <Button title={"Move Camera"} onPress={() => this.handleClick()}>
+        <Button title={"Click Action"} onPress={() => this.handleClick()}>
         </Button>
         <Button
         title="Go to Details"
