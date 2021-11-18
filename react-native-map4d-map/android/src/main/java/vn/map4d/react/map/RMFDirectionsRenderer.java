@@ -75,8 +75,14 @@ public class RMFDirectionsRenderer extends RMFFeature {
 
   private String endLabel;
 
-  private final DraweeHolder<?> logoHolder;
-  private DataSource<CloseableReference<CloseableImage>> dataSource;
+  private boolean originPOIVisible;
+
+  private boolean destinationPOIVisible;
+
+  private final DraweeHolder<?> startIconHolder;
+  private final DraweeHolder<?> endIconHolder;
+  private DataSource<CloseableReference<CloseableImage>> startIconDataSource;
+  private DataSource<CloseableReference<CloseableImage>> endIconDataSource;
   private final ControllerListener<ImageInfo> mStartIconControllerListener =
     new BaseControllerListener<ImageInfo>() {
       @Override
@@ -86,7 +92,7 @@ public class RMFDirectionsRenderer extends RMFFeature {
         @javax.annotation.Nullable Animatable animatable) {
         CloseableReference<CloseableImage> imageReference = null;
         try {
-          imageReference = dataSource.getResult();
+          imageReference = startIconDataSource.getResult();
           if (imageReference != null) {
             CloseableImage image = imageReference.get();
             if (image != null && image instanceof CloseableStaticBitmap) {
@@ -99,16 +105,15 @@ public class RMFDirectionsRenderer extends RMFFeature {
             }
           }
         } finally {
-          dataSource.close();
+          startIconDataSource.close();
           if (imageReference != null) {
             CloseableReference.closeSafely(imageReference);
           }
         }
 
-        /** Uncomment after implement setStartIcon() method in Core **/
-//        if (RMFDirectionsRenderer.this.directionsRenderer != null) {
-//          RMFDirectionsRenderer.this.directionsRenderer.setStartIcon(startIcon);
-//        }
+        if (RMFDirectionsRenderer.this.directionsRenderer != null) {
+          RMFDirectionsRenderer.this.directionsRenderer.setStartIcon(startIcon);
+        }
       }
     };
 
@@ -121,7 +126,7 @@ public class RMFDirectionsRenderer extends RMFFeature {
         @javax.annotation.Nullable Animatable animatable) {
         CloseableReference<CloseableImage> imageReference = null;
         try {
-          imageReference = dataSource.getResult();
+          imageReference = endIconDataSource.getResult();
           if (imageReference != null) {
             CloseableImage image = imageReference.get();
             if (image != null && image instanceof CloseableStaticBitmap) {
@@ -134,16 +139,15 @@ public class RMFDirectionsRenderer extends RMFFeature {
             }
           }
         } finally {
-          dataSource.close();
+          endIconDataSource.close();
           if (imageReference != null) {
             CloseableReference.closeSafely(imageReference);
           }
         }
 
-        /** Uncomment after implement setStartIcon() method in Core **/
-//        if (RMFDirectionsRenderer.this.directionsRenderer != null) {
-//          RMFDirectionsRenderer.this.directionsRenderer.setEndIcon(endIcon);
-//        }
+        if (RMFDirectionsRenderer.this.directionsRenderer != null) {
+          RMFDirectionsRenderer.this.directionsRenderer.setEndIcon(endIcon);
+        }
       }
     };
 
@@ -160,12 +164,16 @@ public class RMFDirectionsRenderer extends RMFFeature {
     inactiveStrokeColor = optionsDefault.getInactiveStrokeColor();
     inactiveOutlineColor = optionsDefault.getInactiveOutlineColor();
     titleColor = optionsDefault.getTitleColor();
+    originPOIVisible = optionsDefault.isOriginPOIVisible();
+    destinationPOIVisible = optionsDefault.isDestinationPOIVisible();
     startIcon = null;
     endIcon = null;
     startLabel = "";
     endLabel = "";
-    logoHolder = DraweeHolder.create(createDraweeHierarchy(), context);
-    logoHolder.onAttach();
+    startIconHolder = DraweeHolder.create(createDraweeHierarchy(), context);
+    startIconHolder.onAttach();
+    endIconHolder = DraweeHolder.create(createDraweeHierarchy(), context);
+    endIconHolder.onAttach();
   }
 
   private GenericDraweeHierarchy createDraweeHierarchy() {
@@ -226,8 +234,10 @@ public class RMFDirectionsRenderer extends RMFFeature {
       options.startIcon(startIcon);
     }
     if (endIcon != null) {
-      options.endIcon(null);
+      options.endIcon(endIcon);
     }
+    options.originPOIVisible(originPOIVisible);
+    options.destinationPOIVisible(destinationPOIVisible);
     options.activeStrokeColor(activeStrokeColor);
     options.activeOutlineColor(activeOutlineColor);
     options.inactiveStrokeColor(inactiveStrokeColor);
@@ -292,30 +302,65 @@ public class RMFDirectionsRenderer extends RMFFeature {
 
   public void setActiveStrokeColor(@ColorInt int color) {
     this.activeStrokeColor = color;
+    if (directionsRenderer != null) {
+      directionsRenderer.setActiveStrokeColor(color);
+    }
   }
 
   public void setActiveOutlineColor(@ColorInt int color) {
     this.activeOutlineColor = color;
+    if (directionsRenderer != null) {
+      directionsRenderer.setActiveOutlineColor(color);
+    }
   }
 
   public void setInactiveStrokeColor(@ColorInt int color) {
     this.inactiveStrokeColor = color;
+    if (directionsRenderer != null) {
+      directionsRenderer.setInactiveStrokeColor(color);
+    }
   }
 
   public void setInactiveOutlineColor(@ColorInt int color) {
     this.inactiveOutlineColor = color;
+    if (directionsRenderer != null) {
+      directionsRenderer.setInactiveOutlineColor(color);
+    }
   }
 
   public void setTitleColor(@ColorInt int color) {
     this.titleColor = color;
+    if (directionsRenderer != null) {
+      directionsRenderer.setTitleColor(color);
+    }
   }
 
   public void setStartLabel(@NonNull String label) {
     startLabel = label;
+    if (directionsRenderer != null) {
+      directionsRenderer.setStartLabel(startLabel);
+    }
   }
 
   public void setEndLabel(@NonNull String label) {
     endLabel = label;
+    if (directionsRenderer != null) {
+      directionsRenderer.setEndLabel(endLabel);
+    }
+  }
+
+  public void setOriginPOIVisible(boolean visible) {
+    originPOIVisible = visible;
+    if (directionsRenderer != null) {
+      directionsRenderer.setOriginPOIVisible(visible);
+    }
+  }
+
+  public void setDestinationPOIVisible(boolean visible) {
+    destinationPOIVisible = visible;
+    if (directionsRenderer != null) {
+      directionsRenderer.setDestinationPOIVisible(visible);
+    }
   }
 
   public void setStartIcon(String uri) {
@@ -329,13 +374,13 @@ public class RMFDirectionsRenderer extends RMFFeature {
         .build();
 
       ImagePipeline imagePipeline = Fresco.getImagePipeline();
-      dataSource = imagePipeline.fetchDecodedImage(imageRequest, this);
+      startIconDataSource = imagePipeline.fetchDecodedImage(imageRequest, this);
       DraweeController controller = Fresco.newDraweeControllerBuilder()
         .setImageRequest(imageRequest)
         .setControllerListener(mStartIconControllerListener)
-        .setOldController(logoHolder.getController())
+        .setOldController(startIconHolder.getController())
         .build();
-      logoHolder.setController(controller);
+      startIconHolder.setController(controller);
     }
   }
 
@@ -350,13 +395,77 @@ public class RMFDirectionsRenderer extends RMFFeature {
         .build();
 
       ImagePipeline imagePipeline = Fresco.getImagePipeline();
-      dataSource = imagePipeline.fetchDecodedImage(imageRequest, this);
+      endIconDataSource = imagePipeline.fetchDecodedImage(imageRequest, this);
       DraweeController controller = Fresco.newDraweeControllerBuilder()
         .setImageRequest(imageRequest)
         .setControllerListener(mEndIconControllerListener)
-        .setOldController(logoHolder.getController())
+        .setOldController(endIconHolder.getController())
         .build();
-      logoHolder.setController(controller);
+      endIconHolder.setController(controller);
+    }
+  }
+
+  public void setOriginPOIOptions(ReadableMap map) {
+    if (map == null) {
+      return;
+    }
+
+    if (map.hasKey("coordinate")) {
+      ReadableMap coordinate = map.getMap("coordinate");
+      this.setStartLocation(coordinate);
+    }
+
+    if (map.hasKey("icon")) {
+      ReadableMap icon = map.getMap("icon");
+      if (icon.hasKey("uri")) {
+        String uri = icon.getString("uri");
+        this.setStartIcon(uri);
+      }
+    }
+
+    if (map.hasKey("title")) {
+      String title = map.getString("title");
+      this.setStartLabel(title);
+    }
+
+    if (map.hasKey("titleColor")) {
+      this.setTitleColor(map.getInt("titleColor"));
+    }
+
+    if (map.hasKey("visible")) {
+      this.setOriginPOIVisible(map.getBoolean("visible"));
+    }
+  }
+
+  public void setDestinationPOIOptions(ReadableMap map) {
+    if (map == null) {
+      return;
+    }
+
+    if (map.hasKey("coordinate")) {
+      ReadableMap coordinate = map.getMap("coordinate");
+      this.setEndLocation(coordinate);
+    }
+
+    if (map.hasKey("icon")) {
+      ReadableMap icon = map.getMap("icon");
+      if (icon.hasKey("uri")) {
+        String uri = icon.getString("uri");
+        this.setEndIcon(uri);
+      }
+    }
+
+    if (map.hasKey("title")) {
+      String title = map.getString("title");
+      this.setEndLabel(title);
+    }
+
+    if (map.hasKey("titleColor")) {
+      this.setTitleColor(map.getInt("titleColor"));
+    }
+
+    if (map.hasKey("visible")) {
+      this.setDestinationPOIVisible(map.getBoolean("visible"));
     }
   }
 }

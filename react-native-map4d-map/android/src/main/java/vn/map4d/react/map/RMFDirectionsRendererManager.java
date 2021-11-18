@@ -97,16 +97,6 @@ public class RMFDirectionsRendererManager extends ViewGroupManager<RMFDirections
     view.setJsonData(jsonData);
   }
 
-  @ReactProp(name = "startLocation")
-  public void setStartLocation(RMFDirectionsRenderer view, ReadableMap map) {
-    view.setStartLocation(map);
-  }
-
-  @ReactProp(name = "endLocation")
-  public void setEndLocation(RMFDirectionsRenderer view, ReadableMap map) {
-    view.setEndLocation(map);
-  }
-
   @ReactProp(name = "activedIndex")
   public void setActivedIndex(final RMFDirectionsRenderer view, final int activedIndex) {
     view.setActivedIndex(activedIndex);
@@ -141,28 +131,13 @@ public class RMFDirectionsRendererManager extends ViewGroupManager<RMFDirections
     view.setInactiveOutlineColor(color);
   }
 
-  @ReactProp(name = "titleColor", customType = "Color")
-  public void setTitleColor(final RMFDirectionsRenderer view, @ColorInt final int color) {
-    view.setTitleColor(color);
+  @ReactProp(name = "originPOIOptions")
+  public void setOriginPOIOptions(RMFDirectionsRenderer view, ReadableMap map) {
+    view.setOriginPOIOptions(map);
   }
 
-  @ReactProp(name = "startLabel")
-  public void setStartLabel(final RMFDirectionsRenderer view, @NonNull final String label) {
-    view.setStartLabel(label);
-  }
-
-  @ReactProp(name = "endLabel")
-  public void setEndLabel(final RMFDirectionsRenderer view, @NonNull final String label) {
-    view.setEndLabel(label);
-  }
-
-  @ReactProp(name = "startIcon")
-  public void setStartIcon(final RMFDirectionsRenderer view, final String icon) {
-    view.setStartIcon(icon);
-  }
-
-  @ReactProp(name = "endIcon")
-  public void setEndIcon(final RMFDirectionsRenderer view, final String icon) {
-    view.setEndIcon(icon);
+  @ReactProp(name = "destinationPOIOptions")
+  public void setDestinationPOIOptions(RMFDirectionsRenderer view, ReadableMap map) {
+    view.setDestinationPOIOptions(map);
   }
 }
