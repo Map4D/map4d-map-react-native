@@ -16,7 +16,7 @@
     "@react-navigation/native": "^5.7.0",
     "@react-navigation/stack": "^5.7.0",
     "react-native-gesture-handler": "^1.6.1",
-    "react-native-map4d-map": "1.0.5",
+    "react-native-map4d-map": "2.1.0",
     "react-native-navigation": "^6.9.1",
     "react-native-reanimated": "^1.9.0",
     "react-native-safe-area-context": "^3.1.1",
