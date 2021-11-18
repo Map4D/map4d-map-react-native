@@ -2,29 +2,16 @@ package vn.map4d.react.map;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.AttributeSet;
-import android.view.View;
-import android.widget.Button;
-import android.view.ViewTreeObserver;
 
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.uimanager.events.RCTEventEmitter;
 
 import vn.map4d.map.core.*;
 import vn.map4d.map.annotations.*;
 
-import android.util.Log;
-import android.graphics.Color;
 import androidx.annotation.ColorInt;
 
-import vn.map4d.map.camera.*;
 import vn.map4d.types.MFLocationCoordinate;
-import vn.map4d.map.camera.MFCameraPosition;
 
 import java.util.ArrayList;
 import java.util.List;

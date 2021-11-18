@@ -12,10 +12,6 @@ import androidx.annotation.ColorInt;
 import java.util.Map;
 import java.util.HashMap;
 
-import vn.map4d.types.MFLocationCoordinate;
-import vn.map4d.map.annotations.*;
-
-
 public class RMFPOIManager extends ViewGroupManager<RMFPOI> {
   private static final int k_setCoordinate = 1;
   private static final int k_setTitle = k_setCoordinate + 1;

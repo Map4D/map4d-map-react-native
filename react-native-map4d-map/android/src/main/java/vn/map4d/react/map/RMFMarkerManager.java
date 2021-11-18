@@ -5,7 +5,6 @@ import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 import android.view.View;
-import android.util.Log;
 
 import com.facebook.react.uimanager.ViewGroupManager;
 import com.facebook.react.uimanager.ThemedReactContext;
@@ -18,10 +17,6 @@ import androidx.annotation.Nullable;
 
 import java.util.Map;
 import java.util.HashMap;
-
-import vn.map4d.types.MFLocationCoordinate;
-import vn.map4d.map.annotations.*;
-
 
 public class RMFMarkerManager extends ViewGroupManager<RMFMarker> {
   private final DisplayMetrics metrics;

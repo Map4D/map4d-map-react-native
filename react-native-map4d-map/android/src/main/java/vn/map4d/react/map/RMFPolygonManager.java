@@ -17,10 +17,6 @@ import androidx.annotation.ColorInt;
 import java.util.Map;
 import java.util.HashMap;
 
-import vn.map4d.types.MFLocationCoordinate;
-import vn.map4d.map.annotations.*;
-
-
 public class RMFPolygonManager extends ViewGroupManager<RMFPolygon> {
   private final DisplayMetrics metrics;
 
