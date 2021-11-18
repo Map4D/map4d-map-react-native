@@ -229,7 +229,7 @@ export default class MapScreen extends React.Component {
           showsBuildings={true}
           showsPOIs={true}
           camera={{
-            center: { latitude: 16.078814, longitude: 108.221592 },
+            center: { latitude: 16.077491, longitude: 108.221735 },
             // center: {latitude: 10.7881732, longitude: 106.7000933},
             zoom: 16,
             bearing: 0,
@@ -252,25 +252,26 @@ export default class MapScreen extends React.Component {
               ]
             ]}
             activedIndex={1}
-            activeStrokeWidth={12}
-            activeStrokeColor="#FF0000"
-            activeOutlineWidth={5}
-            activeOutlineColor="#00FF00"
-            inactiveStrokeWidth={12}
-            inactiveStrokeColor="#0000FF"
-            inactiveOutlineWidth={5}
-            inactiveOutlineColor="#FF00FF"
+            activeStrokeWidth={10}
+            activeStrokeColor="#edf75c"
+            activeOutlineWidth={2}
+            activeOutlineColor="#e3b314"
+            inactiveStrokeWidth={10}
+            inactiveStrokeColor="#3d1294"
+            inactiveOutlineWidth={1}
+            inactiveOutlineColor="#1f113b"
             originPOIOptions={{
               coordinate: { latitude: 16.079774, longitude: 108.220534 },
-              title: "abc",
-              titleColor: "#FF0000",
-              icon:{ uri: markerIcon1 },
+              title: "Begin Position",
+              titleColor: "#ff0000",
+              icon:{ uri: require('./assets/marker-pink.png') },
               visible: true
             }}
             destinationPOIOptions={{
-              title: "xyz",
-              icon:{ uri: markerIcon2 },
-              visible: false
+              title: "End",
+              titleColor: "#0c4503",
+              icon:{ uri: require('./assets/marker-green.png') },
+              visible: true
             }}
             onPress={
               (event) => {
