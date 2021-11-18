@@ -3,7 +3,7 @@
 //  Map4dMap
 //
 //  Created by Huy Dang on 10/7/20.
-//  Copyright © 2020 Facebook. All rights reserved.
+//  Copyright © 2020 IOTLink. All rights reserved.
 //
 
 #import "RMFPolygonManager.h"
