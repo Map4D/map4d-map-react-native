@@ -22,7 +22,7 @@ Map4dMap SDK for React Native
   s.requires_arc = true
 
   s.dependency "React"
-  s.dependency "Map4dMap", "~> 2.0.0"
+  s.dependency "Map4dMap", "~> 2.0.4"
   # ...
   # s.dependency "..."
 end
