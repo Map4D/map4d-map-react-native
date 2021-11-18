@@ -12,9 +12,6 @@ import androidx.annotation.ColorInt;
 import java.util.Map;
 import java.util.HashMap;
 
-import vn.map4d.types.MFLocationCoordinate;
-import vn.map4d.map.annotations.*;
-
 
 public class RMFCircleManager extends ViewGroupManager<RMFCircle> {
     private static final int k_setCenter = 1;
@@ -66,9 +63,9 @@ public class RMFCircleManager extends ViewGroupManager<RMFCircle> {
 
     @Override
     public Map getExportedCustomDirectEventTypeConstants() {
-      Map<String, Map<String, String>> map = MapBuilder.of(        
-        "onPress", MapBuilder.of("registrationName", "onPress")      
-      );      
+      Map<String, Map<String, String>> map = MapBuilder.of(
+        "onPress", MapBuilder.of("registrationName", "onPress")
+      );
       return map;
     }
 

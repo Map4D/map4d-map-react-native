@@ -32,6 +32,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   private final Map<MFPolyline, RMFPolyline> polylineMap = new HashMap<>();
   private final Map<MFPolygon, RMFPolygon> polygonMap = new HashMap<>();
   private final Map<Long, RMFPOI> poiMap = new HashMap<>();
+  private final Map<MFDirectionsRenderer, RMFDirectionsRenderer> directionsRendererMap = new HashMap<>();
 
   private ViewAttacherGroup attacherGroup;
 
@@ -150,6 +151,19 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         WritableMap event = getPolygonEventData(polygon);
         event.putString("action", "polygon-press");
         manager.pushEvent(getContext(), rctPolygon, "onPress", event);
+      }
+    });
+
+    map.setOnDirectionsClickListener(new Map4D.OnDirectionsClickListener() {
+      @Override
+      public void onDirectionsClick(MFDirectionsRenderer directionsRenderer, int i) {
+        RMFDirectionsRenderer rctDirectionsRenderer = directionsRendererMap.get(directionsRenderer);
+        if (rctDirectionsRenderer == null) {
+          return;
+        }
+        WritableMap event = getDirectionsRendererEventData(directionsRenderer, i);
+        event.putString("action", "directions-press");
+        manager.pushEvent(getContext(), rctDirectionsRenderer, "onPress", event);
       }
     });
 
@@ -384,6 +398,17 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     return event;
   }
 
+  private WritableMap getDirectionsRendererEventData(MFDirectionsRenderer directionsRenderer, int i) {
+    WritableMap event = new WritableNativeMap();
+    WritableMap location = new WritableNativeMap();
+    MFLocationCoordinate coordinate = directionsRenderer.getPaths().get(0).get(0);
+    location.putDouble("latitude", coordinate.getLatitude());
+    location.putDouble("longitude", coordinate.getLongitude());
+    event.putMap("coordinate", location);
+    event.putInt("index", i);
+    return event;
+  }
+
   private WritableMap getCameraMap() {
     WritableMap event = new WritableNativeMap();
     MFCameraPosition pos = map.getCameraPosition();
@@ -583,6 +608,21 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       MFPOI poi = (MFPOI) annotation.getFeature();
       poiMap.put(poi.getId(), annotation);
     }
+    else if (child instanceof RMFDirectionsRenderer) {
+      RMFDirectionsRenderer annotation = (RMFDirectionsRenderer) child;
+      annotation.addToMap(map);
+      features.add(index, annotation);
+
+      // Remove from a view group if already present, prevent "specified child
+      // already had a parent" error.
+      ViewGroup annotationParent = (ViewGroup) annotation.getParent();
+      if (annotationParent != null) {
+        annotationParent.removeView(annotation);
+      }
+
+      MFDirectionsRenderer directionsRenderer = (MFDirectionsRenderer) annotation.getFeature();
+      directionsRendererMap.put(directionsRenderer, annotation);
+    }
     else if (child instanceof ViewGroup) {
       ViewGroup children = (ViewGroup) child;
       for (int i = 0; i < children.getChildCount(); i++) {
@@ -617,6 +657,9 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     else if (feature instanceof RMFPOI) {
       MFPOI poi = (MFPOI) feature.getFeature();
       poiMap.remove(poi.getId());
+    }
+    else if (feature instanceof RMFDirectionsRenderer) {
+      directionsRendererMap.remove(feature.getFeature());
     }
     feature.removeFromMap(map);
   }

@@ -443,11 +443,8 @@ export default class MapScreen extends React.Component {
                 }
               }
             }
-
-        })
-          
-      }
-    }
+          })}
+        }
       />
 
       <Image source={require('./assets/compass.png')}

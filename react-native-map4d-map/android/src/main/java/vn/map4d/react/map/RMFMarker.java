@@ -3,20 +3,12 @@ package vn.map4d.react.map;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Canvas;
-import android.util.AttributeSet;
 import android.view.View;
-import android.widget.Button;
-import android.view.ViewTreeObserver;
 import android.graphics.drawable.Animatable;
 import android.graphics.Bitmap;
 import android.net.Uri;
 
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.uimanager.events.RCTEventEmitter;
 
 import com.facebook.common.references.CloseableReference;
 import com.facebook.datasource.DataSource;
@@ -39,11 +31,7 @@ import com.facebook.imagepipeline.common.ResizeOptions;
 import vn.map4d.map.core.*;
 import vn.map4d.map.annotations.*;
 
-import android.util.Log;
-
-import vn.map4d.map.camera.*;
 import vn.map4d.types.MFLocationCoordinate;
-import vn.map4d.map.camera.MFCameraPosition;
 
 import javax.annotation.Nullable;
 

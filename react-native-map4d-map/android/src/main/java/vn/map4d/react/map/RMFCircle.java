@@ -1,31 +1,17 @@
 package vn.map4d.react.map;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.util.AttributeSet;
-import android.view.View;
-import android.widget.Button;
-import android.view.ViewTreeObserver;
 
 import androidx.annotation.ColorInt;
 
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.uimanager.events.RCTEventEmitter;
 
 import vn.map4d.map.core.*;
 import vn.map4d.map.annotations.*;
 
-import android.util.Log;
-
-import vn.map4d.map.camera.*;
 import vn.map4d.types.MFLocationCoordinate;
-import vn.map4d.map.camera.MFCameraPosition;
 
-public class RMFCircle extends RMFFeature {       
+public class RMFCircle extends RMFFeature {
     private MFCircle circle;
     private MFLocationCoordinate position;
     private Double radius;
@@ -109,8 +95,7 @@ public void setVisible(Boolean data) {
     .strokeColor(strokeColor)
     .strokeWidth((float)strokeWidth)
     .zIndex((float)zIndex)
-    .visible(visible)
-    ;    
+    .visible(visible);
     return options;
   }
    public Object getFeature() {
