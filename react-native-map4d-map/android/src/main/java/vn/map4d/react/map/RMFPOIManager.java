@@ -52,7 +52,7 @@ public class RMFPOIManager extends ViewGroupManager<RMFPOI> {
           view.setType(args.getString(0));
           break;
         case k_setIcon:
-          view.setIcon(args.getString(0));
+          view.setIcon(args.getMap(0));
           break;
         case k_setZIndex:
           view.setZIndex(args.getDouble(0));
@@ -102,7 +102,7 @@ public class RMFPOIManager extends ViewGroupManager<RMFPOI> {
   }
 
   @ReactProp(name = "icon")
-  public void setIcon(RMFPOI view, String icon) {
+  public void setIcon(RMFPOI view, ReadableMap icon) {
     view.setIcon(icon);
   }
 

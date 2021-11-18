@@ -135,7 +135,12 @@ public class RMFPOI extends RMFFeature {
     }
   }
 
-  public void setIcon(String uri) {
+  public void setIcon(ReadableMap map) {
+    String uri = null;
+    if (map.hasKey("uri")) {
+      uri = map.getString("uri");
+    }
+
     if (uri == null) {
       iconBitmapDescriptor = null;
     }
