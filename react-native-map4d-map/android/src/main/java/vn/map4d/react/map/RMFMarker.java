@@ -1,8 +1,10 @@
 package vn.map4d.react.map;
 
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.graphics.drawable.Animatable;
 import android.graphics.Bitmap;
@@ -144,6 +146,20 @@ public class RMFMarker extends RMFFeature {
         .setOldController(logoHolder.getController())
         .build();
       logoHolder.setController(controller);
+    }
+    else {
+      iconBitmapDescriptor = ImageUtils.getBitmapDescriptorByName(this, uri);
+      if (iconBitmapDescriptor != null) {
+        int drawableId = ImageUtils.getDrawableResourceByName(this, uri);
+        iconBitmap = BitmapFactory.decodeResource(getResources(), drawableId);
+        if (iconBitmap == null) { // VectorDrawable or similar
+          Drawable drawable = getResources().getDrawable(drawableId);
+          iconBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+          drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+          Canvas canvas = new Canvas(iconBitmap);
+          drawable.draw(canvas);
+        }
+      }
     }
   }
 
