@@ -2,7 +2,10 @@ package vn.map4d.react.map;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.drawable.Animatable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 
 import androidx.annotation.ColorInt;
@@ -382,6 +385,20 @@ public class RMFDirectionsRenderer extends RMFFeature {
         .build();
       startIconHolder.setController(controller);
     }
+    else {
+      startIcon = ImageUtils.getBitmapDescriptorByName(this, uri);
+      if (startIcon != null) {
+        int drawableId = ImageUtils.getDrawableResourceByName(this, uri);
+        Bitmap iconBitmap = BitmapFactory.decodeResource(getResources(), drawableId);
+        if (iconBitmap == null) { // VectorDrawable or similar
+          Drawable drawable = getResources().getDrawable(drawableId);
+          iconBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+          drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+          Canvas canvas = new Canvas(iconBitmap);
+          drawable.draw(canvas);
+        }
+      }
+    }
   }
 
   public void setEndIcon(String uri) {
@@ -402,6 +419,20 @@ public class RMFDirectionsRenderer extends RMFFeature {
         .setOldController(endIconHolder.getController())
         .build();
       endIconHolder.setController(controller);
+    }
+    else {
+      endIcon = ImageUtils.getBitmapDescriptorByName(this, uri);
+      if (endIcon != null) {
+        int drawableId = ImageUtils.getDrawableResourceByName(this, uri);
+        Bitmap iconBitmap = BitmapFactory.decodeResource(getResources(), drawableId);
+        if (iconBitmap == null) { // VectorDrawable or similar
+          Drawable drawable = getResources().getDrawable(drawableId);
+          iconBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+          drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+          Canvas canvas = new Canvas(iconBitmap);
+          drawable.draw(canvas);
+        }
+      }
     }
   }
 
