@@ -1,7 +1,7 @@
 {
   "name": "react-native-map4d-map",
   "title": "React Native Map4dMap",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Map4dMap SDK for React Native",
   "main": "index.js",
   "scripts": {
