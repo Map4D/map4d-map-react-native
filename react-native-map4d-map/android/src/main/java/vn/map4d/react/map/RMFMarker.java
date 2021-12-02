@@ -148,14 +148,14 @@ public class RMFMarker extends RMFFeature {
       logoHolder.setController(controller);
     }
     else {
-      iconBitmapDescriptor = ImageUtils.getBitmapDescriptorByName(this, uri);
+      iconBitmapDescriptor = ImageUtils.getBitmapByName(this, uri, width, height);
       if (iconBitmapDescriptor != null) {
         int drawableId = ImageUtils.getDrawableResourceByName(this, uri);
         iconBitmap = BitmapFactory.decodeResource(getResources(), drawableId);
         if (iconBitmap == null) { // VectorDrawable or similar
           Drawable drawable = getResources().getDrawable(drawableId);
-          iconBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-          drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+          iconBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+          drawable.setBounds(0, 0, width, height);
           Canvas canvas = new Canvas(iconBitmap);
           drawable.draw(canvas);
         }
