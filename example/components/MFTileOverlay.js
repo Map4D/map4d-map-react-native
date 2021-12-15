@@ -1,6 +1,10 @@
 import PropTypes from "prop-types";
 import React from 'react';
-import { ViewPropTypes, View } from "react-native";
+import {
+  requireNativeComponent,
+  View,
+  ViewPropTypes,
+} from 'react-native';
 
 // if ViewPropTypes is not defined fall back to View.propType (to support RN < 0.44)
 const viewPropTypes = ViewPropTypes || View.propTypes;
