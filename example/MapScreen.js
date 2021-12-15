@@ -24,6 +24,7 @@ import {MFPolyline} from './components/MFPolyline'
 import {MFPolygon} from './components/MFPolygon'
 import {MFPOI} from './components/MFPOI'
 import {MFDirectionsRenderer} from './components/MFDirectionsRenderer'
+import {MFTileOverlay} from './components/MFTileOverlay'
 import { Navigation } from 'react-native-navigation';
 
 //From NPM
@@ -236,6 +237,7 @@ export default class MapScreen extends React.Component {
             tilt: 0,
           }}
           >
+          <MFTileOverlay urlTemplate="http://c.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
           <MFDirectionsRenderer
             ref={ref => this.directions = ref}
             routes={[
