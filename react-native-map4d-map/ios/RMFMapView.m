@@ -19,6 +19,7 @@
 #import "RMFPOI.h"
 #import "RMFDirectionsRenderer.h"
 #import "RMFTileOverlay.h"
+#import "RMFGroundOverlay.h"
 #import "RMFEventResponse.h"
 
 @class GLKView;
@@ -83,6 +84,10 @@
     RMFTileOverlay* overlay = (RMFTileOverlay*)subview;
     [overlay setMapView:self];
   }
+  else if ([subview isKindOfClass:[RMFGroundOverlay class]]) {
+    RMFGroundOverlay* overlay = (RMFGroundOverlay*)subview;
+    [overlay setMapView:self];
+  }
   else {
     NSArray<id<RCTComponent>> *childSubviews = [subview reactSubviews];
     for (int i = 0; i < childSubviews.count; i++) {
@@ -124,7 +129,10 @@
   else if ([subview isKindOfClass:[RMFTileOverlay class]]) {
     RMFTileOverlay* overlay = (RMFTileOverlay*)subview;
     [overlay setMapView:nil];
-    
+  }
+  else if ([subview isKindOfClass:[RMFGroundOverlay class]]) {
+    RMFGroundOverlay* overlay = (RMFGroundOverlay*)subview;
+    [overlay setMapView:nil];
   }
   else {
     NSArray<id<RCTComponent>> *childSubviews = [subview reactSubviews];

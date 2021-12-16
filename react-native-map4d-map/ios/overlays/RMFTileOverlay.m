@@ -26,7 +26,6 @@
   }
   url = [url stringByReplacingOccurrencesOfString:@"{x}" withString:[@(x) stringValue]];
   url = [url stringByReplacingOccurrencesOfString:@"{y}" withString:[@(y) stringValue]];
-  NSLog(@"ovl | get tile: %s", [url UTF8String]);
   return [NSURL URLWithString:url];
 }
 
@@ -45,12 +44,10 @@
 }
 
 - (void)setMapView:(RMFMapView *)mapView {
-  NSLog(@"ovl | set map view");
   _urlTileLayer.map = mapView;
 }
 
 - (void)setUrlTemplate:(NSString *)urlTemplate {
-  NSLog(@"ovl | set url: %s", [urlTemplate UTF8String]);
   _urlTemplate = urlTemplate;
   if (_urlTileLayer.map != nil) {
     [_urlTileLayer clearTileCache];

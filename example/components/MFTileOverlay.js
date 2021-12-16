@@ -15,7 +15,7 @@ const propTypes = {
    * The url template of the tile server. The patterns {x} {y} {z} will be replaced at runtime
    * For example, https://tile.openstreetmap.de/{z}/{x}/{y}.png
    */
-   urlTemplate: PropTypes.string.isRequired,
+  urlTemplate: PropTypes.string.isRequired,
 
   /**
    * visible

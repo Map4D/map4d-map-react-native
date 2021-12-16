@@ -231,20 +231,24 @@ export default class MapScreen extends React.Component {
           showsBuildings={true}
           showsPOIs={true}
           camera={{
-            center: { latitude: 16.077491, longitude: 108.221735 },
+            center: { latitude: 16.075671439786362, longitude: 108.19833755493164 },
+            // center: { latitude: 16.077491, longitude: 108.221735 },
             // center: {latitude: 10.7881732, longitude: 106.7000933},
             zoom: 16,
             bearing: 0,
             tilt: 0,
           }}
           >
-          {/* <MFTileOverlay urlTemplate="https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"/> */}
+          {/* <MFTileOverlay urlTemplate="https://tile.openstreetmap.de/{z}/{x}/{y}.png"/> */}
           <MFGroundOverlay
-            urlTemplate="https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            urlTemplate="https://tile.openstreetmap.de/{z}/{x}/{y}.png"
             bounds={{
-              northEast: { latitude: 16.067588780844506, longitude: 108.18391799926758 },
-              southWest: { latitude: 16.075671439786362, longitude: 108.19833755493164 }
+              northEast: { latitude: 16.075671439786362, longitude: 108.19833755493164 },
+              southWest: { latitude: 16.067588780844506, longitude: 108.18391799926758 },
             }}
+            override={true}
+            zIndex={10}
+            visible={true}
           />
           <MFDirectionsRenderer
             ref={ref => this.directions = ref}
