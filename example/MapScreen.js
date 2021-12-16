@@ -237,7 +237,7 @@ export default class MapScreen extends React.Component {
             tilt: 0,
           }}
           >
-          <MFTileOverlay urlTemplate="http://c.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
+          <MFTileOverlay urlTemplate="https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
           <MFDirectionsRenderer
             ref={ref => this.directions = ref}
             routes={[

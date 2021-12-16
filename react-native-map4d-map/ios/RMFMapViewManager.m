@@ -244,6 +244,19 @@ RCT_EXPORT_METHOD(enable3DMode:(nonnull NSNumber *)reactTag
   }];
 }
 
+RCT_EXPORT_METHOD(showsMyLocationButton:(nonnull NSNumber *)reactTag
+                  enable:(BOOL)enable) {
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[RMFMapView class]]) {
+
+    } else {
+      RMFMapView *mapView = (RMFMapView *)view;
+      mapView.settings.myLocationButton = enable;
+    }
+  }];
+}
+
 RCT_EXPORT_METHOD(setMyLocationEnabled:(nonnull NSNumber *)reactTag
                   enable:(BOOL)enable) {
   [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
