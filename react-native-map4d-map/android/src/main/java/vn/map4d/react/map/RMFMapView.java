@@ -1,6 +1,8 @@
 package vn.map4d.react.map;
 
 import android.content.Context;
+import android.graphics.Point;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -40,6 +42,9 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
 
   private ViewAttacherGroup attacherGroup;
 
+  private float touchPointX = 0.f;
+  private float touchPointY = 0.f;
+
   public RMFMapView(Context context, RMFMapViewManager manager) {
     super(context, null);
     this.manager = manager;
@@ -58,7 +63,16 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   }
 
   @Override
-  public void onMapReady(Map4D map) {
+  public boolean onTouchEvent(MotionEvent event) {
+    if(event.getAction() == MotionEvent.ACTION_DOWN) {
+      touchPointX = event.getX();
+      touchPointY = event.getY();
+    }
+    return super.onTouchEvent(event);
+  }
+
+  @Override
+  public void onMapReady(final Map4D map) {
     this.map = map;
     final RMFMapView view = this;
 
@@ -316,9 +330,21 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   private WritableMap getCircleEventData(MFCircle circle) {
     WritableMap event = new WritableNativeMap();
     WritableMap location = new WritableNativeMap();
-    location.putDouble("latitude", circle.getCenter().getLatitude());
-    location.putDouble("longitude", circle.getCenter().getLongitude());
+
+    WritableMap screenCoordinate = new WritableNativeMap();
+    screenCoordinate.putDouble("x", touchPointX);
+    screenCoordinate.putDouble("y", touchPointY);
+
+    MFLocationCoordinate coordinate =
+      map.getProjection().coordinateForPoint(
+        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+      );
+    location.putDouble("latitude", coordinate.getLatitude());
+    location.putDouble("longitude", coordinate.getLongitude());
+
     event.putMap("coordinate", location);
+    event.putMap("location", screenCoordinate);
+
     Object userData = circle.getUserData();
     if (userData != null) {
       String userDataByString = "";
@@ -333,12 +359,25 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
 
   private WritableMap getPOIEventData(MFPOI poi) {
     WritableMap event = new WritableNativeMap();
-    WritableMap location = new WritableNativeMap();
-    location.putDouble("latitude", poi.getPosition().getLatitude());
-    location.putDouble("longitude", poi.getPosition().getLongitude());
     event.putDouble("poiId", poi.getId());
     event.putString("title", poi.getTitle());
+
+    WritableMap location = new WritableNativeMap();
+
+    WritableMap screenCoordinate = new WritableNativeMap();
+    screenCoordinate.putDouble("x", touchPointX);
+    screenCoordinate.putDouble("y", touchPointY);
+
+    MFLocationCoordinate coordinate =
+      map.getProjection().coordinateForPoint(
+        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+      );
+    location.putDouble("latitude", coordinate.getLatitude());
+    location.putDouble("longitude", coordinate.getLongitude());
+
     event.putMap("coordinate", location);
+    event.putMap("location", screenCoordinate);
+
     return event;
   }
 
@@ -346,9 +385,21 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   private WritableMap getMarkerEventData(MFMarker marker) {
     WritableMap event = new WritableNativeMap();
     WritableMap location = new WritableNativeMap();
-    location.putDouble("latitude", marker.getPosition().getLatitude());
-    location.putDouble("longitude", marker.getPosition().getLongitude());
+
+    WritableMap screenCoordinate = new WritableNativeMap();
+    screenCoordinate.putDouble("x", touchPointX);
+    screenCoordinate.putDouble("y", touchPointY);
+
+    MFLocationCoordinate coordinate =
+      map.getProjection().coordinateForPoint(
+        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+      );
+    location.putDouble("latitude", coordinate.getLatitude());
+    location.putDouble("longitude", coordinate.getLongitude());
+
     event.putMap("coordinate", location);
+    event.putMap("location", screenCoordinate);
+
     Object userData = marker.getUserData();
 
     if (userData != null) {
@@ -365,10 +416,21 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   private WritableMap getPolylineEventData(MFPolyline polyline) {
     WritableMap event = new WritableNativeMap();
     WritableMap location = new WritableNativeMap();
-    MFLocationCoordinate coordinate = polyline.getPoints().get(0);
+
+    WritableMap screenCoordinate = new WritableNativeMap();
+    screenCoordinate.putDouble("x", touchPointX);
+    screenCoordinate.putDouble("y", touchPointY);
+
+    MFLocationCoordinate coordinate =
+      map.getProjection().coordinateForPoint(
+        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+      );
     location.putDouble("latitude", coordinate.getLatitude());
     location.putDouble("longitude", coordinate.getLongitude());
+
     event.putMap("coordinate", location);
+    event.putMap("location", screenCoordinate);
+
     Object userData = polyline.getUserData();
 
     if (userData != null) {
@@ -385,10 +447,21 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   private WritableMap getPolygonEventData(MFPolygon polygon) {
     WritableMap event = new WritableNativeMap();
     WritableMap location = new WritableNativeMap();
-    MFLocationCoordinate coordinate = polygon.getPoints().get(0);
+
+    WritableMap screenCoordinate = new WritableNativeMap();
+    screenCoordinate.putDouble("x", touchPointX);
+    screenCoordinate.putDouble("y", touchPointY);
+
+    MFLocationCoordinate coordinate =
+      map.getProjection().coordinateForPoint(
+        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+      );
     location.putDouble("latitude", coordinate.getLatitude());
     location.putDouble("longitude", coordinate.getLongitude());
+
     event.putMap("coordinate", location);
+    event.putMap("location", screenCoordinate);
+
     Object userData = polygon.getUserData();
 
     if (userData != null) {
