@@ -25,6 +25,7 @@ import {MFPolygon} from './components/MFPolygon'
 import {MFPOI} from './components/MFPOI'
 import {MFDirectionsRenderer} from './components/MFDirectionsRenderer'
 import {MFTileOverlay} from './components/MFTileOverlay'
+import {MFGroundOverlay} from './components/MFGroundOverlay'
 import { Navigation } from 'react-native-navigation';
 
 //From NPM
@@ -237,7 +238,14 @@ export default class MapScreen extends React.Component {
             tilt: 0,
           }}
           >
-          <MFTileOverlay urlTemplate="https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"/>
+          {/* <MFTileOverlay urlTemplate="https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"/> */}
+          <MFGroundOverlay
+            urlTemplate="https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            bounds={{
+              northEast: { latitude: 16.067588780844506, longitude: 108.18391799926758 },
+              southWest: { latitude: 16.075671439786362, longitude: 108.19833755493164 }
+            }}
+          />
           <MFDirectionsRenderer
             ref={ref => this.directions = ref}
             routes={[
