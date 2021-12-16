@@ -177,8 +177,8 @@ class MFMapView extends React.Component {
     this._runCommand('moveCamera', [camera]);
   }
 
-  enable3DMode(enbale) {
-    this._runCommand('enable3DMode', [enbale]);
+  enable3DMode(enable) {
+    this._runCommand('enable3DMode', [enable]);
   }
 
   is3DMode() {

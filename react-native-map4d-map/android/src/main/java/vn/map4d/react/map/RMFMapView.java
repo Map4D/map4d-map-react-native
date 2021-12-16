@@ -19,6 +19,7 @@ import java.util.Map;
 import vn.map4d.map.core.*;
 import vn.map4d.map.camera.*;
 import vn.map4d.map.annotations.*;
+import vn.map4d.map.overlays.MFTileOverlay;
 import vn.map4d.types.MFLocationCoordinate;
 
 public class RMFMapView extends MFMapView implements OnMapReadyCallback {
@@ -32,6 +33,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   private final Map<MFPolyline, RMFPolyline> polylineMap = new HashMap<>();
   private final Map<MFPolygon, RMFPolygon> polygonMap = new HashMap<>();
   private final Map<Long, RMFPOI> poiMap = new HashMap<>();
+  private final Map<MFTileOverlay, RMFTileOverlay> tileOverlayMap = new HashMap<>();
   private final Map<MFDirectionsRenderer, RMFDirectionsRenderer> directionsRendererMap = new HashMap<>();
 
   private ViewAttacherGroup attacherGroup;
@@ -623,6 +625,21 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       MFDirectionsRenderer directionsRenderer = (MFDirectionsRenderer) annotation.getFeature();
       directionsRendererMap.put(directionsRenderer, annotation);
     }
+    else if (child instanceof RMFTileOverlay) {
+      RMFTileOverlay annotation = (RMFTileOverlay) child;
+      annotation.addToMap(map);
+      features.add(index, annotation);
+
+      // Remove from a view group if already present, prevent "specified child
+      // already had a parent" error.
+      ViewGroup annotationParent = (ViewGroup) annotation.getParent();
+      if (annotationParent != null) {
+        annotationParent.removeView(annotation);
+
+        MFTileOverlay tileOverlay = (MFTileOverlay) annotation.getFeature();
+        tileOverlayMap.put(tileOverlay, annotation);
+      }
+    }
     else if (child instanceof ViewGroup) {
       ViewGroup children = (ViewGroup) child;
       for (int i = 0; i < children.getChildCount(); i++) {
@@ -657,6 +674,9 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     else if (feature instanceof RMFPOI) {
       MFPOI poi = (MFPOI) feature.getFeature();
       poiMap.remove(poi.getId());
+    }
+    else if (feature instanceof RMFTileOverlay) {
+      tileOverlayMap.remove(feature.getFeature());
     }
     else if (feature instanceof RMFDirectionsRenderer) {
       directionsRendererMap.remove(feature.getFeature());
