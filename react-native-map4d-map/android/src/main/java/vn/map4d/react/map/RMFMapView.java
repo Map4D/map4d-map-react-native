@@ -214,7 +214,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         }
 
         WritableMap event = getPOIEventData(poi);
-        event.putString("action", "user-poi-press");
+        event.putString("action", "poi-press");
         manager.pushEvent(getContext(), rctPOI, "onPress", event);
       }
     });
@@ -261,7 +261,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         WritableMap event = new WritableNativeMap();
         WritableMap locationMap = new WritableNativeMap();
 
-        event.putString("action", "building-press");
+        event.putString("action", "map-building-press");
 
         WritableMap buildingData = new WritableNativeMap();
         buildingData.putString("buildingId", buildingId);
@@ -296,7 +296,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       public void onPlaceClick(@NonNull String name, @NonNull MFLocationCoordinate location) {
         WritableMap event = new WritableNativeMap();
         WritableMap locationMap = new WritableNativeMap();
-        event.putString("action", "place-press");
+        event.putString("action", "map-place-press");
 
         WritableMap placeData = new WritableNativeMap();
         placeData.putString("name", name);
@@ -385,8 +385,8 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     map.setOnMapModeHandler(new Map4D.OnMapModeHandler() {
       @Override
       public boolean shouldChangeMapMode() {
-        WritableMap event = getCameraMap();
-        event.putString("action", "camera-move-started");
+        WritableMap event = new WritableNativeMap();
+        event.putString("action", "should-change-mode");
         manager.pushEvent(getContext(), view, "onShouldChangeMapMode", event);
         return false;
       }
@@ -395,7 +395,9 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     map.setOnMyLocationButtonClickListener(new Map4D.OnMyLocationButtonClickListener() {
       @Override
       public boolean onMyLocationButtonClick() {
-        manager.pushEvent(getContext(), view, "onMyLocationButtonPress", new WritableNativeMap());
+		WritableMap event = new WritableNativeMap();
+        event.putString("action", "my-location-button-press");
+        manager.pushEvent(getContext(), view, "onMyLocationButtonPress", event);
         return false;
       }
     });
