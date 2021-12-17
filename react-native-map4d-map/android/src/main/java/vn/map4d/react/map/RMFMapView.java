@@ -44,6 +44,8 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
 
   private float touchPointX = 0.f;
   private float touchPointY = 0.f;
+  private float dragPointX = 0.f;
+  private float dragPointY = 0.f;
 
   public RMFMapView(Context context, RMFMapViewManager manager) {
     super(context, null);
@@ -64,9 +66,13 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
-    if(event.getAction() == MotionEvent.ACTION_DOWN) {
+    if (event.getAction() == MotionEvent.ACTION_DOWN) {
       touchPointX = event.getX();
       touchPointY = event.getY();
+    }
+    if (event.getAction() == MotionEvent.ACTION_MOVE) {
+      dragPointX = event.getX();
+      dragPointY = event.getY();
     }
     return super.onTouchEvent(event);
   }
@@ -87,12 +93,12 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         }
 
         //Event for MFMapView
-        WritableMap event = getMarkerEventData(marker);
+        WritableMap event = getMarkerEventData(marker, dragPointX, dragPointY);
         event.putString("action", "marker-drag");
         manager.pushEvent(getContext(), view, "onMarkerDrag", event);
 
         //Event for MFMarker
-        event = getMarkerEventData(marker);
+        event = getMarkerEventData(marker, dragPointX, dragPointY);
         event.putString("action", "marker-drag");
         manager.pushEvent(getContext(), rctMarker, "onDrag", event);
       }
@@ -103,11 +109,11 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         if (rctMarker == null) {
           return;
         }
-        WritableMap event = getMarkerEventData(marker);
+        WritableMap event = getMarkerEventData(marker, dragPointX, dragPointY);
         event.putString("action", "marker-drag-end");
         manager.pushEvent(getContext(), view, "onMarkerDrag", event);
 
-        event = getMarkerEventData(marker);
+        event = getMarkerEventData(marker, dragPointX, dragPointY);
         event.putString("action", "marker-drag-end");
         manager.pushEvent(getContext(), rctMarker, "onDragEnd", event);
       }
@@ -118,11 +124,11 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         if (rctMarker == null) {
           return;
         }
-        WritableMap event = getMarkerEventData(marker);
+        WritableMap event = getMarkerEventData(marker, touchPointX, touchPointY);
         event.putString("action", "marker-drag-start");
         manager.pushEvent(getContext(), view, "onMarkerDrag", event);
 
-        event = getMarkerEventData(marker);
+        event = getMarkerEventData(marker, touchPointX, touchPointY);
         event.putString("action", "marker-drag-start");
         manager.pushEvent(getContext(), rctMarker, "onDragStart", event);
       }
@@ -135,11 +141,11 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         if (rctMarker == null) {
           return false;
         }
-        WritableMap event = getMarkerEventData(marker);
+        WritableMap event = getMarkerEventData(marker, touchPointX, touchPointY);
         event.putString("action", "marker-press");
         manager.pushEvent(getContext(), view, "onMarkerPress", event);
 
-        event = getMarkerEventData(marker);
+        event = getMarkerEventData(marker, touchPointX, touchPointY);
         event.putString("action", "marker-press");
         manager.pushEvent(getContext(), rctMarker, "onPress", event);
         return true;
@@ -218,12 +224,33 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       public void onPOIClick(String placeId, String title, MFLocationCoordinate location) {
         WritableMap event = new WritableNativeMap();
         WritableMap locationMap = new WritableNativeMap();
-        locationMap.putDouble("latitude", location.getLatitude());
-        locationMap.putDouble("longitude", location.getLongitude());
-        event.putMap("coordinate", locationMap);
-        event.putString("placeId", placeId);
-        event.putString("title", title);
+
         event.putString("action", "map-poi-press");
+
+        WritableMap poiData = new WritableNativeMap();
+        poiData.putString("placeId", placeId);
+        poiData.putString("title", title);
+        WritableMap poiLocation = new WritableNativeMap();
+        poiLocation.putDouble("latitude", location.getLatitude());
+        poiLocation.putDouble("longitude", location.getLongitude());
+        poiData.putMap("location", poiLocation);
+
+        WritableMap screenCoordinate = new WritableNativeMap();
+        screenCoordinate.putDouble("x", touchPointX);
+        screenCoordinate.putDouble("y", touchPointY);
+
+        MFLocationCoordinate coordinate =
+          map.getProjection().coordinateForPoint(
+            new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+          );
+
+        locationMap.putDouble("latitude", coordinate.getLatitude());
+        locationMap.putDouble("longitude", coordinate.getLongitude());
+
+        event.putMap("poi", poiData);
+        event.putMap("location", locationMap);
+        event.putMap("pixel", screenCoordinate);
+
         manager.pushEvent(getContext(), view, "onPoiPress", event);
       }
     });
@@ -233,12 +260,33 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       public void onBuildingClick(String buildingId, String name, MFLocationCoordinate location) {
         WritableMap event = new WritableNativeMap();
         WritableMap locationMap = new WritableNativeMap();
-        locationMap.putDouble("latitude", location.getLatitude());
-        locationMap.putDouble("longitude", location.getLongitude());
-        event.putMap("location", locationMap);
-        event.putString("buildingId", buildingId);
-        event.putString("name", name);
+
         event.putString("action", "building-press");
+
+        WritableMap buildingData = new WritableNativeMap();
+        buildingData.putString("buildingId", buildingId);
+        buildingData.putString("name", name);
+        WritableMap buildingLocation = new WritableNativeMap();
+        buildingLocation.putDouble("latitude", location.getLatitude());
+        buildingLocation.putDouble("longitude", location.getLongitude());
+        buildingData.putMap("location", buildingLocation);
+
+        WritableMap screenCoordinate = new WritableNativeMap();
+        screenCoordinate.putDouble("x", touchPointX);
+        screenCoordinate.putDouble("y", touchPointY);
+
+        MFLocationCoordinate coordinate =
+          map.getProjection().coordinateForPoint(
+            new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+          );
+
+        locationMap.putDouble("latitude", coordinate.getLatitude());
+        locationMap.putDouble("longitude", coordinate.getLongitude());
+
+        event.putMap("building", buildingData);
+        event.putMap("location", locationMap);
+        event.putMap("pixel", screenCoordinate);
+
         manager.pushEvent(getContext(), view, "onBuildingPress", event);
       }
     });
@@ -248,11 +296,31 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       public void onPlaceClick(@NonNull String name, @NonNull MFLocationCoordinate location) {
         WritableMap event = new WritableNativeMap();
         WritableMap locationMap = new WritableNativeMap();
-        locationMap.putDouble("latitude", location.getLatitude());
-        locationMap.putDouble("longitude", location.getLongitude());
-        event.putMap("coordinate", locationMap);
-        event.putString("name", name);
         event.putString("action", "place-press");
+
+        WritableMap placeData = new WritableNativeMap();
+        placeData.putString("name", name);
+        WritableMap placeLocation = new WritableNativeMap();
+        placeLocation.putDouble("latitude", location.getLatitude());
+        placeLocation.putDouble("longitude", location.getLongitude());
+        placeData.putMap("location", placeLocation);
+
+        WritableMap screenCoordinate = new WritableNativeMap();
+        screenCoordinate.putDouble("x", touchPointX);
+        screenCoordinate.putDouble("y", touchPointY);
+
+        MFLocationCoordinate coordinate =
+          map.getProjection().coordinateForPoint(
+            new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+          );
+
+        locationMap.putDouble("latitude", coordinate.getLatitude());
+        locationMap.putDouble("longitude", coordinate.getLongitude());
+
+        event.putMap("place", placeData);
+        event.putMap("location", locationMap);
+        event.putMap("pixel", screenCoordinate);
+
         manager.pushEvent(getContext(), view, "onPlacePress", event);
       }
     });
@@ -272,10 +340,16 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       public void onMapClick(MFLocationCoordinate mfLocationCoordinate) {
         WritableMap event = new WritableNativeMap();
         WritableMap location = new WritableNativeMap();
+        event.putString("action", "map-press");
         location.putDouble("latitude", mfLocationCoordinate.getLatitude());
         location.putDouble("longitude", mfLocationCoordinate.getLongitude());
-        event.putMap("coordinate", location);
-        event.putString("action", "map-press");
+
+        WritableMap screenCoordinate = new WritableNativeMap();
+        screenCoordinate.putDouble("x", touchPointX);
+        screenCoordinate.putDouble("y", touchPointY);
+
+        event.putMap("location", location);
+        event.putMap("pixel", screenCoordinate);
         manager.pushEvent(getContext(), view, "onPress", event);
       }
     });
@@ -331,20 +405,12 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     WritableMap event = new WritableNativeMap();
     WritableMap location = new WritableNativeMap();
 
-    WritableMap screenCoordinate = new WritableNativeMap();
-    screenCoordinate.putDouble("x", touchPointX);
-    screenCoordinate.putDouble("y", touchPointY);
-
-    MFLocationCoordinate coordinate =
-      map.getProjection().coordinateForPoint(
-        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
-      );
-    location.putDouble("latitude", coordinate.getLatitude());
-    location.putDouble("longitude", coordinate.getLongitude());
-
-    event.putMap("coordinate", location);
-    event.putMap("location", screenCoordinate);
-
+    WritableMap circleData = new WritableNativeMap();
+    WritableMap circleCenter = new WritableNativeMap();
+    circleCenter.putDouble("latitude", circle.getCenter().getLatitude());
+    circleCenter.putDouble("longitude", circle.getCenter().getLongitude());
+    circleData.putMap("center", circleCenter);
+    circleData.putDouble("radius", circle.getRadius());
     Object userData = circle.getUserData();
     if (userData != null) {
       String userDataByString = "";
@@ -352,17 +418,40 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       int begin = userDataByString.indexOf(":") + 2;
       int end = userDataByString.length() - 2;
       userDataByString = userDataByString.substring(begin, end);
-      event.putString("userData", userDataByString);
+      circleData.putString("userData", userDataByString);
     }
+    else {
+      circleData.putMap("userData", new WritableNativeMap());
+    }
+
+    WritableMap screenCoordinate = new WritableNativeMap();
+    screenCoordinate.putDouble("x", touchPointX);
+    screenCoordinate.putDouble("y", touchPointY);
+
+    MFLocationCoordinate coordinate =
+      map.getProjection().coordinateForPoint(
+        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+      );
+    location.putDouble("latitude", coordinate.getLatitude());
+    location.putDouble("longitude", coordinate.getLongitude());
+
+    event.putMap("circle", circleData);
+    event.putMap("location", location);
+    event.putMap("pixel", screenCoordinate);
+
     return event;
   }
 
   private WritableMap getPOIEventData(MFPOI poi) {
     WritableMap event = new WritableNativeMap();
-    event.putDouble("poiId", poi.getId());
-    event.putString("title", poi.getTitle());
-
     WritableMap location = new WritableNativeMap();
+
+    WritableMap poiData = new WritableNativeMap();
+    poiData.putString("title", poi.getTitle());
+    WritableMap poiLocation = new WritableNativeMap();
+    poiLocation.putDouble("latitude", poi.getPosition().getLatitude());
+    poiLocation.putDouble("longitude", poi.getPosition().getLongitude());
+    poiData.putMap("location", poiLocation);
 
     WritableMap screenCoordinate = new WritableNativeMap();
     screenCoordinate.putDouble("x", touchPointX);
@@ -375,41 +464,51 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     location.putDouble("latitude", coordinate.getLatitude());
     location.putDouble("longitude", coordinate.getLongitude());
 
-    event.putMap("coordinate", location);
-    event.putMap("location", screenCoordinate);
+    event.putMap("poi", poiData);
+    event.putMap("location", location);
+    event.putMap("pixel", screenCoordinate);
 
     return event;
   }
 
 
-  private WritableMap getMarkerEventData(MFMarker marker) {
+  private WritableMap getMarkerEventData(MFMarker marker, float touchPointX, float touchPointY) {
     WritableMap event = new WritableNativeMap();
     WritableMap location = new WritableNativeMap();
 
-    WritableMap screenCoordinate = new WritableNativeMap();
-    screenCoordinate.putDouble("x", touchPointX);
-    screenCoordinate.putDouble("y", touchPointY);
-
-    MFLocationCoordinate coordinate =
-      map.getProjection().coordinateForPoint(
-        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
-      );
-    location.putDouble("latitude", coordinate.getLatitude());
-    location.putDouble("longitude", coordinate.getLongitude());
-
-    event.putMap("coordinate", location);
-    event.putMap("location", screenCoordinate);
-
+    WritableMap markerData = new WritableNativeMap();
+    WritableMap markerLocation = new WritableNativeMap();
+    markerLocation.putDouble("latitude", marker.getPosition().getLatitude());
+    markerLocation.putDouble("longitude", marker.getPosition().getLongitude());
+    markerData.putMap("location", markerLocation);
     Object userData = marker.getUserData();
-
     if (userData != null) {
       String userDataByString = "";
       userDataByString = userData.toString();
       int begin = userDataByString.indexOf(":") + 2;
       int end = userDataByString.length() - 2;
       userDataByString = userDataByString.substring(begin, end);
-      event.putString("userData", userDataByString);
+      markerData.putString("userData", userDataByString);
     }
+    else {
+      markerData.putMap("userData", new WritableNativeMap());
+    }
+
+    WritableMap screenCoordinate = new WritableNativeMap();
+    screenCoordinate.putDouble("x", touchPointX);
+    screenCoordinate.putDouble("y", touchPointY);
+
+    MFLocationCoordinate coordinate =
+      map.getProjection().coordinateForPoint(
+        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+      );
+    location.putDouble("latitude", coordinate.getLatitude());
+    location.putDouble("longitude", coordinate.getLongitude());
+
+    event.putMap("marker", markerData);
+    event.putMap("location", location);
+    event.putMap("pixel", screenCoordinate);
+
     return event;
   }
 
@@ -417,6 +516,20 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     WritableMap event = new WritableNativeMap();
     WritableMap location = new WritableNativeMap();
 
+    WritableMap polylineData = new WritableNativeMap();
+    Object userData = polyline.getUserData();
+    if (userData != null) {
+      String userDataByString = "";
+      userDataByString = userData.toString();
+      int begin = userDataByString.indexOf(":") + 2;
+      int end = userDataByString.length() - 2;
+      userDataByString = userDataByString.substring(begin, end);
+      polylineData.putString("userData", userDataByString);
+    }
+    else {
+      polylineData.putMap("userData", new WritableNativeMap());
+    }
+
     WritableMap screenCoordinate = new WritableNativeMap();
     screenCoordinate.putDouble("x", touchPointX);
     screenCoordinate.putDouble("y", touchPointY);
@@ -428,19 +541,10 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     location.putDouble("latitude", coordinate.getLatitude());
     location.putDouble("longitude", coordinate.getLongitude());
 
-    event.putMap("coordinate", location);
-    event.putMap("location", screenCoordinate);
+    event.putMap("polyline", polylineData);
+    event.putMap("location", location);
+    event.putMap("pixel", screenCoordinate);
 
-    Object userData = polyline.getUserData();
-
-    if (userData != null) {
-      String userDataByString = "";
-      userDataByString = userData.toString();
-      int begin = userDataByString.indexOf(":") + 2;
-      int end = userDataByString.length() - 2;
-      userDataByString = userDataByString.substring(begin, end);
-      event.putString("userData", userDataByString);
-    }
     return event;
   }
 
@@ -448,6 +552,20 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     WritableMap event = new WritableNativeMap();
     WritableMap location = new WritableNativeMap();
 
+    WritableMap polygonData = new WritableNativeMap();
+    Object userData = polygon.getUserData();
+    if (userData != null) {
+      String userDataByString = "";
+      userDataByString = userData.toString();
+      int begin = userDataByString.indexOf(":") + 2;
+      int end = userDataByString.length() - 2;
+      userDataByString = userDataByString.substring(begin, end);
+      polygonData.putString("userData", userDataByString);
+    }
+    else {
+      polygonData.putMap("userData", new WritableNativeMap());
+    }
+
     WritableMap screenCoordinate = new WritableNativeMap();
     screenCoordinate.putDouble("x", touchPointX);
     screenCoordinate.putDouble("y", touchPointY);
@@ -459,30 +577,35 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     location.putDouble("latitude", coordinate.getLatitude());
     location.putDouble("longitude", coordinate.getLongitude());
 
-    event.putMap("coordinate", location);
-    event.putMap("location", screenCoordinate);
+    event.putMap("polygon", polygonData);
+    event.putMap("location", location);
+    event.putMap("pixel", screenCoordinate);
 
-    Object userData = polygon.getUserData();
-
-    if (userData != null) {
-      String userDataByString = "";
-      userDataByString = userData.toString();
-      int begin = userDataByString.indexOf(":") + 2;
-      int end = userDataByString.length() - 2;
-      userDataByString = userDataByString.substring(begin, end);
-      event.putString("userData", userDataByString);
-    }
     return event;
   }
 
   private WritableMap getDirectionsRendererEventData(MFDirectionsRenderer directionsRenderer, int i) {
     WritableMap event = new WritableNativeMap();
     WritableMap location = new WritableNativeMap();
-    MFLocationCoordinate coordinate = directionsRenderer.getPaths().get(0).get(0);
+
+    WritableMap rendererData = new WritableNativeMap();
+    rendererData.putInt("routeIndex", i);
+
+    WritableMap screenCoordinate = new WritableNativeMap();
+    screenCoordinate.putDouble("x", touchPointX);
+    screenCoordinate.putDouble("y", touchPointY);
+
+    MFLocationCoordinate coordinate =
+      map.getProjection().coordinateForPoint(
+        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+      );
     location.putDouble("latitude", coordinate.getLatitude());
     location.putDouble("longitude", coordinate.getLongitude());
-    event.putMap("coordinate", location);
-    event.putInt("index", i);
+
+    event.putMap("renderer", rendererData);
+    event.putMap("location", location);
+    event.putMap("pixel", screenCoordinate);
+
     return event;
   }
 
