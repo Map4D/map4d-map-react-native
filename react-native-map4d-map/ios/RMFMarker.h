@@ -40,11 +40,15 @@
 @property (nonatomic, copy, nullable) NSDictionary * userData;
 
 
-- (void)didBeginDraggingMarker;
-- (void)didEndDraggingMarker;
-- (void)didDragMarker;
-- (void)didTapInfoWindowOfMarker;
-- (void)didTapMarker;
+- (void)didBeginDraggingMarkerAtPixel:(CGPoint)pixel;
+
+- (void)didEndDraggingMarkerAtPixel:(CGPoint)pixel;
+
+- (void)didDragMarkerAtPixel:(CGPoint)pixel;
+
+- (void)didTapInfoWindowAtPixel:(CGPoint)pixel;
+
+- (void)didTapAtPixel:(CGPoint)pixel;
 
 - (void)setMapView:(RMFMapView* _Nullable)mapView;
 

@@ -102,10 +102,22 @@
 
 /** Event */
 
-- (bool)didTap {
-  if (!self.onPress) return false;
-  self.onPress([RMFEventResponse eventFromUserPOI:self action:@"poi-press"]);
-  return true;
+- (void)didTapAtPixel:(CGPoint)pixel {
+  if (!self.onPress) {
+    return;
+  }
+  
+  CLLocationCoordinate2D tapLocation = [_map4dPOI.map.projection coordinateForPoint:pixel];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
+                                                                                                           pixel:pixel]];
+  response[@"poi"] = @{
+    kRMFLatLngCoordinateResponseKey: [RMFEventResponse fromCoordinate:_coordinate],
+    @"title": _title,
+    @"userData": _userData != nil ? _userData : @{}
+  };
+  response[@"action"] = @"poi-press";
+  
+  self.onPress(response);
 }
 
 @end

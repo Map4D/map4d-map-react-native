@@ -133,33 +133,49 @@
 
  - (void)setUserData:(NSDictionary *)userData {
    _userData = userData;
-//   _map4dMarker.userData = userData;
  }
 
+- (NSDictionary*)responseWithAction:(NSString*)action pixel:(CGPoint)pixel {
+  CLLocationCoordinate2D tapLocation = [_map4dMarker.map.projection coordinateForPoint:pixel];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
+                                                                                                           pixel:pixel]];
+  response[@"marker"] = @{
+    kRMFLatLngCoordinateResponseKey: [RMFEventResponse fromCoordinate:_map4dMarker.position],
+    @"userData": _userData != nil ? _userData : @{}
+  };
+  response[@"action"] = action;
+  return response;
+}
+
 /** Event */
-- (void)didBeginDraggingMarker {
-  if (!self.onDragStart) return;
-  self.onDragStart([RMFEventResponse eventFromMarker:self action:@"marker-drag-start"]);
+- (void)didBeginDraggingMarkerAtPixel:(CGPoint)pixel {
+  if (self.onDragStart) {
+    self.onDragStart([self responseWithAction:@"marker-drag-start" pixel:pixel]);
+  }
 }
 
-- (void)didEndDraggingMarker {
-  if (!self.onDragEnd) return;
-  self.onDragEnd([RMFEventResponse eventFromMarker:self action:@"marker-drag-end"]);
+- (void)didEndDraggingMarkerAtPixel:(CGPoint)pixel {
+  if (self.onDragEnd) {
+    self.onDragEnd([self responseWithAction:@"marker-drag-end" pixel:pixel]);
+  }
 }
 
-- (void)didDragMarker {
-  if (!self.onDrag) return;
-  self.onDrag([RMFEventResponse eventFromMarker:self action:@"marker-drag"]);
+- (void)didDragMarkerAtPixel:(CGPoint)pixel {
+  if (self.onDrag) {
+    self.onDrag([self responseWithAction:@"marker-drag" pixel:pixel]);
+  }
 }
 
-- (void)didTapInfoWindowOfMarker {
-  if (!self.onPressInfoWindow) return;
-  self.onPressInfoWindow([RMFEventResponse eventFromMarker:self action:@"marker-info-window-press"]);
+- (void)didTapInfoWindowAtPixel:(CGPoint)pixel {
+  if (self.onPressInfoWindow) {
+    self.onPressInfoWindow([self responseWithAction:@"marker-info-window-press" pixel:pixel]);
+  }
 }
 
-- (void)didTapMarker {
-  if (!self.onPress) return;
-  self.onPress([RMFEventResponse eventFromMarker:self action:@"marker-press"]);
+- (void)didTapAtPixel:(CGPoint)pixel {
+  if (self.onPress) {
+    self.onPress([self responseWithAction:@"marker-press" pixel:pixel]);
+  };
 }
 
 - (void)layoutSubviews {

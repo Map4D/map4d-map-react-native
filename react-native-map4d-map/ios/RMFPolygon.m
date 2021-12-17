@@ -87,10 +87,20 @@
   _userData = userData;
 }
 /** Event */
-- (void)didTap {
-  if (self.onPress) {
-    self.onPress([RMFEventResponse eventFromPolygon:self action:@"polygon-press"]);
+- (void)didTapAtPixel:(CGPoint)pixel {
+  if (!self.onPress) {
+    return;
   }
+  
+  CLLocationCoordinate2D tapLocation = [_map4dPolygon.map.projection coordinateForPoint:pixel];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
+                                                                                                           pixel:pixel]];
+  response[@"polygon"] = @{
+    @"userData": _userData != nil ? _userData : @{}
+  };
+  response[@"action"] = @"polygon-press";
+  
+  self.onPress(response);
 }
 
 @end

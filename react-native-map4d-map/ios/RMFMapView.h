@@ -62,6 +62,10 @@
 //@property (nonatomic, assign) BOOL showsIndoorLevelPicker;
 //@property (nonatomic, assign) NSString *kmlSrc;
 
+@property(nonatomic, readonly) CGPoint lastTapPixel;
+@property(nonatomic, readonly) CGPoint lastPanPixel;
+@property(nonatomic, readonly) CGPoint lastLongPressPixel;
+
 - (void)willMove: (BOOL) gesture;
 - (void)movingCameraPosition: (MFCameraPosition*) position;
 - (void)didChangeCameraPosition: (MFCameraPosition*) position;

@@ -80,7 +80,7 @@ RCT_EXPORT_METHOD(getCamera:(nonnull NSNumber *)reactTag
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
       MFCameraPosition *camera = [mapView camera];
-      resolve([RMFEventResponse eventFromCameraPosition:camera]);
+      resolve([RMFEventResponse fromCameraPosition:camera]);
     }
   }];
 }
@@ -96,7 +96,7 @@ RCT_EXPORT_METHOD(getBounds:(nonnull NSNumber *)reactTag
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
       MFCoordinateBounds* bounds = [mapView getBounds];
-      resolve([RMFEventResponse eventFromCoordinateBounds:bounds]);
+      resolve([RMFEventResponse fromCoordinateBounds:bounds]);
     }
   }];
 }
@@ -124,7 +124,7 @@ RCT_EXPORT_METHOD(cameraForBounds:(nonnull NSNumber *)reactTag
           camera = [mapView cameraForBounds:bounds];
         }
       }
-      resolve([RMFEventResponse eventFromCameraPosition:camera]);
+      resolve([RMFEventResponse fromCameraPosition:camera]);
     }
   }];
 }
@@ -167,7 +167,7 @@ RCT_EXPORT_METHOD(pointForCoordinate:(nonnull NSNumber *)reactTag
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
       CGPoint point = [mapView.projection pointForCoordinate:[RCTConvert CLLocationCoordinate2D:json]];
-      resolve([RMFEventResponse eventFromCGPoint:point]);
+      resolve([RMFEventResponse fromCGPoint:point]);
     }
   }];
 }
@@ -184,7 +184,7 @@ RCT_EXPORT_METHOD(coordinateForPoint:(nonnull NSNumber *)reactTag
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
       CLLocationCoordinate2D coordinate = [mapView.projection coordinateForPoint:[RCTConvert CGPoint:json]];
-      resolve([RMFEventResponse eventFromCoordinate:coordinate]);
+      resolve([RMFEventResponse fromCoordinate:coordinate]);
     }
   }];
 }
@@ -281,7 +281,7 @@ RCT_EXPORT_METHOD(getMyLocation:(nonnull NSNumber *)reactTag
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
       CLLocation *location = [mapView getMyLocation];
-      resolve([RMFEventResponse eventFromCLLocation:location]);
+      resolve([RMFEventResponse fromCLLocation:location]);
     }
   }];
 }
@@ -317,50 +317,53 @@ RCT_EXPORT_METHOD(setTime:(nonnull NSNumber *)reactTag
 
 
 // Delegate
-- (BOOL)mapview: (MFMapView*)  mapView didTapMarker: (MFMarker*) marker
-{
-  RCTLogInfo(@"didTapMarker: %d", (int) marker.Id);
+- (BOOL)mapview:(MFMapView *)mapView didTapMarker:(MFMarker *)marker {
+  RMFMapView* map = (RMFMapView*)mapView;
   RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
-  [rMarker.reactMarker didTapMarker];
-  return false;//TODO
+  [rMarker.reactMarker didTapAtPixel:map.lastTapPixel];
+  return false;
 }
 
-- (void)mapview: (MFMapView*)  mapView didBeginDraggingMarker: (MFMarker*) marker
-{
+- (void)mapview:(MFMapView *)mapView didBeginDraggingMarker:(MFMarker *)marker {
+  RMFMapView* map = (RMFMapView*)mapView;
   RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
-  [rMarker.reactMarker didBeginDraggingMarker];
+  [rMarker.reactMarker didBeginDraggingMarkerAtPixel:map.lastLongPressPixel];
 }
 
-- (void)mapview: (MFMapView*)  mapView didEndDraggingMarker: (MFMarker*) marker
-{
+- (void)mapview:(MFMapView *)mapView didEndDraggingMarker:(MFMarker *)marker {
+  RMFMapView* map = (RMFMapView*)mapView;
   RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
-  [rMarker.reactMarker didEndDraggingMarker];
+  [rMarker.reactMarker didEndDraggingMarkerAtPixel:map.lastLongPressPixel];
 }
 
-- (void)mapview: (MFMapView*)  mapView didDragMarker: (MFMarker*) marker
-{
+- (void)mapview:(MFMapView *)mapView didDragMarker:(MFMarker *)marker {
+  RMFMapView* map = (RMFMapView*)mapView;
   RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
-  [rMarker.reactMarker didDragMarker];
+  [rMarker.reactMarker didDragMarkerAtPixel:map.lastPanPixel];
 }
 
-- (void)mapview: (MFMapView*)  mapView didTapInfoWindowOfMarker: (MFMarker*) marker {
+- (void)mapview:(MFMapView *)mapView didTapInfoWindowOfMarker:(MFMarker *)marker {
+  RMFMapView* map = (RMFMapView*)mapView;
   RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
-  [rMarker.reactMarker didTapInfoWindowOfMarker];
+  [rMarker.reactMarker didTapInfoWindowAtPixel:map.lastTapPixel];
 }
 
-- (void)mapview: (MFMapView*)  mapView didTapPolyline: (MFPolyline*) polyline {
+- (void)mapview:(MFMapView *)mapView didTapPolyline:(MFPolyline *)polyline {
+  RMFMapView* map = (RMFMapView*)mapView;
   RMFPolylineMap4d * rPolyline = (RMFPolylineMap4d *) polyline;
-  [rPolyline.reactPolyline didTap];
+  [rPolyline.reactPolyline didTapAtPixel:map.lastTapPixel];
 }
 
-- (void)mapview: (MFMapView*)  mapView didTapPolygon: (MFPolygon*) polygon {
+- (void)mapview:(MFMapView *)mapView didTapPolygon:(MFPolygon *)polygon {
+  RMFMapView* map = (RMFMapView*)mapView;
   RMFPolygonMap4d * rPolygon = (RMFPolygonMap4d*) polygon;
-  [rPolygon.reactPolygon didTap];
+  [rPolygon.reactPolygon didTapAtPixel:map.lastTapPixel];
 }
 
-- (void)mapview: (MFMapView*)  mapView didTapCircle: (MFCircle*) circle {
+- (void)mapview:(MFMapView *)mapView didTapCircle:(MFCircle *)circle {
+  RMFMapView* map = (RMFMapView*)mapView;
   RMFCircleMap4d * rCircle = (RMFCircleMap4d*)circle;
-  [rCircle.reactCircle didTap];
+  [rCircle.reactCircle didTapAtPixel:map.lastTapPixel];
 }
 
 - (void)mapView: (MFMapView*)  mapView willMove: (BOOL) gesture {
@@ -368,34 +371,33 @@ RCT_EXPORT_METHOD(setTime:(nonnull NSNumber *)reactTag
   [reactMapView willMove:gesture];
 }
 
-- (void)mapView: (MFMapView*)  mapView movingCameraPosition: (MFCameraPosition*) position {
+- (void)mapView:(MFMapView *)mapView movingCameraPosition:(MFCameraPosition *)position {
   RMFMapView* reactMapView = (RMFMapView*) mapView;
   [reactMapView movingCameraPosition:position];
 }
 
-- (void)mapView: (MFMapView*)  mapView didChangeCameraPosition:(MFCameraPosition*) position {
-  //TODO
-}
+//- (void)mapView:(MFMapView *)mapView didChangeCameraPosition:(MFCameraPosition *)position {
+//}
 
-- (void)mapView: (MFMapView*)  mapView idleAtCameraPosition: (MFCameraPosition *) position {
+- (void)mapView:(MFMapView *)mapView idleAtCameraPosition:(MFCameraPosition *)position {
   RMFMapView* reactMapView = (RMFMapView*) mapView;
   [reactMapView idleAtCameraPosition:position];
 }
 
-- (void)mapView: (MFMapView*)  mapView didTapAtCoordinate: (CLLocationCoordinate2D) coordinate {
-  RCTLogInfo(@"didTapAtCoordinate: %f, %f", coordinate.latitude, coordinate.longitude);
+- (void)mapView:(MFMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
   RMFMapView* map = (RMFMapView*)mapView;
   [map didTapAtCoordinate:coordinate];
 }
 
-- (void)mapView: (MFMapView*)  mapView onModeChange: (bool) is3DMode {
+- (void)mapView:(MFMapView *)mapView onModeChange:(bool)is3DMode {
   RMFMapView* reactMapView = (RMFMapView*) mapView;
   [reactMapView on3dModeChange:is3DMode];
 }
 
-- (void)mapView: (MFMapView*)  mapView didTapPOI: (MFPOI*) poi {
+- (void)mapView:(MFMapView *)mapView didTapPOI:(MFPOI *)poi {
+  RMFMapView* map = (RMFMapView*)mapView;
   RMFPOIMap4d* rPOI = (RMFPOIMap4d*) poi;
-  [rPOI.reactPOI didTap];
+  [rPOI.reactPOI didTapAtPixel:map.lastTapPixel];
 }
 
 - (void)mapView:(MFMapView *)mapView didTapPOIWithPlaceID:(NSString *)placeID name:(NSString *)name location:(CLLocationCoordinate2D)location {
@@ -414,26 +416,26 @@ RCT_EXPORT_METHOD(setTime:(nonnull NSNumber *)reactTag
 }
 
 - (void)mapView:(MFMapView *)mapView didTapDirectionsRenderer:(MFDirectionsRenderer *)renderer routeIndex:(NSUInteger)routeIndex {
+  RMFMapView* map = (RMFMapView*)mapView;
   RMFDirectionsRendererMap4d* rRenderer = (RMFDirectionsRendererMap4d*)renderer;
-  [rRenderer.reactRenderer didTapRouteWithIndex:routeIndex];
+  [rRenderer.reactRenderer didTapAtPixel:map.lastTapPixel withRouteIndex:routeIndex];
 }
 
-- (void)mapView: (MFMapView*)  mapView didTapMyLocation: (CLLocationCoordinate2D) location {
-  
-}
+//- (void)mapView:(MFMapView *)mapView didTapMyLocation:(CLLocationCoordinate2D)location {
+//}
 
-- (BOOL)didTapMyLocationButtonForMapView: (MFMapView*) mapView {
+- (BOOL)didTapMyLocationButtonForMapView:(MFMapView *)mapView {
   RMFMapView* reactMapView = (RMFMapView*) mapView;
   return [reactMapView didTapMyLocationButton];
 }
 
-- (BOOL)shouldChangeMapModeForMapView: (MFMapView*) mapView {
+- (BOOL)shouldChangeMapModeForMapView:(MFMapView *)mapView {
   RMFMapView* reactMapView = (RMFMapView*) mapView;
   [reactMapView didShouldChangeMapMode];
   return false;
 }
 
-- (UIView *) mapView: (MFMapView *) mapView markerInfoWindow: (MFMarker *) marker {
+- (UIView *)mapView:(MFMapView *)mapView markerInfoWindow:(MFMarker *)marker {
   return nil;
 }
 

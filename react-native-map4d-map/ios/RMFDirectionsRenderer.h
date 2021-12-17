@@ -40,7 +40,7 @@
 @property(nonatomic, strong, nullable) RMFDirectionsMarkerOptions* destinationPOIOptions;
 
 - (void)setMapView:(RMFMapView* _Nullable)mapView;
-- (void)didTapRouteWithIndex:(NSUInteger)routeIndex;
+- (void)didTapAtPixel:(CGPoint)pixel withRouteIndex:(NSInteger)routeIndex;
 
 @end
 

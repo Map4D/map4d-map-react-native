@@ -33,7 +33,7 @@
 @property(nonatomic, copy, nullable) NSDictionary * userData;
 
 
-- (void)didTap;
+- (void)didTapAtPixel:(CGPoint)pixel;
 - (void)setMapView:(RMFMapView* _Nullable)mapView;
 
 @end

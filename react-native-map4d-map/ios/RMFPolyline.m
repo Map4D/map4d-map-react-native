@@ -79,14 +79,23 @@
 
  - (void)setUserData:(NSDictionary *)userData {
    _userData = userData;
-//   _map4dPolyline.userData = userData;
  }
 
 /** Event */
-
-- (void)didTap {
-  if (!self.onPress) return;
-  self.onPress([RMFEventResponse eventFromPolyline:self action:@"polyline-press"]);
+- (void)didTapAtPixel:(CGPoint)pixel {
+  if (!self.onPress) {
+    return;
+  }
+  
+  CLLocationCoordinate2D tapLocation = [_map4dPolyline.map.projection coordinateForPoint:pixel];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
+                                                                                                           pixel:pixel]];
+  response[@"polyline"] = @{
+    @"userData": _userData != nil ? _userData : @{}
+  };
+  response[@"action"] = @"polyline-press";
+  
+  self.onPress(response);
 }
 
 @end

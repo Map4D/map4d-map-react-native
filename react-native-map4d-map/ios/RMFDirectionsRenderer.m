@@ -6,6 +6,7 @@
 //
 
 #import "RMFDirectionsRenderer.h"
+#import "RMFEventResponse.h"
 
 @implementation RMFDirectionsRenderer
 
@@ -40,12 +41,17 @@
   _map4dDirectionsRenderer.map = (MFMapView*)mapView;
 }
 
-- (void)didTapRouteWithIndex:(NSUInteger)routeIndex {
-  if (!self.onPress) return;
-  self.onPress(@{
-    @"action":@"directions-press",
-    @"routeIndex": @(routeIndex)
-  });
+- (void)didTapAtPixel:(CGPoint)pixel withRouteIndex:(NSInteger)routeIndex {
+  if (!self.onPress) {
+    return;
+  }
+  
+  CLLocationCoordinate2D tapLocation = [_map4dDirectionsRenderer.map.projection coordinateForPoint:pixel];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
+                                                                                                           pixel:pixel]];
+  response[@"routeIndex"] = @(routeIndex);
+  response[@"action"] = @"directions-press";
+  self.onPress(response);
 }
 
 - (void)setRoutes:(NSArray<NSArray<RMFCoordinate *> *> *)routes {

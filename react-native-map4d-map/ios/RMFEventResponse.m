@@ -13,6 +13,9 @@
 #import "RMFPolygon.h"
 #import "RMFPOI.h"
 
+NSString *const kRMFLatLngCoordinateResponseKey = @"location";
+NSString *const kRMFPointCoordinateResponseKey = @"pixel";
+
 @implementation RMFEventResponse
 
 + (NSString*) hexStringFromColor:(UIColor*) color {
@@ -24,104 +27,14 @@
   return @"";
 }
 
-+ (NSDictionary*)eventFromCoordinate:(CLLocationCoordinate2D)coordinate {
++ (NSDictionary*)fromCoordinate:(CLLocationCoordinate2D)coordinate {
   return (@{
     @"latitude": @(coordinate.latitude),
     @"longitude": @(coordinate.longitude),
   });
 }
 
-+ (NSMutableDictionary*)eventFromCoordinate:(CLLocationCoordinate2D)coordinate
-                                     action:(NSString*)action
-                                 projection:(MFProjection*)projection
-                                   userData:(NSDictionary*)userData {
-  NSMutableDictionary* dict = [[NSMutableDictionary alloc]initWithDictionary:@{
-    @"coordinate": @{
-      @"latitude": @(coordinate.latitude),
-      @"longitude": @(coordinate.longitude),
-    }
-  }];
-  
-  if (action != nil) {
-    dict[@"action"] = action;
-  }
-  
-  if (projection != nil) {
-    CGPoint position = [projection pointForCoordinate:coordinate];
-    dict[@"position"] = @{
-      @"x": @(position.x),
-      @"y": @(position.y),
-    };
-  }
-  
-  if (userData != nil) {
-    dict[@"userData"] = userData;
-  }
-  
-  return dict;
-}
-
-+ (NSDictionary*)eventFromMarker:(RMFMarker*) reactMarker action:(NSString*)action {
-  MFMarker* marker = reactMarker.map4dMarker;
-  CLLocationCoordinate2D coordinate = marker.position;
-  return [self eventFromCoordinate:coordinate action:action projection:marker.map.projection userData:reactMarker.userData];
-}
-
-+ (NSDictionary*)eventFromCircle:(RMFCircle *)reactCircle action:(NSString*)action {
-  MFCircle* circle = reactCircle.map4dCircle;
-  CLLocationCoordinate2D coordinate = circle.position;
-  return [self eventFromCoordinate:coordinate action:action projection:circle.map.projection userData:reactCircle.userData];
-}
-
-+ (NSDictionary*)eventFromUserPOI:(RMFPOI *)reactPOI action:(NSString*)action {
-  MFPOI* poi = reactPOI.map4dPOI;
-  CLLocationCoordinate2D coordinate = poi.position;
-  NSMutableDictionary* dict = [self eventFromCoordinate:coordinate action:action projection:poi.map.projection userData:reactPOI.userData];
-  dict[@"title"] = poi.title ? poi.title : @"";
-  dict[@"titleColor"] = [self hexStringFromColor:poi.titleColor];
-  dict[@"subtitle"] = poi.subtitle ? poi.subtitle : @"";
-  dict[@"type"] = poi.type ? poi.type : @"";
-  return dict;
-}
-
-+ (NSDictionary*)eventFromMap4dPOI:(MFPOI *)poi action:(NSString*)action {
-  NSMutableDictionary* dict = [[NSMutableDictionary alloc]init];
-  if (action != nil) {
-    dict[@"action"] = action;
-  }
-  dict[@"title"] = poi.title ? poi.title : @"";
-  dict[@"titleColor"] = [self hexStringFromColor:poi.titleColor];
-  dict[@"subtitle"] = poi.subtitle ? poi.subtitle : @"";
-  dict[@"type"] = poi.type ? poi.type : @"";
-  return dict;
-}
-
-+ (NSDictionary*)eventFromPolyline:(RMFPolyline *)reactPolyline action:(NSString*)action {
-//  MFPolyline* polyline = reactPolyline.map4dPolyline;
-  NSMutableDictionary* dict = [[NSMutableDictionary alloc]init];
-  if (action != nil) {
-    dict[@"action"] = action;
-  }
-  if (reactPolyline.userData != nil) {
-    dict[@"userData"] = reactPolyline.userData;
-  }
-  
-  return dict;
-}
-
-+ (NSDictionary*)eventFromPolygon:(RMFPolygon *)reactPolygon action:(NSString *)action {
-  NSMutableDictionary* dict = [[NSMutableDictionary alloc]init];
-  if (action != nil) {
-    dict[@"action"] = action;
-  }
-  if (reactPolygon.userData != nil) {
-    dict[@"userData"] = reactPolygon.userData;
-  }
-  
-  return dict;
-}
-
-+ (NSDictionary*)eventFromCameraPosition:(MFCameraPosition*) position {
++ (NSDictionary*)fromCameraPosition:(MFCameraPosition*) position {
   if (position == nil) {
     return (@{});
   }
@@ -136,7 +49,7 @@
   });
 }
 
-+ (NSDictionary*)eventFromCoordinateBounds:(MFCoordinateBounds*)bounds {
++ (NSDictionary*)fromCoordinateBounds:(MFCoordinateBounds*)bounds {
   if (bounds == nil) {
     return @{};
   }
@@ -152,11 +65,11 @@
   };
 }
 
-+ (NSDictionary*)eventFromCGPoint:(CGPoint) point {
++ (NSDictionary*)fromCGPoint:(CGPoint) point {
   return (@{ @"x": @(point.x), @"y": @(point.y) });
 }
 
-+ (NSDictionary*)eventFromCLLocation:(CLLocation *)location {
++ (NSDictionary*)fromCLLocation:(CLLocation *)location {
   if (location == nil) {
     return (@{});
   }
@@ -173,6 +86,13 @@
     @"speed": @(location.speed),
     @"heading": @(location.course),
   });
+}
+
++ (NSDictionary *)fromCoordinate:(CLLocationCoordinate2D)location pixel:(CGPoint)pixel {
+  return @{
+    kRMFLatLngCoordinateResponseKey: [RMFEventResponse fromCoordinate:location],
+    kRMFPointCoordinateResponseKey: [RMFEventResponse fromCGPoint:pixel]
+  };
 }
 
 @end

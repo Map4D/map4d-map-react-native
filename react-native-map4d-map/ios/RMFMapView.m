@@ -26,11 +26,20 @@
 
 @interface MFMapView()
 - (void)glkView:(nonnull GLKView *)view drawInRect:(CGRect)rect;
+- (void)respondToTapGesture:(UITapGestureRecognizer *)tapRecognizer;
+- (void)respondToPanGesture:(UIPanGestureRecognizer *)panRecognizer;
+- (void)respondToLongPressGesture:(UILongPressGestureRecognizer *)panRecognizer;
+@end
+
+@interface RMFMapView()
+@property(nonatomic, readwrite) CGPoint lastTapPixel;
+@property(nonatomic, readwrite) CGPoint lastPanPixel;
+@property(nonatomic, readwrite) CGPoint lastLongPressPixel;
 @end
 
 @implementation RMFMapView {
   bool _didCallOnMapReady;
-    NSMutableArray<UIView *> *_reactSubviews;
+  NSMutableArray<UIView *> *_reactSubviews;
 }
 
 - (instancetype _Nonnull)init {
@@ -181,70 +190,97 @@
 
 - (void)didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
   if (!self.onPress) return;
-  self.onPress([RMFEventResponse eventFromCoordinate:coordinate action:@"coordinate-press" projection:nil userData:nil]);
+  
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:coordinate
+                                                                                                              pixel:_lastTapPixel]];
+  response[@"action"] = @"coordinate-press";
+  self.onPress(response);
 }
 
 - (void)didTapPOIWithPlaceID:(NSString *)placeID name:(NSString *)name location:(CLLocationCoordinate2D)location {
-  if (!self.onPoiPress) return;
-  self.onPoiPress(@{
-    @"action":@"poi-press",
+  if (!self.onPoiPress) {
+    return;
+  }
+  
+  CLLocationCoordinate2D tapLocation = [self.projection coordinateForPoint:_lastTapPixel];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
+                                                                                                              pixel:_lastTapPixel]];
+  response[@"poi"] = @{
     @"placeID": placeID,
     @"name": name,
-    @"location": @{
-      @"latitude": @(location.latitude),
-      @"longitude": @(location.longitude)
-    }
-  });
+    kRMFLatLngCoordinateResponseKey: [RMFEventResponse fromCoordinate:location]
+  };
+  response[@"action"] = @"map-poi-press";
+  
+  self.onPoiPress(response);
 }
 
 - (void)didTapBuildingWithBuildingID:(NSString *)buildingID name:(NSString *)name location:(CLLocationCoordinate2D)location {
-  if (!self.onBuildingPress) return;
-  self.onBuildingPress(@{
-    @"action":@"building-press",
+  if (!self.onBuildingPress) {
+    return;
+  }
+  
+  CLLocationCoordinate2D tapLocation = [self.projection coordinateForPoint:_lastTapPixel];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
+                                                                                                              pixel:_lastTapPixel]];
+  response[@"building"] = @{
     @"buildingID": buildingID,
     @"name": name,
-    @"location": @{
-      @"latitude": @(location.latitude),
-      @"longitude": @(location.longitude)
-    }
-  });
+    kRMFLatLngCoordinateResponseKey: [RMFEventResponse fromCoordinate:location]
+  };
+  response[@"action"] = @"map-building-press";
+
+  self.onBuildingPress(response);
 }
 
 - (void)didTapPlaceWithName:(NSString*)name location:(CLLocationCoordinate2D)location {
-  if (!self.onPlacePress) return;
-  self.onPlacePress(@{
-    @"action":@"place-press",
+  if (!self.onPlacePress) {
+    return;
+  }
+  
+  CLLocationCoordinate2D tapLocation = [self.projection coordinateForPoint:_lastTapPixel];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
+                                                                                                              pixel:_lastTapPixel]];
+  response[@"place"] = @{
     @"name": name,
-    @"location": @{
-      @"latitude": @(location.latitude),
-      @"longitude": @(location.longitude)
-    }
-  });
+    kRMFLatLngCoordinateResponseKey: [RMFEventResponse fromCoordinate:location]
+  };
+  response[@"action"] = @"map-place-press";
+
+  self.onPlacePress(response);
 }
 
 - (BOOL)didTapMyLocationButton {
   if (self.onMyLocationButtonPress) {
-    self.onMyLocationButtonPress(@{});
+    self.onMyLocationButtonPress(@{ @"action": @"my-location-button-press" });
   }
   return false;
 }
 
 - (void)didShouldChangeMapMode {
   if (self.onShouldChangeMapMode) {
-    self.onShouldChangeMapMode(@{});
+    self.onShouldChangeMapMode(@{ @"action": @"should-change-mode " });
   }
 }
 
 - (void)willMove: (BOOL) gesture {
-  if (!self.onCameraMoveStart) return;
-    NSMutableDictionary* data = [[NSMutableDictionary alloc] initWithDictionary:[RMFEventResponse eventFromCameraPosition: self.camera]];
-    data[@"gesture"] = [NSNumber numberWithBool:gesture];
-    self.onCameraMoveStart(data);
+  if (!self.onCameraMoveStart) {
+    return;
+  }
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCameraPosition: self.camera]];
+  //response[@"gesture"] = [NSNumber numberWithBool:gesture];
+  response[@"action"] = @"camera-move-started";
+  self.onCameraMoveStart(response);
 }
 
 - (void)movingCameraPosition: (MFCameraPosition*) position {
-  if (!self.onCameraMove) return;
-  self.onCameraMove([RMFEventResponse eventFromCameraPosition:position]);
+  if (!self.onCameraMove) {
+    return;
+  }
+  
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCameraPosition:position]];
+  response[@"action"] = @"camera-move";
+  self.onCameraMove(response);
 }
 
 - (void)didChangeCameraPosition:(MFCameraPosition *)position {
@@ -252,27 +288,53 @@
 }
 
 - (void)idleAtCameraPosition: (MFCameraPosition *) position {
-  if (!self.onCameraIdle) return;
-  self.onCameraIdle([RMFEventResponse eventFromCameraPosition:position]);
+  if (!self.onCameraIdle) {
+    return;
+  }
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCameraPosition:position]];
+  response[@"action"] = @"camera-move";
+  self.onCameraIdle(response);
 }
 
 - (void)on3dModeChange: (bool) is3DMode {
   if (!self.onModeChange) return;
   if (is3DMode) {
-    self.onModeChange(@{@"mode": @"3d"});
+    self.onModeChange(@{
+      @"action": @"mode-change",
+      @"mode": @"3d"}
+    );
   }
   else {
-    self.onModeChange(@{@"mode": @"2d"});
+    self.onModeChange(@{
+      @"action": @"mode-change",
+      @"mode": @"2d"}
+    );
   }
 }
 
-/** Overwrite */
+#pragma mark - MapView Override
+
 - (void)glkView:(nonnull GLKView *)view drawInRect:(CGRect)rect {
   [super glkView:view drawInRect:rect];
   
   if (_didCallOnMapReady) return;
   _didCallOnMapReady = true;
   if (self.onMapReady) self.onMapReady(@{});
+}
+
+- (void)respondToTapGesture:(UITapGestureRecognizer *)tapRecognizer {
+  _lastTapPixel = [tapRecognizer locationInView:self];
+  [super respondToTapGesture:tapRecognizer];
+}
+
+- (void)respondToPanGesture:(UIPanGestureRecognizer *)panRecognizer {
+  _lastPanPixel = [panRecognizer locationInView:self];
+  [super respondToPanGesture:panRecognizer];
+}
+
+- (void)respondToLongPressGesture:(UILongPressGestureRecognizer *)panRecognizer {
+  _lastLongPressPixel = [panRecognizer locationInView:self];
+  [super respondToLongPressGesture:panRecognizer];
 }
 
 #pragma clang diagnostic pop

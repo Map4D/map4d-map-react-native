@@ -22,26 +22,17 @@
 @class MFCameraPosition;
 @class MFCoordinateBounds;
 
+FOUNDATION_EXPORT NSString *const kRMFLatLngCoordinateResponseKey;
+FOUNDATION_EXPORT NSString *const kRMFPointCoordinateResponseKey;
+
 @interface RMFEventResponse : NSObject
 
-+ (NSDictionary*)eventFromCoordinate:(CLLocationCoordinate2D)coordinate;
-+ (NSMutableDictionary*)eventFromCoordinate:(CLLocationCoordinate2D)coordinate
-                                     action:(NSString*)action
-                                 projection:(MFProjection*)projection
-                                   userData:(NSDictionary*)userData;
-
-+ (NSDictionary*)eventFromMarker:(RMFMarker*) marker action:(NSString*)action;
-+ (NSDictionary*)eventFromCircle:(RMFCircle*) circle action:(NSString*)action;
-+ (NSDictionary*)eventFromPolyline:(RMFPolyline*) line action:(NSString*)action;
-+ (NSDictionary*)eventFromPolygon:(RMFPolygon*) fill action:(NSString*)action;
-
-+ (NSDictionary*)eventFromMap4dPOI:(MFPOI*) poi action:(NSString*)action;
-+ (NSDictionary*)eventFromUserPOI:(RMFPOI*) poi action:(NSString*)action;
-
-+ (NSDictionary*)eventFromCameraPosition:(MFCameraPosition*) position;
-+ (NSDictionary*)eventFromCoordinateBounds:(MFCoordinateBounds*)bounds;
-+ (NSDictionary*)eventFromCGPoint:(CGPoint) point;
-+ (NSDictionary*)eventFromCLLocation:(CLLocation*) location;
++ (NSDictionary*)fromCoordinate:(CLLocationCoordinate2D)coordinate;
++ (NSDictionary*)fromCoordinate:(CLLocationCoordinate2D)location pixel:(CGPoint)pixel;
++ (NSDictionary*)fromCameraPosition:(MFCameraPosition*) position;
++ (NSDictionary*)fromCoordinateBounds:(MFCoordinateBounds*)bounds;
++ (NSDictionary*)fromCGPoint:(CGPoint) point;
++ (NSDictionary*)fromCLLocation:(CLLocation*) location;
 
 @end
 

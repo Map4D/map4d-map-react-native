@@ -76,13 +76,25 @@
 
  - (void)setUserData:(NSDictionary *)userData {
    _userData = userData;
-//   _map4dCircle.userData = userData;
  }
 
 /** Event */
-- (void)didTap {
-  if(!self.onPress) return;
-  self.onPress([RMFEventResponse eventFromCircle:self action:@"circle-press"]);
+- (void)didTapAtPixel:(CGPoint)pixel {
+  if(!self.onPress) {
+    return;
+  }
+  
+  CLLocationCoordinate2D tapLocation = [_map4dCircle.map.projection coordinateForPoint:pixel];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
+                                                                                                           pixel:pixel]];
+  response[@"circle"] = @{
+    @"center": [RMFEventResponse fromCoordinate:_centerCoordinate],
+    @"radius": @(_radius),
+    @"userData": _userData != nil ? _userData : @{}
+  };
+  response[@"action"] = @"circle-press";
+  
+  self.onPress(response);
 }
 
 @end
