@@ -193,7 +193,7 @@
   
   NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:coordinate
                                                                                                               pixel:_lastTapPixel]];
-  response[@"action"] = @"coordinate-press";
+  response[@"action"] = @"map-press";
   self.onPress(response);
 }
 
@@ -206,8 +206,8 @@
   NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
                                                                                                               pixel:_lastTapPixel]];
   response[@"poi"] = @{
-    @"placeID": placeID,
-    @"name": name,
+    @"id": placeID,
+    @"title": name,
     kRMFLatLngCoordinateResponseKey: [RMFEventResponse fromCoordinate:location]
   };
   response[@"action"] = @"map-poi-press";
@@ -224,7 +224,7 @@
   NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
                                                                                                               pixel:_lastTapPixel]];
   response[@"building"] = @{
-    @"buildingID": buildingID,
+    @"id": buildingID,
     @"name": name,
     kRMFLatLngCoordinateResponseKey: [RMFEventResponse fromCoordinate:location]
   };
@@ -259,7 +259,7 @@
 
 - (void)didShouldChangeMapMode {
   if (self.onShouldChangeMapMode) {
-    self.onShouldChangeMapMode(@{ @"action": @"should-change-mode " });
+    self.onShouldChangeMapMode(@{ @"action": @"should-change-mode" });
   }
 }
 
@@ -268,12 +268,12 @@
     return;
   }
   NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCameraPosition: self.camera]];
-  //response[@"gesture"] = [NSNumber numberWithBool:gesture];
+  response[@"gesture"] = [NSNumber numberWithBool:gesture];
   response[@"action"] = @"camera-move-started";
   self.onCameraMoveStart(response);
 }
 
-- (void)movingCameraPosition: (MFCameraPosition*) position {
+- (void)movingCameraPosition:(MFCameraPosition *)position {
   if (!self.onCameraMove) {
     return;
   }
@@ -284,7 +284,6 @@
 }
 
 - (void)didChangeCameraPosition:(MFCameraPosition *)position {
-  //TODO
 }
 
 - (void)idleAtCameraPosition: (MFCameraPosition *) position {
@@ -292,7 +291,7 @@
     return;
   }
   NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCameraPosition:position]];
-  response[@"action"] = @"camera-move";
+  response[@"action"] = @"camera-idle";
   self.onCameraIdle(response);
 }
 

@@ -228,7 +228,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         event.putString("action", "map-poi-press");
 
         WritableMap poiData = new WritableNativeMap();
-        poiData.putString("placeId", placeId);
+        poiData.putString("id", placeId);
         poiData.putString("title", title);
         WritableMap poiLocation = new WritableNativeMap();
         poiLocation.putDouble("latitude", location.getLatitude());
@@ -264,7 +264,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         event.putString("action", "map-building-press");
 
         WritableMap buildingData = new WritableNativeMap();
-        buildingData.putString("buildingId", buildingId);
+        buildingData.putString("id", buildingId);
         buildingData.putString("name", name);
         WritableMap buildingLocation = new WritableNativeMap();
         buildingLocation.putDouble("latitude", location.getLatitude());
