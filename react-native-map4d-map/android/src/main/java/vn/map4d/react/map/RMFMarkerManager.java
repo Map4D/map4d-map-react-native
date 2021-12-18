@@ -100,7 +100,8 @@ public class RMFMarkerManager extends ViewGroupManager<RMFMarker> {
       "onDrag", MapBuilder.of("registrationName", "onDrag"),
       "onDragStart", MapBuilder.of("registrationName", "onDragStart"),
       "onDragEnd", MapBuilder.of("registrationName", "onDragEnd"),
-      "onPress", MapBuilder.of("registrationName", "onPress")
+      "onPress", MapBuilder.of("registrationName", "onPress"),
+      "onPressInfoWindow", MapBuilder.of("registrationName", "onPressInfoWindow")
     );
     return map;
   }

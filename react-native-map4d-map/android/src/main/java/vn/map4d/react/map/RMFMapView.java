@@ -148,7 +148,20 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         event = getMarkerEventData(marker, touchPointX, touchPointY);
         event.putString("action", "marker-press");
         manager.pushEvent(getContext(), rctMarker, "onPress", event);
-        return true;
+        return false;
+      }
+    });
+
+    map.setOnInfoWindowClickListener(new Map4D.OnInfoWindowClickListener() {
+      @Override
+      public void onInfoWindowClick(@NonNull MFMarker marker) {
+        RMFMarker rctMarker = markerMap.get(marker);
+        if (rctMarker == null) {
+          return;
+        }
+        WritableMap event = getMarkerEventData(marker, touchPointX, touchPointY);
+        event.putString("action", "marker-info-window-press");
+        manager.pushEvent(getContext(), rctMarker, "onPressInfoWindow", event);
       }
     });
 
@@ -395,7 +408,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     map.setOnMyLocationButtonClickListener(new Map4D.OnMyLocationButtonClickListener() {
       @Override
       public boolean onMyLocationButtonClick() {
-		WritableMap event = new WritableNativeMap();
+        WritableMap event = new WritableNativeMap();
         event.putString("action", "my-location-button-press");
         manager.pushEvent(getContext(), view, "onMyLocationButtonPress", event);
         return false;
@@ -454,6 +467,18 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     poiLocation.putDouble("latitude", poi.getPosition().getLatitude());
     poiLocation.putDouble("longitude", poi.getPosition().getLongitude());
     poiData.putMap("location", poiLocation);
+    Object userData = poi.getUserData();
+    if (userData != null) {
+      String userDataByString = "";
+      userDataByString = userData.toString();
+      int begin = userDataByString.indexOf(":") + 2;
+      int end = userDataByString.length() - 2;
+      userDataByString = userDataByString.substring(begin, end);
+      poiData.putString("userData", userDataByString);
+    }
+    else {
+      poiData.putMap("userData", new WritableNativeMap());
+    }
 
     WritableMap screenCoordinate = new WritableNativeMap();
     screenCoordinate.putDouble("x", touchPointX);
@@ -590,9 +615,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     WritableMap event = new WritableNativeMap();
     WritableMap location = new WritableNativeMap();
 
-    WritableMap rendererData = new WritableNativeMap();
-    rendererData.putInt("routeIndex", i);
-
     WritableMap screenCoordinate = new WritableNativeMap();
     screenCoordinate.putDouble("x", touchPointX);
     screenCoordinate.putDouble("y", touchPointY);
@@ -604,9 +626,9 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     location.putDouble("latitude", coordinate.getLatitude());
     location.putDouble("longitude", coordinate.getLongitude());
 
-    event.putMap("renderer", rendererData);
     event.putMap("location", location);
     event.putMap("pixel", screenCoordinate);
+    event.putInt("routeIndex", i);
 
     return event;
   }

@@ -230,8 +230,7 @@ public class RMFMarker extends RMFFeature {
   public void setElevation(double elevation) {
     this.elevation = elevation;
     if (marker != null) {
-      // Current SDK version don't have this method, update later
-      // marker.setElevation(elevation);
+       marker.setElevation(elevation);
     }
   }
 
