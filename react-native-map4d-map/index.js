@@ -6,6 +6,8 @@ import {MFPolyline} from './components/MFPolyline'
 import {MFPolygon} from './components/MFPolygon'
 import {MFPOI} from './components/MFPOI'
 import {MFDirectionsRenderer} from './components/MFDirectionsRenderer'
+import {MFTileOverlay} from './components/MFTileOverlay'
+import {MFGroundOverlay} from './components/MFGroundOverlay'
 
 export {
   MFMapView,
@@ -14,5 +16,7 @@ export {
   MFPolyline,
   MFPolygon,
   MFPOI,
-  MFDirectionsRenderer
+  MFDirectionsRenderer,
+  MFTileOverlay,
+  MFGroundOverlay
 };

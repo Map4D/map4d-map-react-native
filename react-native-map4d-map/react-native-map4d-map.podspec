@@ -10,10 +10,7 @@ Pod::Spec.new do |s|
 Map4dMap SDK for React Native
                    DESC
   s.homepage     = "https://map4d.vn"
-  # brief license entry:
   s.license      = "MIT"
-  # optional - use expanded license entry instead:
-  # s.license    = { :type => "MIT", :file => "LICENSE" }
   s.authors      = { "IOTLink" => "admin@iotlink.com.vn" }
   s.platforms    = { :ios => "9.0" }
   s.source       = { :git => "https://github.com/map4d/map4d-map-react-native", :tag => "#{s.version}" }
@@ -22,8 +19,6 @@ Map4dMap SDK for React Native
   s.requires_arc = true
 
   s.dependency "React"
-  s.dependency "Map4dMap", "~> 2.0.4"
-  # ...
-  # s.dependency "..."
+  s.dependency "Map4dMap", "~> 2.0.6"
 end
 
