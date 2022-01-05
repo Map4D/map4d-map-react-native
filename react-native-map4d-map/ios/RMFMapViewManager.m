@@ -68,6 +68,11 @@ RCT_EXPORT_VIEW_PROPERTY(showsPOIs, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(showsMyLocation, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(showsMyLocationButton, BOOL)
 
+RCT_EXPORT_VIEW_PROPERTY(zoomGesturesEnabled, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(scrollGesturesEnabled, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(rotateGesturesEnabled, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(tiltGesturesEnabled, BOOL)
+
 
 RCT_EXPORT_METHOD(getCamera:(nonnull NSNumber *)reactTag
                   resolver: (RCTPromiseResolveBlock)resolve
@@ -311,6 +316,72 @@ RCT_EXPORT_METHOD(setTime:(nonnull NSNumber *)reactTag
       if (date) {
         [mapView setTime:date];
       }
+    }
+  }];
+}
+
+
+RCT_EXPORT_METHOD(setZoomGesturesEnabled:(nonnull NSNumber *)reactTag
+                  enable:(BOOL)enable) {
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[RMFMapView class]]) {
+      
+    } else {
+      RMFMapView *mapView = (RMFMapView *)view;
+      mapView.settings.zoomGestures = enable;
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(setScrollGesturesEnabled:(nonnull NSNumber *)reactTag
+                  enable:(BOOL)enable) {
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[RMFMapView class]]) {
+      
+    } else {
+      RMFMapView *mapView = (RMFMapView *)view;
+      mapView.settings.scrollGestures = enable;
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(setRotateGesturesEnabled:(nonnull NSNumber *)reactTag
+                  enable:(BOOL)enable) {
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[RMFMapView class]]) {
+      
+    } else {
+      RMFMapView *mapView = (RMFMapView *)view;
+      mapView.settings.rotateGestures = enable;
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(setTiltGesturesEnabled:(nonnull NSNumber *)reactTag
+                  enable:(BOOL)enable) {
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[RMFMapView class]]) {
+      
+    } else {
+      RMFMapView *mapView = (RMFMapView *)view;
+      mapView.settings.tiltGestures = enable;
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(setAllGesturesEnabled:(nonnull NSNumber *)reactTag
+                  enable:(BOOL)enable) {
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[RMFMapView class]]) {
+      
+    } else {
+      RMFMapView *mapView = (RMFMapView *)view;
+      [mapView.settings setAllGesturesEnabled:enable];
     }
   }];
 }

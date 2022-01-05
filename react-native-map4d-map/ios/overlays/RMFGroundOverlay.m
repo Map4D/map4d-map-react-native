@@ -76,8 +76,6 @@
 }
 
 - (void)setCoordinateBounds:(MFCoordinateBounds *)coordinateBounds {
-  CLLocationCoordinate2D ne = coordinateBounds.northEast;
-  CLLocationCoordinate2D sw = coordinateBounds.southWest;
   _coordinateBounds = coordinateBounds;
   [self createNewGroundOverlay];
 }

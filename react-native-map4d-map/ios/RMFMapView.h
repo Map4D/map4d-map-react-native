@@ -51,11 +51,12 @@
 @property (nonatomic, assign) BOOL showsPOIs;
 //@property (nonatomic, assign) BOOL showsTraffic;
 //@property (nonatomic, assign) BOOL showsCompass;
-//@property (nonatomic, assign) BOOL scrollEnabled;
-//@property (nonatomic, assign) BOOL zoomEnabled;
-//@property (nonatomic, assign) BOOL rotateEnabled;
-//@property (nonatomic, assign) BOOL pitchEnabled;
-//@property (nonatomic, assign) BOOL zoomTapEnabled;
+
+@property (nonatomic, assign) BOOL zoomGesturesEnabled;
+@property (nonatomic, assign) BOOL scrollGesturesEnabled;
+@property (nonatomic, assign) BOOL rotateGesturesEnabled;
+@property (nonatomic, assign) BOOL tiltGesturesEnabled;
+
 @property (nonatomic, assign) BOOL showsMyLocation;
 @property (nonatomic, assign) BOOL showsMyLocationButton;
 //@property (nonatomic, assign) BOOL showsIndoors;

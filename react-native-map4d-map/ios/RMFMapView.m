@@ -178,6 +178,26 @@
   [self setPOIsEnabled:showsPOIs];
 }
 
+- (void)setZoomGesturesEnabled:(BOOL)enabled {
+  _zoomGesturesEnabled = enabled;
+  self.settings.zoomGestures = enabled;
+}
+
+- (void)setScrollGesturesEnabled:(BOOL)enabled {
+  _scrollGesturesEnabled = enabled;
+  self.settings.scrollGestures = enabled;
+}
+
+- (void)setRotateGesturesEnabled:(BOOL)enabled {
+  _rotateGesturesEnabled = enabled;
+  self.settings.rotateGestures = enabled;
+}
+
+- (void)setTiltGesturesEnabled:(BOOL)enabled {
+  _tiltGesturesEnabled = enabled;
+  self.settings.tiltGestures = enabled;
+}
+
 - (void)setShowsMyLocationButton:(BOOL)showsMyLocationButton {
   _showsMyLocationButton = showsMyLocationButton;
   self.settings.myLocationButton = showsMyLocationButton;
