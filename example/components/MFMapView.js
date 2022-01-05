@@ -43,12 +43,35 @@ const propTypes = {
    */
   showsBuildings: PropTypes.bool,
 
-
   /**
    * A Boolean indicating whether the map displays POIs.
    * Default value is `true`.
    */
   showsPOIs: PropTypes.bool,
+
+  /**
+   * If `false` the user won't be able to zoom the map.
+   * Default value is `true`.
+   */
+  zoomGesturesEnabled: PropTypes.bool,
+
+  /**
+   * If `false` the user won't be able to scroll the map.
+   * Default value is `true`.
+   */
+  scrollGesturesEnabled: PropTypes.bool,
+
+  /**
+   * If `false` the user won't be able to pinch/rotate the map.
+   * Default value is `true`.
+   */
+  rotateGesturesEnabled: PropTypes.bool,
+
+  /**
+   * If `false` the user won't be able to tilt the map.
+   * Default value is `true`.
+   */
+  tiltGesturesEnabled: PropTypes.bool,
 
   /**
    * The camera view position.
@@ -202,6 +225,26 @@ class MFMapView extends React.Component {
     this._runCommand('setPOIsEnabled', [enable]);
   }
 
+  setZoomGesturesEnabled(enable) {
+    this._runCommand('setZoomGesturesEnabled', [enable]);
+  }
+
+  setScrollGesturesEnabled(enable) {
+    this._runCommand('setScrollGesturesEnabled', [enable]);
+  }
+
+  setRotateGesturesEnabled(enable) {
+    this._runCommand('setRotateGesturesEnabled', [enable]);
+  }
+
+  setTiltGesturesEnabled(enable) {
+    this._runCommand('setTiltGesturesEnabled', [enable]);
+  }
+
+  setAllGesturesEnabled(enable) {
+    this._runCommand('setAllGesturesEnabled', [enable]);
+  }
+
   setTime(time) {
     let t = Date.parse(time)
     if (isNaN(t)) {
@@ -230,14 +273,14 @@ class MFMapView extends React.Component {
 
 
   /**
- * Convert a map coordinate to screen point
- *
- * @param coordinate Coordinate
- * @param [coordinate.latitude] Latitude
- * @param [coordinate.longitude] Longitude
- *
- * @return Promise Promise with the point ({ x: Number, y: Number })
- */
+   * Convert a map coordinate to screen point
+   *
+   * @param coordinate Coordinate
+   * @param [coordinate.latitude] Latitude
+   * @param [coordinate.longitude] Longitude
+   *
+   * @return Promise Promise with the point ({ x: Number, y: Number })
+   */
   pointForCoordinate(coordinate) {
     if (Platform.OS === 'android') {
       return NativeModules.Map4dMap.pointForCoordinate(
