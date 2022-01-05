@@ -692,6 +692,31 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     }
   }
 
+  public void setZoomGesturesEnabled(boolean enable) {
+    if (map == null) return;
+    map.setZoomGesturesEnabled(enable);
+  }
+
+  public void setScrollGesturesEnabled(boolean enable) {
+    if (map == null) return;
+    map.setScrollGesturesEnabled(enable);
+  }
+
+  public void setRotateGesturesEnabled(boolean enable) {
+    if (map == null) return;
+    map.setRotateGesturesEnabled(enable);
+  }
+
+  public void setTiltGesturesEnabled(boolean enable) {
+    if (map == null) return;
+    map.setTiltGesturesEnabled(enable);
+  }
+
+  public void setAllGesturesEnabled(boolean enable) {
+    if (map == null) return;
+    map.setAllGesturesEnabled(enable);
+  }
+
   public void setPOIsEnabled(Boolean enable) {
     if (map == null) return;
     map.setPOIsEnabled(enable);
