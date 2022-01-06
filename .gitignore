@@ -57,4 +57,4 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
-example/android/.settings/org.eclipse.buildship.core.prefs
+demo/android/.settings/org.eclipse.buildship.core.prefs

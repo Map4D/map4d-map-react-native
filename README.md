@@ -3,7 +3,7 @@ React Native Map4D component for iOS + Android
 
 iOS:
 ```sh
-$ cd example
+$ cd demo
 $ npm install
 $ cd ios
 $ pod install
@@ -13,7 +13,7 @@ $ npm run ios
 
 Android:
 ```sh
-$ cd example
+$ cd demo
 $ npm install
 $ npm run android
 ```
