@@ -294,32 +294,43 @@ export default class MapScreen extends React.Component {
               }
             }
           />
-          <MFMarker
-            draggable={true}
-            ref={ref => this.marker = ref}
-            onDragStart={
-              (event) => {
-                console.log("startDrag: ", event.nativeEvent)
-            }}
-            onDrag={
-              (event) => {
-                console.log("drag: ", event.nativeEvent)
-            }}
-            onDragEnd={
-              (event) => {
-                console.log("dragEnd: ", event.nativeEvent)
-            }}
-            anchor={{x: 0.0, y: 0.0}}
-            coordinate={{latitude: 10.7881732, longitude: 106.7000933}}>
-            <View style={{
-              width:30,
-              height:35,
-              borderWidth:1,
-              borderColor:'yellow'}}>
-              <Image source={{ uri: 'https://b.thumbs.redditmedia.com/F82n9T2HtoYxNmxbe1CL0RKxBdeUEw-HVyd-F-Lb91o.png' }}
-            style={{width:25, height:31}} resizeMode={'contain'} />
-            </View>
-          </MFMarker>
+          <MFMarker 
+           coordinate={{
+             latitude: 16.072271, longitude: 108.226958
+           }}
+           zIndex={3.0}
+           draggable
+           anchor={{ x: 0.5, y: 1.0 }}
+           userData={{ name: 'Marker 3', arr: [1, 5, 9], obj: { x: 10, y: 11 } }}
+           visible={true}
+           style={{
+            backgroundColor: '#ffff00',
+    
+          }}
+         >
+           <View style={{
+             flexDirection: 'column',
+             alignItems: 'center',
+             backgroundColor: '#00ff00',
+             width: 100,
+             height: 100
+           }}>
+             <Text style={{
+               color: '#00ff00',
+               textAlign: 'center',
+               marginBottom: 5
+             }}>
+               Địa chỉ giao hàng
+             </Text>
+             <Image
+               source={require('./assets/marker-pink.png')}
+               style={{
+                 height: 60,
+                 width: 60
+               }}
+             />
+           </View>
+         </MFMarker>
           <MFCircle
             onPress={this.onPressCircle}
             center={{latitude: 10.7881732, longitude: 106.7000933}}

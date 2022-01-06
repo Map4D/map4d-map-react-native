@@ -17,8 +17,11 @@ import {
   NativeModules,
 } from 'react-native';
 
-import {MFMapView} from 'react-native-map4d-map';
-import {MFMarker} from 'react-native-map4d-map';
+// import {MFMapView} from 'react-native-map4d-map';
+// import {MFMarker} from 'react-native-map4d-map';
+
+import {MFMapView} from './components/MFMapView'
+import {MFMarker} from './components/MFMarker'
 
 function App() {
   return (
@@ -37,17 +40,21 @@ function App() {
 		
 			<MFMarker
           coordinate={{
-            latitude: 10.788482, longitude: 106.699555
+            latitude: 16.072271, longitude: 108.226958
           }}
           zIndex={3.0}
           draggable
           anchor={{ x: 0.5, y: 1.0 }}
           userData={{ name: 'Marker 3', arr: [1, 5, 9], obj: { x: 10, y: 11 } }}
           visible={true}
+          style={{
+            backgroundColor: '#ffff00',
+          }}
         >
           <View style={{
             flexDirection: 'column',
             alignItems: 'center',
+            backgroundColor: '#00ff00',
             width: 100,
             height: 100
           }}>
