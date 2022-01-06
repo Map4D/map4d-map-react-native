@@ -13,15 +13,10 @@ import {
   Image,
   View,
   Text,
-  Button,
-  NativeModules,
 } from 'react-native';
 
-// import {MFMapView} from 'react-native-map4d-map';
-// import {MFMarker} from 'react-native-map4d-map';
-
-import {MFMapView} from './components/MFMapView'
-import {MFMarker} from './components/MFMarker'
+import {MFMapView} from 'react-native-map4d-map';
+import {MFMarker} from 'react-native-map4d-map';
 
 function App() {
   return (
@@ -86,6 +81,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
 });
 
