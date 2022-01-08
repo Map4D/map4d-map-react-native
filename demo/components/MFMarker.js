@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {
   requireNativeComponent,
+  StyleSheet,
   Platform,
   Image,
   NativeModules,
@@ -227,6 +228,7 @@ class MFMarker extends React.Component {
           {...this.props}
           icon={icon}
           ref={this._ref}
+          style={[styles.marker, this.props.style]}
           onPress={this._onPress}
         />;
       }
@@ -234,5 +236,11 @@ class MFMarker extends React.Component {
 
 MFMarker.propTypes = propTypes;
 var RMFMarker = requireNativeComponent(`RMFMarker`, MFMarker);
+
+const styles = StyleSheet.create({
+  marker: {
+    position: 'absolute'
+  },
+});
 
 export {MFMarker}
