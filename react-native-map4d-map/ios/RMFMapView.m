@@ -163,6 +163,12 @@
   if ([@"raster" caseInsensitiveCompare:mapTypeProp] == NSOrderedSame) {
     self.mapType = MFMapTypeRaster;
   }
+  else if ([@"satellite" caseInsensitiveCompare:mapTypeProp] == NSOrderedSame) {
+    self.mapType = MFMapTypeSatellite;
+  }
+  else if ([@"map3d" caseInsensitiveCompare:mapTypeProp] == NSOrderedSame) {
+    self.mapType = MFMapTypeMap3D;
+  }
   else {
     self.mapType = MFMapTypeRoadmap;
   }

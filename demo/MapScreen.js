@@ -44,7 +44,6 @@ export default class MapScreen extends React.Component {
     this.onCameraMove = this.onCameraMove.bind(this);
     this.onCameraIdle = this.onCameraIdle.bind(this);
     this.onCameraMoveStart = this.onCameraMoveStart.bind(this);
-    this.onShouldChangeMapMode = this.onShouldChangeMapMode.bind(this);
   }
 
   handleClick() {
@@ -197,11 +196,6 @@ export default class MapScreen extends React.Component {
     console.log(e.nativeEvent);
   }
 
-  onShouldChangeMapMode(e) {
-    this.enable3DMode()
-  }
-
-
   render() {
     let markerIcon1 = require('./assets/ic_marker_tracking.png')
     let markerIcon2 = 'https://b.thumbs.redditmedia.com/F82n9T2HtoYxNmxbe1CL0RKxBdeUEw-HVyd-F-Lb91o.png'
@@ -216,14 +210,13 @@ export default class MapScreen extends React.Component {
               // this.moveCamera()
             }
           }
-          mapType="roadmap"
+          mapType="satellite"
           onPoiPress={(event)=>{console.log('press map poi:', event.nativeEvent)}}
           onBuildingPress={this.onPressBuilding}
           onPlacePress={this.onPressPlace}
           onCameraMove={this.onCameraMove}
           onCameraMoveStart={this.onCameraMoveStart}
           onCameraIdle={this.onCameraIdle}
-          onModeChange={(event)=>{console.log('mode change:', event.nativeEvent)}}
           onReachLimitedZoom={(event)=>{console.log('limited zoom:', event.nativeEvent)}}
           style={this.styles.container}
           onPress={this.onPressMapView}
