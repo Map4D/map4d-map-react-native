@@ -31,12 +31,11 @@
 //@property (nonatomic, copy) RCTDirectEventBlock onRegionChangeComplete;
 //@property (nonatomic, copy) RCTDirectEventBlock onIndoorLevelActivated;
 //@property (nonatomic, copy) RCTDirectEventBlock onIndoorBuildingFocused;
-@property (nonatomic, copy) RCTDirectEventBlock onModeChange;
 @property (nonatomic, copy) RCTDirectEventBlock onCameraMove;
 @property (nonatomic, copy) RCTDirectEventBlock onCameraMoveStart;
 @property (nonatomic, copy) RCTDirectEventBlock onCameraIdle;
 @property (nonatomic, copy) RCTDirectEventBlock onMyLocationButtonPress;
-@property (nonatomic, copy) RCTDirectEventBlock onShouldChangeMapMode;
+@property (nonatomic, copy) RCTDirectEventBlock onReachLimitedZoom;
 
 //@property (nonatomic, assign) MKCoordinateRegion initialRegion;
 //@property (nonatomic, assign) MKCoordinateRegion region;
@@ -71,14 +70,13 @@
 - (void)movingCameraPosition: (MFCameraPosition*) position;
 - (void)didChangeCameraPosition: (MFCameraPosition*) position;
 - (void)idleAtCameraPosition: (MFCameraPosition *) position;
-- (void)on3dModeChange: (bool) is3DMode;
+- (void)onReachLimitedZoom: (double) zoom;
 
 - (void)didTapAtCoordinate:(CLLocationCoordinate2D)coordinate;
 - (void)didTapPOIWithPlaceID:(NSString *)placeID name:(NSString *)name location:(CLLocationCoordinate2D)location;
 - (void)didTapBuildingWithBuildingID:(NSString *)buildingID name:(NSString *)name location:(CLLocationCoordinate2D)location;
 - (void)didTapPlaceWithName:(NSString*)name location:(CLLocationCoordinate2D)location;
 - (BOOL)didTapMyLocationButton;
-- (void)didShouldChangeMapMode;
 
 @end
 

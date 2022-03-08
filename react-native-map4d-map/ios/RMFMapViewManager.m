@@ -54,12 +54,11 @@ RCT_EXPORT_VIEW_PROPERTY(onBuildingPress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPlacePress, RCTDirectEventBlock)
 //RCT_EXPORT_VIEW_PROPERTY(onIndoorLevelActivated, RCTDirectEventBlock)
 //RCT_EXPORT_VIEW_PROPERTY(onIndoorBuildingFocused, RCTDirectEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(onModeChange, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCameraIdle, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCameraMove, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCameraMoveStart, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMyLocationButtonPress, RCTDirectEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(onShouldChangeMapMode, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onReachLimitedZoom, RCTDirectEventBlock)
 
 RCT_REMAP_VIEW_PROPERTY(camera, cameraProp, MFCameraPosition)
 RCT_REMAP_VIEW_PROPERTY(mapType, mapTypeProp, NSString)
@@ -230,7 +229,7 @@ RCT_EXPORT_METHOD(is3DMode:(nonnull NSNumber *)reactTag
       reject(@"Invalid argument", [NSString stringWithFormat:@"Invalid view returned from registry, expecting RMFMapView, got: %@", view], NULL);
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
-      resolve(@(mapView.is3DMode));
+      resolve(@(mapView.mapType == MFMapTypeMap3D));
     }
   }];
   
@@ -244,7 +243,12 @@ RCT_EXPORT_METHOD(enable3DMode:(nonnull NSNumber *)reactTag
       
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
-      [mapView enable3DMode:enable];
+      if (enable) {
+        mapView.mapType = MFMapTypeMap3D;
+      }
+      else if (mapView.mapType == MFMapTypeMap3D) {
+        mapView.mapType = MFMapTypeRoadmap;
+      }
     }
   }];
 }
@@ -460,9 +464,9 @@ RCT_EXPORT_METHOD(setAllGesturesEnabled:(nonnull NSNumber *)reactTag
   [map didTapAtCoordinate:coordinate];
 }
 
-- (void)mapView:(MFMapView *)mapView onModeChange:(bool)is3DMode {
-  RMFMapView* reactMapView = (RMFMapView*) mapView;
-  [reactMapView on3dModeChange:is3DMode];
+- (void)mapView:(MFMapView *)mapView didReachLimitedZoom:(double)zoom {
+  RMFMapView* map = (RMFMapView*)mapView;
+  [map onReachLimitedZoom:zoom];
 }
 
 - (void)mapView:(MFMapView *)mapView didTapPOI:(MFPOI *)poi {
@@ -498,12 +502,6 @@ RCT_EXPORT_METHOD(setAllGesturesEnabled:(nonnull NSNumber *)reactTag
 - (BOOL)didTapMyLocationButtonForMapView:(MFMapView *)mapView {
   RMFMapView* reactMapView = (RMFMapView*) mapView;
   return [reactMapView didTapMyLocationButton];
-}
-
-- (BOOL)shouldChangeMapModeForMapView:(MFMapView *)mapView {
-  RMFMapView* reactMapView = (RMFMapView*) mapView;
-  [reactMapView didShouldChangeMapMode];
-  return false;
 }
 
 - (UIView *)mapView:(MFMapView *)mapView markerInfoWindow:(MFMarker *)marker {

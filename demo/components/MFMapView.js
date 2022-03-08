@@ -110,7 +110,7 @@ const propTypes = {
   onPlacePress: PropTypes.func,
 
   /**
-   * Callback that is called when change 3d mode
+   * @deprecated This prop is no longer support, which is subject to removal in a future versions.
    */
   onModeChange: PropTypes.func,
 
@@ -135,9 +135,14 @@ const propTypes = {
   onMyLocationButtonPress: PropTypes.func,
 
   /**
-   * Callback that is called when user zoom in or zoom out through minimum zoom 3D
+   * @deprecated This prop is no longer support, which is subject to removal in a future versions.
    */
-  onShouldChangeMapMode: PropTypes.func
+  onShouldChangeMapMode: PropTypes.func,
+
+  /**
+   * Callback that is called when user zoom in/out reach limited zoom (min/max zoom or zoom at 17 on 3D)
+   */
+  onReachLimitedZoom: PropTypes.func
 };
 
 

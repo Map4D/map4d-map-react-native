@@ -277,12 +277,6 @@
   return false;
 }
 
-- (void)didShouldChangeMapMode {
-  if (self.onShouldChangeMapMode) {
-    self.onShouldChangeMapMode(@{ @"action": @"should-change-mode" });
-  }
-}
-
 - (void)willMove: (BOOL) gesture {
   if (!self.onCameraMoveStart) {
     return;
@@ -315,20 +309,12 @@
   self.onCameraIdle(response);
 }
 
-- (void)on3dModeChange: (bool) is3DMode {
-  if (!self.onModeChange) return;
-  if (is3DMode) {
-    self.onModeChange(@{
-      @"action": @"mode-change",
-      @"mode": @"3d"}
-    );
-  }
-  else {
-    self.onModeChange(@{
-      @"action": @"mode-change",
-      @"mode": @"2d"}
-    );
-  }
+- (void)onReachLimitedZoom:(double)zoom {
+  if (!self.onReachLimitedZoom) return;
+  self.onReachLimitedZoom(@{
+    @"action": @"limited-zoom",
+    @"zoom": @(zoom)
+  });
 }
 
 #pragma mark - MapView Override

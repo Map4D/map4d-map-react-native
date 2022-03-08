@@ -217,7 +217,6 @@ export default class MapScreen extends React.Component {
             }
           }
           mapType="roadmap"
-          // onShouldChangeMapMode={this.onShouldChangeMapMode}
           onPoiPress={(event)=>{console.log('press map poi:', event.nativeEvent)}}
           onBuildingPress={this.onPressBuilding}
           onPlacePress={this.onPressPlace}
@@ -225,6 +224,7 @@ export default class MapScreen extends React.Component {
           onCameraMoveStart={this.onCameraMoveStart}
           onCameraIdle={this.onCameraIdle}
           onModeChange={(event)=>{console.log('mode change:', event.nativeEvent)}}
+          onReachLimitedZoom={(event)=>{console.log('limited zoom:', event.nativeEvent)}}
           style={this.styles.container}
           onPress={this.onPressMapView}
           showsMyLocationButton={true}
