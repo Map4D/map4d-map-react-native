@@ -149,7 +149,7 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
       @Override
       public void found(View view) {
         RMFMapView mapView = (RMFMapView) view;
-        promise.resolve(mapView.map.is3DMode());
+        promise.resolve(mapView.map.getMapType() == MFMapType.MAP3D);
       }
     });
   }    

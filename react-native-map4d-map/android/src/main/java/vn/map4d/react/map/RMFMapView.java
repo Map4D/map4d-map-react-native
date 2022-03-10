@@ -338,16 +338,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       }
     });
 
-    map.setOnMapModeChange(new Map4D.OnMapModeChangeListener() {
-      @Override
-      public void onMapModeChange(boolean is3DMode) {
-        WritableMap event = new WritableNativeMap();
-        event.putString("mode", is3DMode ? "3d" : "2d");
-        event.putString("action", "mode-change");
-        manager.pushEvent(getContext(), view, "onModeChange", event);
-      }
-    });
-
     map.setOnMapClickListener(new Map4D.OnMapClickListener() {
       @Override
       public void onMapClick(MFLocationCoordinate mfLocationCoordinate) {
@@ -395,13 +385,13 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       }
     });
 
-    map.setOnMapModeHandler(new Map4D.OnMapModeHandler() {
+    map.setOnReachLimitedZoom(new Map4D.OnReachLimitedZoom() {
       @Override
-      public boolean shouldChangeMapMode() {
+      public void onReachLimitedZoom(double zoom) {
         WritableMap event = new WritableNativeMap();
-        event.putString("action", "should-change-mode");
-        manager.pushEvent(getContext(), view, "onShouldChangeMapMode", event);
-        return false;
+        event.putString("action", "limited-zoom");
+        event.putDouble("zoom", zoom);
+        manager.pushEvent(getContext(), view, "onReachLimitedZoom", event);
       }
     });
 
@@ -680,15 +670,27 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
 
   public void enable3DMode(Boolean enable) {
     if (map == null) return;
-    map.enable3DMode(enable);
+    if (enable) {
+      map.setMapType(MFMapType.MAP3D);
+    }
+    else if (map.getMapType() == MFMapType.MAP3D) {
+      map.setMapType(MFMapType.ROADMAP);
+    }
   }
 
   public void setMapType(String mapType) {
     if (map == null) return;
     if (mapType.equals("raster")) {
       map.setMapType(MFMapType.RASTER);
-    } else {
+    }
+    else if (mapType.equals("roadmap")) {
       map.setMapType(MFMapType.ROADMAP);
+    }
+    else if (mapType.equals("satellite")) {
+      map.setMapType(MFMapType.SATELLITE);
+    }
+    else if (mapType.equals("map3d")) {
+      map.setMapType(MFMapType.MAP3D);
     }
   }
 
