@@ -5569,7 +5569,7 @@
 
 "react-native-map4d-map@file:../react-native-map4d-map":
   "resolved" "file:../react-native-map4d-map"
-  "version" "2.3.0"
+  "version" "2.4.0"
 
 "react-native-navigation@^6.9.1":
   "integrity" "sha512-CUw3fTUxkBc1Q9r2ZmkAoTvODLRzaSZ/R91KLPNfKkmRiHi3LU3lOq2FWGDVEUo+5HI3Mzec4Bl2lM/+YlgadA=="
