@@ -1,5 +1,7 @@
 package vn.map4d.react.map;
 
+import static androidx.core.content.PermissionChecker.checkSelfPermission;
+
 import android.content.Context;
 import android.graphics.Point;
 import android.view.MotionEvent;
@@ -7,10 +9,14 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.PermissionChecker;
 
+import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.uimanager.ThemedReactContext;
 
 import java.util.Date;
 import java.util.ArrayList;
@@ -29,7 +35,16 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
 
   public Map4D map;
 
+  private boolean showUserLocation = false;
+
+  private static final String[] PERMISSIONS = new String[]{
+    "android.permission.ACCESS_FINE_LOCATION", "android.permission.ACCESS_COARSE_LOCATION"};
+
   private RMFMapViewManager manager;
+  private LifecycleEventListener lifecycleListener;
+  private boolean paused = false;
+  private boolean destroyed = false;
+  private final ThemedReactContext context;
   private final List<RMFFeature> features = new ArrayList<>();
   private final Map<MFMarker, RMFMarker> markerMap = new HashMap<>();
   private final Map<MFCircle, RMFCircle> circleMap = new HashMap<>();
@@ -47,9 +62,36 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   private float dragPointX = 0.f;
   private float dragPointY = 0.f;
 
-  public RMFMapView(Context context, RMFMapViewManager manager) {
-    super(context, null);
+  private static boolean contextHasBug(Context context) {
+    return context == null ||
+      context.getResources() == null ||
+      context.getResources().getConfiguration() == null;
+  }
+
+  private static Context getNonBuggyContext(ThemedReactContext reactContext,
+                                            ReactApplicationContext appContext) {
+    Context superContext = reactContext;
+    if (!contextHasBug(appContext.getCurrentActivity())) {
+      superContext = appContext.getCurrentActivity();
+    } else if (contextHasBug(superContext)) {
+      // we have the bug! let's try to find a better context to use
+      if (!contextHasBug(reactContext.getCurrentActivity())) {
+        superContext = reactContext.getCurrentActivity();
+      } else if (!contextHasBug(reactContext.getApplicationContext())) {
+        superContext = reactContext.getApplicationContext();
+      } else {
+      }
+    }
+    return superContext;
+  }
+
+  public RMFMapView(ThemedReactContext reactContext, ReactApplicationContext appContext, RMFMapViewManager manager) {
+    super(getNonBuggyContext(reactContext, appContext), null);
     this.manager = manager;
+    this.context = reactContext;
+
+    super.onCreate(null);
+    super.onStart();
     this.getMapAsync(this);
 
     // Set up a parent view for triggering visibility in subviews that depend on it.
@@ -79,6 +121,9 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
 
   @Override
   public void onMapReady(final Map4D map) {
+    if (destroyed) {
+      return;
+    }
     this.map = map;
     final RMFMapView view = this;
 
@@ -404,6 +449,72 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         return false;
       }
     });
+
+    // We need to be sure to disable location-tracking when app enters background, in-case some
+    // other module
+    // has acquired a wake-lock and is controlling location-updates, otherwise, location-manager
+    // will be left
+    // updating location constantly, killing the battery, even though some other location-mgmt
+    // module may
+    // desire to shut-down location-services.
+    lifecycleListener = new LifecycleEventListener() {
+      @Override
+      public void onHostResume() {
+        if (hasPermissions() && map != null) {
+          //noinspection MissingPermission
+          map.setMyLocationEnabled(showUserLocation);
+        }
+        synchronized (RMFMapView.this) {
+          if (!destroyed) {
+            RMFMapView.this.onStart();
+          }
+          paused = false;
+        }
+      }
+
+      @Override
+      public void onHostPause() {
+        if (hasPermissions() && map != null) {
+          //noinspection MissingPermission
+          map.setMyLocationEnabled(false);
+        }
+        synchronized (RMFMapView.this) {
+          if (!destroyed) {
+            RMFMapView.this.onStop();
+          }
+          paused = true;
+        }
+      }
+
+      @Override
+      public void onHostDestroy() {
+        RMFMapView.this.doDestroy();
+      }
+    };
+
+    context.addLifecycleEventListener(lifecycleListener);
+  }
+
+  private boolean hasPermissions() {
+    return checkSelfPermission(getContext(), PERMISSIONS[0]) == PermissionChecker.PERMISSION_GRANTED ||
+      checkSelfPermission(getContext(), PERMISSIONS[1]) == PermissionChecker.PERMISSION_GRANTED;
+  }
+
+  public synchronized void doDestroy() {
+    if (destroyed) {
+      return;
+    }
+    destroyed = true;
+
+    if (lifecycleListener != null && context != null) {
+      context.removeLifecycleEventListener(lifecycleListener);
+      lifecycleListener = null;
+    }
+    if (!paused) {
+      onStop();
+      paused = true;
+    }
+    onDestroy();
   }
 
   private WritableMap getCircleEventData(MFCircle circle) {
@@ -725,13 +836,18 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   }
 
   public void setMyLocationEnabled(Boolean enable) {
+    this.showUserLocation = enable; // hold onto this for lifecycle handling
     if (map == null) return;
-    map.setMyLocationEnabled(enable);
+    if (hasPermissions()) {
+      map.setMyLocationEnabled(enable);
+    }
   }
 
   public void setShowsMyLocationButton(boolean showMyLocationButton) {
     if (map == null) return;
-    map.getUiSettings().setMyLocationButtonEnabled(showMyLocationButton);
+    if (hasPermissions()) {
+      map.getUiSettings().setMyLocationButtonEnabled(showMyLocationButton);
+    }
   }
 
   public void setBuildingsEnabled(boolean buildingsEnable) {
