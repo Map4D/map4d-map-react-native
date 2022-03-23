@@ -30,6 +30,11 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
     private static final int k_setAllGesturesEnabled = 13;
 
     private ThemedReactContext reactContext;
+    private final ReactApplicationContext appContext;
+
+    public RMFMapViewManager(ReactApplicationContext context) {
+      this.appContext = context;
+    }
 
     @Override
     public String getName() {
@@ -37,9 +42,9 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
     }
 
     @Override
-    protected RMFMapView createViewInstance(ThemedReactContext reactContext) {
-        this.reactContext = reactContext;
-        return new RMFMapView(reactContext.getCurrentActivity(), this);
+    protected RMFMapView createViewInstance(ThemedReactContext context) {
+        this.reactContext = context;
+        return new RMFMapView(context, this.appContext, this);
     }
 
     @Override
@@ -152,9 +157,15 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
     parent.removeFeatureAt(index);
   }
 
-  void pushEvent(Context context1, View view, String name, WritableMap data) {    
+  void pushEvent(Context context1, View view, String name, WritableMap data) {
     reactContext.getJSModule(RCTEventEmitter.class)
         .receiveEvent(view.getId(), name, data);
+  }
+
+  @Override
+  public void onDropViewInstance(RMFMapView view) {
+    view.doDestroy();
+    super.onDropViewInstance(view);
   }
 
   @ReactProp(name = "showsMyLocationButton", defaultBoolean = true)
