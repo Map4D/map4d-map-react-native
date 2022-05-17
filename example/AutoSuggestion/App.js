@@ -8,7 +8,7 @@ import {
   FlatList,
   TextInput,
 } from 'react-native';
-
+import CheckBox from '@react-native-community/checkbox';
 import { MFMapView, MFMarker } from 'react-native-map4d-map';
 import { fetchSuggestion } from 'react-native-map4d-services';
 
@@ -16,11 +16,17 @@ const App = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [markerCoordinate, setMarkerCoordinate] = useState({latitude: 0, longitude: 0});
   const [markerVisible, setMarkerVisible] = useState(false);
+  const [useMyLocation, setUseMyLocation] = useState(true)
 
-  const onChangeTextSearch = (text) => {
+  const onChangeTextSearch = async (text) => {
     if (text) {
+      let location = undefined
+      if (useMyLocation) {
+        location = await getMyLocationFromMap4d()
+      }
+
       /** Fetch Map4dServices Auto Suggestion */
-      fetchSuggestion({text: text})
+      fetchSuggestion({text: text, location: location})
       .then((response) => {
         if (response.code == 'ok') {
           setSearchResults(response.result);
@@ -35,10 +41,18 @@ const App = () => {
     }
   };
 
-  const getMyLocation = async () => {
+  const getMyLocationFromMap4d = async () => {
     let location = await this.map.getMyLocation()
+    if (location) {
+      return location.coordinate
+    }
+    alert('Please set "showsMyLocation" props = true & enable permission to use location')
+  }
+
+  const getMyLocation = async () => {
+    let location = await getMyLocationFromMap4d()
     console.log('My Location:', location)
-    alert('My Location: ' + JSON.stringify(location.coordinate, null, 2))
+    alert(`My Location: {latitude: ${location.latitude}, longitude: ${location.longitude}}`)
   }
 
   const ItemView = ({ item }) => {
@@ -75,6 +89,10 @@ const App = () => {
     setSearchResults([])
   };
 
+  const setSelection = (value) => {
+    // useMyLocation = value
+  }
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <MFMapView
@@ -89,12 +107,16 @@ const App = () => {
         />
       </MFMapView>
       <View style={styles.searchList}>
-        <TextInput
-          style={styles.textInputStyle}
-          onChangeText={(text) => onChangeTextSearch(text)}
-          underlineColorAndroid="transparent"
-          placeholder="Search Here"
-        />
+        <View style={styles.checkboxContainer}>
+          <TextInput
+            style={styles.textInputStyle}
+            onChangeText={(text) => onChangeTextSearch(text)}
+            underlineColorAndroid="transparent"
+            placeholder="Search Here"
+          />
+          <CheckBox style={styles.checkbox} value={useMyLocation} onValueChange={setUseMyLocation} boxType={"square"}/>
+          <Text style={styles.label}>Nearby</Text>
+        </View>
         <FlatList style={{backgroundColor: '#fff'}}
           data={searchResults}
           keyExtractor={(item, index) => index.toString()}
@@ -118,11 +140,23 @@ const styles = StyleSheet.create({
   },
   textInputStyle: {
     height: 40,
+    width: 250,
     borderWidth: 1,
     paddingLeft: 20,
     margin: 5,
     borderColor: '#009688',
     backgroundColor: '#fff',
+  },
+  checkboxContainer: {
+    flexDirection: "row",
+  },
+  checkbox: {
+    margin: 8,
+    alignSelf: "center",
+  },
+  label: {
+    margin: 8,
+    alignSelf: "center",
   },
   searchList: {
     marginTop: 50,
