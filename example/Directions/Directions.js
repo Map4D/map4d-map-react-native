@@ -42,6 +42,7 @@ const DirectionsScreen = ({ navigation, route }) => {
         style={styles.container}
         ref={ref => map = ref}
         onMapReady={onMapReady}
+        showsMyLocation={true}
       >
         <MFDirectionsRenderer
           directions={directions}
