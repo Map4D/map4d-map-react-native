@@ -51,7 +51,8 @@ const App = () => {
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           {
             title: 'Location Access Required',
-            message: 'This App needs to Access your location',
+            message: 'This app needs to access your location. Please turn on device location',
+            buttonPositive: "OK"
           },
         );
 
