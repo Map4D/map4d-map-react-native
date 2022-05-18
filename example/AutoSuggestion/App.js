@@ -6,6 +6,8 @@ import {
   StyleSheet,
   View,
   FlatList,
+  PermissionsAndroid,
+  Platform,
   TextInput,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
@@ -42,7 +44,28 @@ const App = () => {
   };
 
   const getMyLocationFromMap4d = async () => {
-    let location = await this.map.getMyLocation()
+    let location = null
+    if (Platform.OS == 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location Access Required',
+            message: 'This App needs to Access your location',
+          },
+        );
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          location = await this.map.getMyLocation()
+        }
+      }
+      catch (err) {
+        console.warn(err)
+      }
+    }
+    else {
+      location = await this.map.getMyLocation()
+    }
     if (location) {
       return location.coordinate
     }
@@ -52,7 +75,9 @@ const App = () => {
   const getMyLocation = async () => {
     let location = await getMyLocationFromMap4d()
     console.log('My Location:', location)
-    alert(`My Location: {latitude: ${location.latitude}, longitude: ${location.longitude}}`)
+    if (location) {
+      alert(`My Location: {latitude: ${location.latitude}, longitude: ${location.longitude}}`)
+    }
   }
 
   const ItemView = ({ item }) => {
