@@ -115,10 +115,6 @@ const App = () => {
     setSearchResults([])
   };
 
-  const setSelection = (value) => {
-    // useMyLocation = value
-  }
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <MFMapView
