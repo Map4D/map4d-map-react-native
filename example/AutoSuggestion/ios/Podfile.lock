@@ -190,7 +190,7 @@ PODS:
   - react-native-map4d-map (2.4.1):
     - Map4dMap (~> 2.1.0)
     - React
-  - react-native-map4d-services (1.0.1):
+  - react-native-map4d-services (1.0.2):
     - Map4dServices (~> 2.0.0)
     - React-Core
   - React-RCTActionSheet (0.63.4):
@@ -376,7 +376,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 93bd528844ad21dc07aab1c67cb10abae6df6949
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
   react-native-map4d-map: 49804898b91cfc89312f786642c35ced93d0c56d
-  react-native-map4d-services: eb5abe02ecb3a8c63e2b27a3dfe9fc33d3beec66
+  react-native-map4d-services: 698403be3ade47f06510ae8957603f01a9123e79
   React-RCTActionSheet: 89a0ca9f4a06c1f93c26067af074ccdce0f40336
   React-RCTAnimation: 1bde3ecc0c104c55df246eda516e0deb03c4e49b
   React-RCTBlob: a97d378b527740cc667e03ebfa183a75231ab0f0

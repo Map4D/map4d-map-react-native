@@ -289,7 +289,7 @@ PODS:
   - react-native-map4d-map (2.4.1):
     - Map4dMap (~> 2.1.0)
     - React
-  - react-native-map4d-services (1.0.1):
+  - react-native-map4d-services (1.0.2):
     - Map4dServices (~> 2.0.0)
     - React-Core
   - react-native-safe-area-context (4.2.5):
@@ -563,7 +563,7 @@ SPEC CHECKSUMS:
   React-logger: a0833912d93b36b791b7a521672d8ee89107aff1
   react-native-geolocation: 205c5f619aea7bd54067b7b51e0781cae2f37151
   react-native-map4d-map: 49804898b91cfc89312f786642c35ced93d0c56d
-  react-native-map4d-services: eb5abe02ecb3a8c63e2b27a3dfe9fc33d3beec66
+  react-native-map4d-services: 698403be3ade47f06510ae8957603f01a9123e79
   react-native-safe-area-context: 923e8a02d3bd88ca7a6b6c9b3db1b94591044b0c
   React-perflogger: a18b4f0bd933b8b24ecf9f3c54f9bf65180f3fe6
   React-RCTActionSheet: 547fe42fdb4b6089598d79f8e1d855d7c23e2162
