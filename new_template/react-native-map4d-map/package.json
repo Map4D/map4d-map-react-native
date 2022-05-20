@@ -1,6 +1,6 @@
 {
   "name": "react-native-map4d-map",
-  "version": "0.1.0",
+  "version": "2.4.2",
   "description": "Map4dMap SDK for React Native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -32,9 +32,7 @@
     "bootstrap": "yarn example && yarn && yarn pods"
   },
   "keywords": [
-    "react-native",
-    "ios",
-    "android"
+    "react", "react-native", "react-component", "map", "mapview", "map4d", "iotlink"
   ],
   "repository": "https://github.com/map4d/map4d-map-react-native",
   "author": "IOTLink <admin@iotlink.com.vn> (https://iotlink.com.vn/)",
