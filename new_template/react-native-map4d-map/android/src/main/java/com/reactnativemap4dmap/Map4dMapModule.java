@@ -267,19 +267,23 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
         ReadableMap northEast = bounds.getMap("northEast");
 
         MFCoordinateBounds.Builder builder = new MFCoordinateBounds.Builder();
-        double southWestLat = southWest.getDouble("latitude");
-        double southWestLng = southWest.getDouble("longitude");
-        builder.include(new MFLocationCoordinate(southWestLat, southWestLng));
+        if (southWest != null) {
+          double southWestLat = southWest.getDouble("latitude");
+          double southWestLng = southWest.getDouble("longitude");
+          builder.include(new MFLocationCoordinate(southWestLat, southWestLng));
+        }
 
-        double northEastLat = northEast.getDouble("latitude");
-        double northEastLng = northEast.getDouble("longitude");
-        builder.include(new MFLocationCoordinate(northEastLat, northEastLng));
+        if (northEast != null) {
+          double northEastLat = northEast.getDouble("latitude");
+          double northEastLng = northEast.getDouble("longitude");
+          builder.include(new MFLocationCoordinate(northEastLat, northEastLng));
+        }
 
         int paddingDefault = 10;
-        int paddingLeft = padding.hasKey("left") ? padding.getInt("left") : paddingDefault;
-        int paddingRight = padding.hasKey("right") ? padding.getInt("right") : paddingDefault;
-        int paddingTop = padding.hasKey("top") ? padding.getInt("top") : paddingDefault;
-        int paddingBottom = padding.hasKey("bottom") ? padding.getInt("bottom") : paddingDefault;
+        int paddingLeft = padding != null && padding.hasKey("left") ? padding.getInt("left") : paddingDefault;
+        int paddingRight = padding != null && padding.hasKey("right") ? padding.getInt("right") : paddingDefault;
+        int paddingTop = padding != null && padding.hasKey("top") ? padding.getInt("top") : paddingDefault;
+        int paddingBottom = padding != null && padding.hasKey("bottom") ? padding.getInt("bottom") : paddingDefault;
 
         MFCameraPosition cameraPosition = mapView.map.getCameraPositionForBounds(
           builder.build(), paddingLeft, paddingTop, paddingRight, paddingBottom);
