@@ -2,10 +2,30 @@ import Geolocation from '@react-native-community/geolocation'
 import React, { useState } from 'react'
 import { SafeAreaView, StyleSheet, View, Button, Image, Text } from 'react-native'
 import { MFMapView, MFMarker } from 'react-native-map4d-map'
+import { fetchGeocode } from 'react-native-map4d-services'
 
 const HomeScreen = ({ navigation }) => {
   const [myLocationCoordinate, setMyLocationMarkerCoordinate] = useState({latitude: 0, longitude: 0})
+  const [buttonDisabled, setButtonDisabled] = useState(true)
+  const [myAddress, setMyAddress] = useState("")
   const markerIcon = require("./assets/marker.png")
+
+  const getCurrentPositionAddress = (location) => {
+    fetchGeocode({location: location})
+    .then(response => {
+      if (response.code == "ok") {
+        let result = response.result || []
+        if (result.length > 0) {
+          setMyAddress(response.result[0].address)
+        }
+      }
+      setButtonDisabled(false)
+    })
+    .catch(e => {
+      setButtonDisabled(false)
+      console.error(e)
+    })
+  }
 
   const onMapReady = () => {
     Geolocation.getCurrentPosition(
@@ -19,6 +39,7 @@ const HomeScreen = ({ navigation }) => {
           center: location
         })
         setMyLocationMarkerCoordinate(location)
+        getCurrentPositionAddress(location)
       },
       (error) => { console.warn(error) },
       {
@@ -44,7 +65,11 @@ const HomeScreen = ({ navigation }) => {
       </MFMapView>
       <View style={styles.content}>
         <View style={styles.selectLocation}>
-          <Button title="Bạn muốn đi đâu?" onPress={() => navigation.navigate("SelectLocation", { location: myLocationCoordinate})}/>
+          <Button
+            title="Bạn muốn đi đâu?"
+            disabled={buttonDisabled}
+            onPress={() => navigation.navigate("SelectLocation", { myAddress: myAddress, myLocation: myLocationCoordinate})}
+          />
         </View>
       </View>
     </SafeAreaView>

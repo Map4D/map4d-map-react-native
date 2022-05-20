@@ -213,9 +213,9 @@ PODS:
     - glog
   - react-native-geolocation (2.1.0):
     - React-Core
-  - react-native-map4d-map (2.4.1):
-    - Map4dMap (~> 2.1.0)
-    - React
+  - react-native-map4d-map (2.4.2):
+    - Map4dMap (~> 2.1.1)
+    - React-Core
   - react-native-map4d-services (1.0.2):
     - Map4dServices (~> 2.0.0)
     - React-Core
@@ -434,7 +434,7 @@ SPEC CHECKSUMS:
   React-jsinspector: d0374f7509d407d2264168b6d0fad0b54e300b85
   React-logger: 933f80c97c633ee8965d609876848148e3fef438
   react-native-geolocation: 205c5f619aea7bd54067b7b51e0781cae2f37151
-  react-native-map4d-map: 49804898b91cfc89312f786642c35ced93d0c56d
+  react-native-map4d-map: 0e8399bb107ffdd9b168ca619bdd9b26644d96cf
   react-native-map4d-services: 698403be3ade47f06510ae8957603f01a9123e79
   react-native-safe-area-context: 923e8a02d3bd88ca7a6b6c9b3db1b94591044b0c
   React-perflogger: 93075d8931c32cd1fce8a98c15d2d5ccc4d891bd

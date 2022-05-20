@@ -14,20 +14,24 @@ var startLocation = null
 var endLocation = null
 
 const SelectLocationScreen = ({ navigation, route }) => {
-  const myLocationCoordinate = route.params.location
+  const { myAddress, myLocation } = route.params
   const [startAddress, setStartAddress] = useState('');
   const [endAddress, setEndAddress] = useState('');
   const [isSelectStart, setSelectStart] = useState(true);
   const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
+    if (myLocation && myAddress) {
+      startLocation = { coordinate: myLocation, name: myAddress }
+      setStartAddress(myAddress)
+    }
     return () => { startLocation = null; endLocation = null; }
   }, []);
 
   const onChangeTextSearch = async (text) => {
     if (text) {
       /** Fetch Map4dServices Auto Suggestion */
-      fetchSuggestion({text: text, location: myLocationCoordinate})
+      fetchSuggestion({text: text, location: myLocation})
       .then((response) => {
         if (response.code == 'ok') {
           setSearchResults(response.result);
