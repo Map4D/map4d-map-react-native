@@ -2,6 +2,7 @@
   package="com.directions">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
       android:name=".MainApplication"
@@ -10,6 +11,15 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme">
+
+      <meta-data
+        android:name="vn.map4d.map.ACCESS_KEY"
+        android:value="5d94befb6bd062833e986cd518f56367"/>
+
+      <meta-data
+        android:name="vn.map4d.services.ACCESS_KEY"
+        android:value="5d94befb6bd062833e986cd518f56367" />
+
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
