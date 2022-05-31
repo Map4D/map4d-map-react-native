@@ -14,6 +14,11 @@
 #import "RMFEventResponse.h"
 #import "RMFDummyView.h"
 
+@interface RMFMarker ()
+@property(nonatomic) NSInteger clusterItemNo;
+@end
+
+
 @implementation RMFMarker {
 //  RCTImageLoaderCancellationBlock _reloadImageCancellationBlock;
     UIView *_iconView;
@@ -37,8 +42,8 @@
     _zIndex = _map4dMarker.zIndex;
     _visible = true;//!_map4dMarker.isHidden;
     _userData = nil;
-      _iconView = nil;
-      observables = [[NSMutableArray alloc] init];
+    _iconView = nil;
+    observables = [[NSMutableArray alloc] init];
   }
   return self;
 }
@@ -234,7 +239,7 @@
   if ([view isKindOfClass:[RCTImageView class]]) {
     [view addObserver:self forKeyPath:@"image" options:NSKeyValueObservingOptionNew context:(__bridge void * _Nullable)(_iconView)];
     [view addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:(__bridge void * _Nullable)(_iconView)];
-      [observables addObject:view];
+    [observables addObject:view];
   }
   
   NSArray<UIView *> *reactSubviews = [view reactSubviews];
@@ -247,22 +252,21 @@
 
 - (void)insertReactSubview:(id<RCTComponent>)subview atIndex:(NSInteger)atIndex {
   [self iconViewInsertSubview:(UIView*)subview atIndex:atIndex+1];
-    [self removeAllObserver];
-    [self addObserver:(UIView *) subview];
+  [self removeAllObserver];
+  [self addObserver:(UIView *) subview];
   RMFDummyView *dummySubview = [[RMFDummyView alloc] initWithView:(UIView *)subview];
   [super insertReactSubview:(UIView*)dummySubview atIndex:atIndex];
 }
 
 - (void)removeReactSubview:(id<RCTComponent>)dummySubview {
-    [self removeAllObserver];
+  [self removeAllObserver];
   UIView* subview = ((RMFDummyView*)dummySubview).view;
   [(UIView*)subview removeFromSuperview];
   [super removeReactSubview:(UIView*)dummySubview];
 }
 
-- (void)dealloc
-{
-    [self removeAllObserver];
+- (void)dealloc {
+  [self removeAllObserver];
 }
 
 @end
