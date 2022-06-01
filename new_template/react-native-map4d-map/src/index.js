@@ -1,4 +1,3 @@
-// import {Map4dMapView} from "./components/Map4dMapView"
 import {MFMapView} from './components/MFMapView'
 import {MFMarker} from './components/MFMarker'
 import {MFCircle} from './components/MFCircle'
@@ -8,9 +7,10 @@ import {MFPOI} from './components/MFPOI'
 import {MFDirectionsRenderer} from './components/MFDirectionsRenderer'
 import {MFTileOverlay} from './components/MFTileOverlay'
 import {MFGroundOverlay} from './components/MFGroundOverlay'
+import {MFMarkerCluster} from './components/MFMarkerCluster'
+import {MFClusterItem} from './components/MFClusterItem'
 
 export {
-  // Map4dMapView,
   MFMapView,
   MFMarker,
   MFCircle,
@@ -19,5 +19,7 @@ export {
   MFPOI,
   MFDirectionsRenderer,
   MFTileOverlay,
-  MFGroundOverlay
+  MFGroundOverlay,
+  MFMarkerCluster,
+  MFClusterItem,
 };
