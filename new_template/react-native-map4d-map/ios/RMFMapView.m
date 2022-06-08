@@ -21,6 +21,7 @@
 #import "RMFTileOverlay.h"
 #import "RMFGroundOverlay.h"
 #import "RMFEventResponse.h"
+#import "Clustering/RMFMarkerCluster.h"
 
 @class GLKView;
 
@@ -97,6 +98,10 @@
     RMFGroundOverlay* overlay = (RMFGroundOverlay*)subview;
     [overlay setMapView:self];
   }
+  else if ([subview isKindOfClass:[RMFMarkerCluster class]]) {
+    RMFMarkerCluster *cluster = (RMFMarkerCluster *)subview;
+    [cluster setMapView:self];
+  }
   else {
     NSArray<id<RCTComponent>> *childSubviews = [subview reactSubviews];
     for (int i = 0; i < childSubviews.count; i++) {
@@ -142,6 +147,10 @@
   else if ([subview isKindOfClass:[RMFGroundOverlay class]]) {
     RMFGroundOverlay* overlay = (RMFGroundOverlay*)subview;
     [overlay setMapView:nil];
+  }
+  else if ([subview isKindOfClass:[RMFMarkerCluster class]]) {
+    RMFMarkerCluster *cluster = (RMFMarkerCluster *)subview;
+    [cluster setMapView:nil];
   }
   else {
     NSArray<id<RCTComponent>> *childSubviews = [subview reactSubviews];
