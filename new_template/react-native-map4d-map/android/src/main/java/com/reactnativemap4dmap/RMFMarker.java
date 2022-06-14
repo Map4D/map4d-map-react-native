@@ -34,6 +34,7 @@ import vn.map4d.map.core.*;
 import vn.map4d.map.annotations.*;
 
 import vn.map4d.types.MFLocationCoordinate;
+import vn.map4d.utils.android.collections.MFMarkerManager;
 
 import javax.annotation.Nullable;
 
@@ -62,6 +63,8 @@ public class RMFMarker extends RMFFeature {
 
   private int width;
   private int height;
+
+  private MFMarkerManager.Collection markerCollection;
 
   private final DraweeHolder<?> logoHolder;
   private DataSource<CloseableReference<CloseableImage>> dataSource;
@@ -241,8 +244,13 @@ public class RMFMarker extends RMFFeature {
     }
   }
 
+  public void setMarkerCollection(MFMarkerManager.Collection markerCollection) {
+    this.markerCollection = markerCollection;
+  }
+
   public void addToMap(Map4D map) {
-    this.marker = map.addMarker(getMarkerOptions());
+    /** Because use Utils library, we should use marker collection to add Marker to Map **/
+    this.marker = markerCollection.addMarker(getMarkerOptions());
     updateTracksViewChanges();
   }
 
@@ -250,7 +258,8 @@ public class RMFMarker extends RMFFeature {
     if (marker == null) {
       return;
     }
-    marker.remove();
+    /** Because use Utils library, we should use marker collection to remove Marker from Map **/
+    markerCollection.remove(marker);
     marker = null;
     updateTracksViewChanges();
    }
