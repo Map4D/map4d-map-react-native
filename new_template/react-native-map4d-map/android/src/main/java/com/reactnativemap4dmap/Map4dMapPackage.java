@@ -1,14 +1,14 @@
 package com.reactnativemap4dmap;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
-import com.facebook.react.bridge.JavaScriptModule;
+import com.reactnativemap4dmap.clustering.RMFClusterItemManager;
+import com.reactnativemap4dmap.clustering.RMFMarkerClusterManager;
 
 public class Map4dMapPackage implements ReactPackage {
     @Override
@@ -17,7 +17,7 @@ public class Map4dMapPackage implements ReactPackage {
             new Map4dMapModule(reactContext)
             );
     }
- 
+
     @Override
     public List<ViewManager> createViewManagers(
                               ReactApplicationContext reactContext) {
@@ -31,7 +31,9 @@ public class Map4dMapPackage implements ReactPackage {
         new RMFPolygonManager(reactContext),
         new RMFDirectionsRendererManager(reactContext),
         new RMFTileOverlayManager(),
-        new RMFGroundOverlayManager()
+        new RMFGroundOverlayManager(),
+        new RMFMarkerClusterManager(),
+        new RMFClusterItemManager()
       );
     }
 }

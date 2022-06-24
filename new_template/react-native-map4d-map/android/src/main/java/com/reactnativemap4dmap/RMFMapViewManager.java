@@ -64,7 +64,8 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
         "onShouldChangeMapMode", MapBuilder.of("registrationName", "onShouldChangeMapMode"),
         "onPoiPress", MapBuilder.of("registrationName", "onPoiPress"),
         "onBuildingPress", MapBuilder.of("registrationName", "onBuildingPress"),
-        "onPlacePress", MapBuilder.of("registrationName", "onPlacePress")
+        "onPlacePress", MapBuilder.of("registrationName", "onPlacePress"),
+        "onReachLimitedZoom", MapBuilder.of("registrationName", "onReachLimitedZoom")
       ));
       return map;
     }
@@ -90,14 +91,14 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
   }
 
   @Override
-  public void receiveCommand(RMFMapView view, int commandId, @Nullable ReadableArray args) {    
+  public void receiveCommand(RMFMapView view, int commandId, @Nullable ReadableArray args) {
     ReadableMap map;
     switch (commandId) {
       case k_animateCamera:
         map = args.getMap(0);
         view.animateCamera(map);
         break;
-      case k_moveCamera: 
+      case k_moveCamera:
         map = args.getMap(0);
         view.moveCamera(map);
         break;
