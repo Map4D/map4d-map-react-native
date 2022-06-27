@@ -14,11 +14,6 @@
 #import "RMFEventResponse.h"
 #import "RMFDummyView.h"
 
-@interface RMFMarker ()
-@property(nonatomic) NSInteger clusterItemNo;
-@end
-
-
 @implementation RMFMarker {
 //  RCTImageLoaderCancellationBlock _reloadImageCancellationBlock;
     UIView *_iconView;
