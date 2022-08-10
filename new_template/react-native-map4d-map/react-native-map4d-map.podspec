@@ -16,6 +16,6 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm}"
 
   s.dependency "React-Core"
-  s.dependency "Map4dMap", "~> 2.2.0"
+  s.dependency "Map4dMap", "~> 2.4.0"
   s.dependency "Map4dMapUtils", "~> 0.2"
 end

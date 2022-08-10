@@ -19,7 +19,7 @@ PODS:
     - DoubleConversion
     - glog
   - glog (0.3.5)
-  - Map4dMap (2.2.0)
+  - Map4dMap (2.4.0)
   - Map4dMapUtils (0.2.0):
     - Map4dMap (~> 2.1)
   - RCTRequired (0.63.4)
@@ -188,8 +188,8 @@ PODS:
     - React-cxxreact (= 0.63.4)
     - React-jsi (= 0.63.4)
   - React-jsinspector (0.63.4)
-  - react-native-map4d-map (2.5.0):
-    - Map4dMap (~> 2.2.0)
+  - react-native-map4d-map (2.6.0):
+    - Map4dMap (~> 2.4.0)
     - Map4dMapUtils (~> 0.2)
     - React-Core
   - React-RCTActionSheet (0.63.4):
@@ -354,7 +354,7 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: f2c97f2529dd79c083355182cc158c9f98f4bd6e
   Folly: b73c3869541e86821df3c387eb0af5f65addfab4
   glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
-  Map4dMap: 07e2f581cc1a76e5ee92e4afb22e5ccdde6c6269
+  Map4dMap: 56d0e0911304fd5a7a306d2f242eee9964e02aa0
   Map4dMapUtils: 642bf587d96ba314d1d9f56b97b1d0a7296bd2b5
   RCTRequired: 082f10cd3f905d6c124597fd1c14f6f2655ff65e
   RCTTypeSafety: 8c9c544ecbf20337d069e4ae7fd9a377aadf504b
@@ -366,7 +366,7 @@ SPEC CHECKSUMS:
   React-jsi: a0418934cf48f25b485631deb27c64dc40fb4c31
   React-jsiexecutor: 93bd528844ad21dc07aab1c67cb10abae6df6949
   React-jsinspector: 58aef7155bc9a9683f5b60b35eccea8722a4f53a
-  react-native-map4d-map: 2263113e9a77f954557d8c650749e4f18f4bbfca
+  react-native-map4d-map: b6369e7aad121ad2722eba3f21d49bb82bb7b429
   React-RCTActionSheet: 89a0ca9f4a06c1f93c26067af074ccdce0f40336
   React-RCTAnimation: 1bde3ecc0c104c55df246eda516e0deb03c4e49b
   React-RCTBlob: a97d378b527740cc667e03ebfa183a75231ab0f0
