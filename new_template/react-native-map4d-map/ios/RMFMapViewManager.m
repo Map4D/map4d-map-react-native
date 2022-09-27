@@ -409,21 +409,27 @@ RCT_EXPORT_METHOD(setAllGesturesEnabled:(nonnull NSNumber *)reactTag
 }
 
 - (void)mapview:(MFMapView *)mapView didBeginDraggingMarker:(MFMarker *)marker {
-  RMFMapView* map = (RMFMapView*)mapView;
-  RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
-  [rMarker.reactMarker didBeginDraggingMarkerAtPixel:map.lastLongPressPixel];
+  if ([marker isKindOfClass:[RMFMarkerMap4d class]]) {
+    RMFMapView* map = (RMFMapView*)mapView;
+    RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
+    [rMarker.reactMarker didBeginDraggingMarkerAtPixel:map.lastLongPressPixel];
+  }
 }
 
 - (void)mapview:(MFMapView *)mapView didEndDraggingMarker:(MFMarker *)marker {
-  RMFMapView* map = (RMFMapView*)mapView;
-  RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
-  [rMarker.reactMarker didEndDraggingMarkerAtPixel:map.lastLongPressPixel];
+  if ([marker isKindOfClass:[RMFMarkerMap4d class]]) {
+    RMFMapView* map = (RMFMapView*)mapView;
+    RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
+    [rMarker.reactMarker didEndDraggingMarkerAtPixel:map.lastLongPressPixel];
+  }
 }
 
 - (void)mapview:(MFMapView *)mapView didDragMarker:(MFMarker *)marker {
-  RMFMapView* map = (RMFMapView*)mapView;
-  RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
-  [rMarker.reactMarker didDragMarkerAtPixel:map.lastPanPixel];
+  if ([marker isKindOfClass:[RMFMarkerMap4d class]]) {
+    RMFMapView* map = (RMFMapView*)mapView;
+    RMFMarkerMap4d * rMarker = (RMFMarkerMap4d *) marker;
+    [rMarker.reactMarker didDragMarkerAtPixel:map.lastPanPixel];
+  }
 }
 
 - (void)mapview:(MFMapView *)mapView didTapInfoWindowOfMarker:(MFMarker *)marker {
