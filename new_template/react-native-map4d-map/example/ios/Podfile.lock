@@ -19,8 +19,8 @@ PODS:
     - DoubleConversion
     - glog
   - glog (0.3.5)
-  - Map4dMap (2.4.0)
-  - Map4dMapUtils (0.2.0):
+  - Map4dMap (2.4.2)
+  - Map4dMapUtils (0.3.0):
     - Map4dMap (~> 2.1)
   - RCTRequired (0.63.4)
   - RCTTypeSafety (0.63.4):
@@ -354,8 +354,8 @@ SPEC CHECKSUMS:
   FBReactNativeSpec: f2c97f2529dd79c083355182cc158c9f98f4bd6e
   Folly: b73c3869541e86821df3c387eb0af5f65addfab4
   glog: 40a13f7840415b9a77023fbcae0f1e6f43192af3
-  Map4dMap: 56d0e0911304fd5a7a306d2f242eee9964e02aa0
-  Map4dMapUtils: 642bf587d96ba314d1d9f56b97b1d0a7296bd2b5
+  Map4dMap: dfcf1464c9beed31132f857069c0c5e8ddbfc6eb
+  Map4dMapUtils: c2eece619315112cc9d323ca551dbe9493b95997
   RCTRequired: 082f10cd3f905d6c124597fd1c14f6f2655ff65e
   RCTTypeSafety: 8c9c544ecbf20337d069e4ae7fd9a377aadf504b
   React: b0a957a2c44da4113b0c4c9853d8387f8e64e615
