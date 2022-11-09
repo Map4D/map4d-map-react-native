@@ -4,9 +4,10 @@ import { SafeAreaView, StyleSheet, View, Button, Image, Text } from 'react-nativ
 import { MFMapView, MFMarker, MFPOI, MFCircle } from 'react-native-map4d-map'
 
 const HomeScreen = ({ navigation, route }) => {
-  const [myLocationCoordinate, setMyLocationMarkerCoordinate] = useState({latitude: 16.071985, longitude: 108.225362})
+  const [myLocationCoordinate, setMyLocationMarkerCoordinate] = useState({ latitude: 16.071985, longitude: 108.225362 })
   const [buttonDisabled, setButtonDisabled] = useState(true)
   const [myAddress, setMyAddress] = useState("")
+  const [renderMarker, setRenderMarker] = useState(true)
   const markerIcon = require("../assets/marker.png")
 
   const getCurrentPositionAddress = (location) => {
@@ -14,6 +15,7 @@ const HomeScreen = ({ navigation, route }) => {
   }
 
   const onMapReady = () => {
+    setTimeout(() => {setRenderMarker(false); console.log("set marker false")}, 5000);
     Geolocation.getCurrentPosition(
       (position) => {
         let location = {
@@ -57,15 +59,18 @@ const HomeScreen = ({ navigation, route }) => {
           poiType="park"
         /> */}
 
-      <MFCircle
-        center={myLocationCoordinate}
-        radius={50}
-        visible={true}
-        fillColor="#F00FF07F"
-        strokeColor="#0000FF08" strokeWidth={2}
-        zIndex ={3.0} />
+        {
+          renderMarker &&
+          <MFCircle
+            center={myLocationCoordinate}
+            radius={50}
+            visible={true}
+            fillColor="#F00FF07F"
+            strokeColor="#0000FF08" strokeWidth={2}
+            zIndex={3.0} />
+        }
+        </MFMapView>
 
-      </MFMapView>
     </SafeAreaView>
   )
 }
