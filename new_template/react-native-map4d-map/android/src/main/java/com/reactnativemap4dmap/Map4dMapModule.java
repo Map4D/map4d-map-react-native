@@ -27,7 +27,7 @@ interface ResolveViewCallback {
 public class Map4dMapModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
-    
+
     public Map4dMapModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
@@ -62,6 +62,9 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
       @Override
       public void found(View view) {
         RMFMapView mapView = (RMFMapView) view;
+        if (!validateMapView(mapView, promise)) {
+          return;
+        }
         MFCameraPosition position = mapView.map.getCameraPosition();
 
         WritableMap centerJson = new WritableNativeMap();
@@ -85,6 +88,9 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
       @Override
       public void found(View view) {
         RMFMapView mapView = (RMFMapView) view;
+        if (!validateMapView(mapView, promise)) {
+          return;
+        }
         MFCoordinateBounds bounds = mapView.map.getBounds();
         WritableMap boundsJson = new WritableNativeMap();
         if (bounds == null) {
@@ -114,6 +120,9 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
       @Override
       public void found(View view) {
         RMFMapView mapView = (RMFMapView) view;
+        if (!validateMapView(mapView, promise)) {
+          return;
+        }
         Location location = mapView.map.getMyLocation();
 
         WritableMap locationJson = new WritableNativeMap();
@@ -149,16 +158,22 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
       @Override
       public void found(View view) {
         RMFMapView mapView = (RMFMapView) view;
+        if (!validateMapView(mapView, promise)) {
+          return;
+        }
         promise.resolve(mapView.map.getMapType() == MFMapType.MAP3D);
       }
     });
-  }    
+  }
 
   public void isMyLocationButtonEnabled(final int tag, final Promise promise) {
     getView(tag, new ResolveViewCallback(){
       @Override
       public void found(View view) {
         RMFMapView mapView = (RMFMapView) view;
+        if (!validateMapView(mapView, promise)) {
+          return;
+        }
         promise.resolve(mapView.map.getUiSettings().isMyLocationButtonEnabled());
       }
     });
@@ -180,12 +195,7 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
       public void execute(NativeViewHierarchyManager nvhm)
       {
         RMFMapView mapView = (RMFMapView) nvhm.resolveView(tag);
-        if (mapView == null) {
-          promise.reject("RMFMapView not found");
-          return;
-        }
-        if (mapView.map == null) {
-          promise.reject("RMFMapView.map is not valid");
+        if (!validateMapView(mapView, promise)) {
           return;
         }
 
@@ -216,14 +226,7 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
       public void execute(NativeViewHierarchyManager nvhm)
       {
         RMFMapView mapView = (RMFMapView) nvhm.resolveView(tag);
-        if (mapView == null)
-        {
-          promise.reject("RMFMapView not found");
-          return;
-        }
-        if (mapView.map == null)
-        {
-          promise.reject("RMFMapView.map is not valid");
+        if (!validateMapView(mapView, promise)) {
           return;
         }
 
@@ -252,14 +255,7 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
       public void execute(NativeViewHierarchyManager nvhm)
       {
         RMFMapView mapView = (RMFMapView) nvhm.resolveView(tag);
-        if (mapView == null)
-        {
-          promise.reject("RMFMapView not found");
-          return;
-        }
-        if (mapView.map == null)
-        {
-          promise.reject("RMFMapView.map is not valid");
+        if (!validateMapView(mapView, promise)) {
           return;
         }
 
@@ -300,5 +296,17 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
         promise.resolve(data);
       }
     });
+  }
+
+  private boolean validateMapView(final RMFMapView mapView, final Promise promise) {
+    if (mapView == null) {
+      promise.reject("Map4D Error", "RMFMapView not found");
+      return false;
+    }
+    if (mapView.map == null) {
+      promise.reject("Map4D Error", "RMFMapView.map is not valid");
+      return false;
+    }
+    return true;
   }
 }
