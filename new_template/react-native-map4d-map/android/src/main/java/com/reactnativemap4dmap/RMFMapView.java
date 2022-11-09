@@ -1098,5 +1098,12 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       directionsRendererMap.remove(feature.getFeature());
     }
     feature.removeFromMap(map);
+
+    /**
+     * Only destroy RMFMapView when remove all child.
+     */
+    if (features.size() == 0) {
+      doDestroy();
+    }
   }
 }

@@ -163,12 +163,6 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
         .receiveEvent(view.getId(), name, data);
   }
 
-  @Override
-  public void onDropViewInstance(RMFMapView view) {
-    view.doDestroy();
-    super.onDropViewInstance(view);
-  }
-
   @ReactProp(name = "showsMyLocationButton", defaultBoolean = true)
   public void setShowsMyLocationButton(RMFMapView view, boolean showMyLocationButton) {
     view.setShowsMyLocationButton(showMyLocationButton);
