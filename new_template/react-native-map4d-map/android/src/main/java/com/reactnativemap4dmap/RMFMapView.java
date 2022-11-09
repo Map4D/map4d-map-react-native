@@ -531,6 +531,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       onStop();
       paused = true;
     }
+    map = null;
     onDestroy();
   }
 
@@ -1072,6 +1073,9 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   }
 
   public void removeFeatureAt(int index) {
+    if (destroyed) {
+      return;
+    }
     RMFFeature feature = features.remove(index);
     if (feature instanceof RMFMarker) {
         markerMap.remove(feature.getFeature());
