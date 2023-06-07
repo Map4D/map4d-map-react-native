@@ -1,9 +1,9 @@
 import PropTypes from "prop-types";
 import React from 'react';
+import {ViewPropTypes} from 'deprecated-react-native-prop-types';
 import {
   requireNativeComponent,
   View,
-  ViewPropTypes,
 } from 'react-native';
 
 // if ViewPropTypes is not defined fall back to View.propType (to support RN < 0.44)
