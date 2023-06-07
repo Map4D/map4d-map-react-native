@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import {ViewPropTypes} from 'deprecated-react-native-prop-types';
 import {
   requireNativeComponent,
   Platform,
   NativeModules,
-  ViewPropTypes,
   findNodeHandle
 } from 'react-native';
 
