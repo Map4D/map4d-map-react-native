@@ -40,6 +40,6 @@ const styles = StyleSheet.create({
 export default App;
 ```
 
-## License
+## Samples
 
-MIT
+https://github.com/map4d/react-native-samples

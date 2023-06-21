@@ -42,6 +42,10 @@ function App() {
     camera.zoom = camera.zoom + 1
     map.animateCamera(camera)
   }
+
+  const onDataSourceFeaturePress = async (e) => {
+    console.log('Press Data Source Feature:', e.nativeEvent)
+  }
   
   return (
     <>
@@ -54,6 +58,8 @@ function App() {
             tilt: 0,
           }}
           ref={ref => map = ref}
+          mapID="627b646c0e3a02da12f099cd"
+          onDataSourceFeaturePress={onDataSourceFeaturePress}
         >
           <MFMarkerCluster onPressCluster={onPressCluster}>
             {items}
