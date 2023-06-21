@@ -19,7 +19,7 @@
     
     _coordinate = _map4dPOI.position;
     _title = nil;//_map4dPOI.title;
-    _titleColor = _map4dPOI.titleColor;
+    _titleColor = _map4dPOI.color;
     _subtitle = nil;//_map4dPOI.subtitle;
     _poiType = nil;//_map4dPOI.type;
     _icon = nil;
@@ -48,7 +48,7 @@
 
 - (void)setTitleColor:(UIColor *)titleColor {
   _titleColor = titleColor;
-  _map4dPOI.titleColor = titleColor;
+  _map4dPOI.color = titleColor;
 }
 
 - (void)setSubtitle:(NSString *)subtitle {

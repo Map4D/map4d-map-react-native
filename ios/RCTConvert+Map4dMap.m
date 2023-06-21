@@ -83,7 +83,7 @@ RCT_ARRAY_CONVERTER(RMFCoordinate)
   json = [self NSDictionary:json];
   CLLocationCoordinate2D northEast = [self CLLocationCoordinate2D:json[@"northEast"]];
   CLLocationCoordinate2D southWest = [self CLLocationCoordinate2D:json[@"southWest"]];
-  return [[MFCoordinateBounds alloc] initWithCoordinate:northEast coordinate1:southWest];
+  return [[MFCoordinateBounds alloc] initWithCoordinate:northEast coordinate:southWest];
 }
 
 + (RMFDirectionsMarkerOptions *)RMFDirectionsMarkerOptions:(id)json {

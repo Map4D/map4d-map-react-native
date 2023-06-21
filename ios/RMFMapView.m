@@ -162,6 +162,13 @@
 }
 #pragma clang diagnostic pop
 
+- (void)setMapIdProp:(NSString *)mapIdProp {
+  if ([mapIdProp length] == 0) {
+    return;
+  }
+  [self setMapID:[MFMapID mapIDWithIdentifier:mapIdProp]];
+}
+
 - (void)setCameraProp:(MFCameraPosition *)cameraProp {
   _cameraProp = cameraProp;
   self.camera = cameraProp;
@@ -274,8 +281,8 @@
   }
   
   CLLocationCoordinate2D tapLocation = [self.projection coordinateForPoint:_lastTapPixel];
-  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCoordinate:tapLocation
-                                                                                                              pixel:_lastTapPixel]];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:
+                                   [RMFEventResponse fromCoordinate:tapLocation pixel:_lastTapPixel]];
   response[@"place"] = @{
     @"name": name,
     kRMFLatLngCoordinateResponseKey: [RMFEventResponse fromCoordinate:location]
@@ -283,6 +290,26 @@
   response[@"action"] = @"map-place-press";
 
   self.onPlacePress(response);
+}
+
+- (void)didTapDataSourceFeature:(MFDataSourceFeature *)feature location:(CLLocationCoordinate2D)location {
+  if (!self.onDataSourceFeaturePress) {
+    return;
+  }
+  
+  CLLocationCoordinate2D tapLocation = [self.projection coordinateForPoint:_lastTapPixel];
+  NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:
+                                   [RMFEventResponse fromCoordinate:tapLocation pixel:_lastTapPixel]];
+  response[@"feature"] = @{
+    @"source": feature.source,
+    @"sourceLayer": feature.sourceLayer,
+    @"layerType": feature.layerType,
+    @"properties": feature.properties,
+    @"location": [RMFEventResponse fromCoordinate:location],
+  };
+  response[@"action"] = @"data-source-feature-press";
+  
+  self.onDataSourceFeaturePress(response);
 }
 
 - (BOOL)didTapMyLocationButton {

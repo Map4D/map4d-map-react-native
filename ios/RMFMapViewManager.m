@@ -53,6 +53,7 @@ RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPoiPress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onBuildingPress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPlacePress, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onDataSourceFeaturePress, RCTDirectEventBlock)
 //RCT_EXPORT_VIEW_PROPERTY(onIndoorLevelActivated, RCTDirectEventBlock)
 //RCT_EXPORT_VIEW_PROPERTY(onIndoorBuildingFocused, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCameraIdle, RCTDirectEventBlock)
@@ -61,6 +62,7 @@ RCT_EXPORT_VIEW_PROPERTY(onCameraMoveStart, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMyLocationButtonPress, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onReachLimitedZoom, RCTDirectEventBlock)
 
+RCT_REMAP_VIEW_PROPERTY(mapID, mapIdProp, NSString)
 RCT_REMAP_VIEW_PROPERTY(camera, cameraProp, MFCameraPosition)
 RCT_REMAP_VIEW_PROPERTY(mapType, mapTypeProp, NSString)
 RCT_EXPORT_VIEW_PROPERTY(showsBuildings, BOOL)
@@ -511,6 +513,11 @@ RCT_EXPORT_METHOD(setAllGesturesEnabled:(nonnull NSNumber *)reactTag
 - (void)mapView:(MFMapView *)mapView didTapPlaceWithName:(NSString *)name location:(CLLocationCoordinate2D)location {
   RMFMapView* reactMapView = (RMFMapView*) mapView;
   [reactMapView didTapPlaceWithName:name location:location];
+}
+
+- (void)mapView:(MFMapView *)mapView didTapDataSourceFeature:(MFDataSourceFeature *)feature location:(CLLocationCoordinate2D)location {
+  RMFMapView* reactMapView = (RMFMapView*) mapView;
+  [reactMapView didTapDataSourceFeature:feature location:location];
 }
 
 - (void)mapView:(MFMapView *)mapView didTapDirectionsRenderer:(MFDirectionsRenderer *)renderer routeIndex:(NSUInteger)routeIndex {
