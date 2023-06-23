@@ -27,6 +27,7 @@
 @property (nonatomic, copy) RCTBubblingEventBlock onPoiPress;
 @property (nonatomic, copy) RCTBubblingEventBlock onBuildingPress;
 @property (nonatomic, copy) RCTBubblingEventBlock onPlacePress;
+@property (nonatomic, copy) RCTBubblingEventBlock onDataSourceFeaturePress;
 //@property (nonatomic, copy) RCTDirectEventBlock onRegionChange;
 //@property (nonatomic, copy) RCTDirectEventBlock onRegionChangeComplete;
 //@property (nonatomic, copy) RCTDirectEventBlock onIndoorLevelActivated;
@@ -39,6 +40,7 @@
 
 //@property (nonatomic, assign) MKCoordinateRegion initialRegion;
 //@property (nonatomic, assign) MKCoordinateRegion region;
+@property (nonatomic, assign) NSString* mapIdProp;
 @property (nonatomic, assign) MFCameraPosition *cameraProp;   // Because the base class already has a "camera" prop.
 @property (nonatomic, assign) NSString* mapTypeProp;
 //@property (nonatomic, assign) GMSCameraPosition *initialCamera;
@@ -76,6 +78,7 @@
 - (void)didTapPOIWithPlaceID:(NSString *)placeID name:(NSString *)name location:(CLLocationCoordinate2D)location;
 - (void)didTapBuildingWithBuildingID:(NSString *)buildingID name:(NSString *)name location:(CLLocationCoordinate2D)location;
 - (void)didTapPlaceWithName:(NSString*)name location:(CLLocationCoordinate2D)location;
+- (void)didTapDataSourceFeature:(MFDataSourceFeature *)feature location:(CLLocationCoordinate2D)location;
 - (BOOL)didTapMyLocationButton;
 
 @end

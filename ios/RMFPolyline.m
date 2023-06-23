@@ -56,9 +56,9 @@
 - (void)setLineStyle:(NSString *)lineStyle {
   _lineStyle = lineStyle;
   if ([lineStyle isEqualToString:@"dotted"]) {
-    _map4dPolyline.style = MFPolylineStyleDotted;
+    _map4dPolyline.strokePattern = [MFStrokePattern dashWithLength:_width gap:_width];
   } else {
-    _map4dPolyline.style = MFPolylineStyleSolid;
+    _map4dPolyline.strokePattern = MFStrokePattern.solid;
   }
 }
 

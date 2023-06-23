@@ -25,6 +25,11 @@ const propTypes = {
   ...viewPropTypes,
 
   /**
+   * An opaque identifier for a custom map configuration.
+   */
+  mapID: PropTypes.string,
+
+  /**
    * If `false` hide the button to move map to the current user's location.
    * Default value is `false`.
    */
@@ -107,6 +112,11 @@ const propTypes = {
    * Callback that is called when user taps on the Places
    */
   onPlacePress: PropTypes.func,
+
+  /**
+   * Callback that is called when user taps on the Data Source Features
+   */
+  onDataSourceFeaturePress: PropTypes.func,
 
   /**
    * @deprecated This prop is no longer support, which is subject to removal in a future versions.
