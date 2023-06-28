@@ -397,6 +397,61 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       }
     });
 
+    map.setOnDataSourceFeatureClickListener(new Map4D.OnDataSourceFeatureClickListener() {
+      @Override
+      public void onDataSourceFeatureClick(@NonNull MFDataSourceFeature dataSourceFeature,
+                                           @NonNull MFLocationCoordinate location) {
+        WritableMap event = new WritableNativeMap();
+        event.putString("action", "data-source-feature-press");
+        MFLocationCoordinate coordinate =
+          map.getProjection().coordinateForPoint(
+            new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+          );
+        WritableMap locationMap = new WritableNativeMap();
+        locationMap.putDouble("latitude", coordinate.getLatitude());
+        locationMap.putDouble("longitude", coordinate.getLongitude());
+        event.putMap("location", locationMap);
+
+        WritableMap screenCoordinate = new WritableNativeMap();
+        screenCoordinate.putDouble("x", touchPointX);
+        screenCoordinate.putDouble("y", touchPointY);
+        event.putMap("pixel", screenCoordinate);
+
+        WritableMap feature = new WritableNativeMap();
+
+        feature.putString("source", dataSourceFeature.getSource());
+        feature.putString("sourceLayer", dataSourceFeature.getSourceLayer());
+        feature.putString("layerType", dataSourceFeature.getLayerType());
+
+        WritableMap propertiesMap = new WritableNativeMap();
+        Map<String, Object> properties = dataSourceFeature.getProperties();
+        for (String key: properties.keySet()) {
+          Object value = properties.get(key);
+          if (value instanceof String) {
+            propertiesMap.putString(key, (String) value);
+          }
+          else if (value instanceof Boolean) {
+            propertiesMap.putBoolean(key, (Boolean) value);
+          }
+          else if (value instanceof Integer) {
+            propertiesMap.putInt(key, (Integer) value);
+          }
+          else if (value instanceof Double) {
+            propertiesMap.putDouble(key, (Double) value);
+          }
+        }
+        feature.putMap("properties", propertiesMap);
+
+        WritableMap featureLocation = new WritableNativeMap();
+        featureLocation.putDouble("latitude", location.getLatitude());
+        featureLocation.putDouble("longitude", location.getLongitude());
+        feature.putMap("location", featureLocation);
+
+        event.putMap("feature", feature);
+        manager.pushEvent(getContext(), view, "onDataSourceFeaturePress", event);
+      }
+    });
+
     map.setOnMapClickListener(new Map4D.OnMapClickListener() {
       @Override
       public void onMapClick(MFLocationCoordinate mfLocationCoordinate) {
@@ -821,6 +876,11 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     else if (mapType.equals("map3d")) {
       map.setMapType(MFMapType.MAP3D);
     }
+  }
+
+  public void setMapId(String mapId) {
+    if (map == null) return;
+    map.setMapId(mapId);
   }
 
   public void setZoomGesturesEnabled(boolean enable) {
