@@ -67,6 +67,9 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
         "onPlacePress", MapBuilder.of("registrationName", "onPlacePress"),
         "onReachLimitedZoom", MapBuilder.of("registrationName", "onReachLimitedZoom")
       ));
+      map.putAll(MapBuilder.of(
+        "onDataSourceFeaturePress", MapBuilder.of("registrationName", "onDataSourceFeaturePress")
+      ));
       return map;
     }
 
@@ -167,6 +170,11 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
   public void onDropViewInstance(RMFMapView view) {
     view.doDestroy();
     super.onDropViewInstance(view);
+  }
+
+  @ReactProp(name = "mapID")
+  public void setMapId(RMFMapView view, String mapId) {
+    view.setMapId(mapId);
   }
 
   @ReactProp(name = "showsMyLocationButton", defaultBoolean = true)
