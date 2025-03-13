@@ -123,7 +123,7 @@ class MFPolygon extends React.Component {
   }
 
   setZIndex(zIndex) {
-    this._runCommand("setZIndex", [touchable])
+    this._runCommand("setZIndex", [zIndex])
   }
 
   setUserData(userData) {
