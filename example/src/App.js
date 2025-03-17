@@ -1,4 +1,4 @@
-import {MFMapView, MFMarkerCluster, MFClusterItem} from 'react-native-map4d-map';
+import {MFMapView, MFBuilding} from 'react-native-map4d-map';
 import React from 'react';
 import {
   SafeAreaView,
@@ -6,64 +6,41 @@ import {
 } from 'react-native';
 
 function App() {
-  const maxClusterItemCount = 500
-  const camera = {latitude: 16.0432432, longitude: 108.032432}
-  const extent = 0.2
-  
-  let _randomScale = () => {
-    return Math.random() * 2.0 - 1.0
-  }
-
-  let _generateClusterItems = () => {
-    let items = []
-    for (let index = 1; index <= maxClusterItemCount; ++index) {
-      let lat = camera.latitude + extent * _randomScale()
-      let lng = camera.longitude + extent * _randomScale()
-      items.push(
-        <MFClusterItem
-          key={index}
-          coordinate={{latitude: lat, longitude: lng}}
-          title={`Cluster Item ${index}`}
-          onPress={(e) => console.log(`Tap at cluster item ${index}:`, e.nativeEvent)}
-          onPressInfoWindow={(e) => console.log(`Tap at cluster item ${index} info window:`, e.nativeEvent)}
-        />
-      )
-    }
-    return items
-  }
-
-  const items = _generateClusterItems()
-
-  const onPressCluster = async (e) => {
-    console.log('Press on cluster:', e.nativeEvent)
-    let cluster = e.nativeEvent.cluster
-    let camera = await map.getCamera()
-    camera.center = cluster.location
-    camera.zoom = camera.zoom + 1
-    map.animateCamera(camera)
-  }
+  const camera = {latitude: 16.103254, longitude: 108.214835}
 
   const onDataSourceFeaturePress = async (e) => {
     console.log('Press Data Source Feature:', e.nativeEvent)
   }
+
   
+  const onPressBuilding = async (e) => {
+    console.log('Press Building:', e.nativeEvent)
+  }
+
   return (
     <>
       <SafeAreaView style={styles.safeView}>
         <MFMapView style={styles.container}
           camera={{
             center: camera,
-            zoom: 10,
+            zoom: 17,
             bearing: 0,
             tilt: 0,
           }}
+          mapType='map3d'
           ref={ref => map = ref}
-          mapID="640e89aec8234317030377f9"
           onDataSourceFeaturePress={onDataSourceFeaturePress}
         >
-          <MFMarkerCluster onPressCluster={onPressCluster}>
-            {items}
-          </MFMarkerCluster>
+          <MFBuilding
+            onPress={onPressBuilding}
+            coordinate={{
+              latitude: 16.103254,
+              longitude: 108.214835,
+            }}
+            modelUrl="https://hcm03.vstorage.vngcloud.vn/v1/AUTH_b32b6bc102c44269ab7b55e7820e7116/sdk/models/5db6b4798b4711141457d8a9.obj"
+            textureUrl="https://hcm03.vstorage.vngcloud.vn/v1/AUTH_b32b6bc102c44269ab7b55e7820e7116/sdk/textures/5db6b4798b4711141457d8ab.jpg"
+            name="Building test"
+            />
         </MFMapView>
       </SafeAreaView>
     </>

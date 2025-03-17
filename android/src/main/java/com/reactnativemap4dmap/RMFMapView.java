@@ -54,6 +54,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   private final Map<MFCircle, RMFCircle> circleMap = new HashMap<>();
   private final Map<MFPolyline, RMFPolyline> polylineMap = new HashMap<>();
   private final Map<MFPolygon, RMFPolygon> polygonMap = new HashMap<>();
+  private final Map<MFBuilding, RMFBuilding> buildingMap = new HashMap<>();
   private final Map<Long, RMFPOI> poiMap = new HashMap<>();
   private final Map<MFTileOverlay, RMFTileOverlay> tileOverlayMap = new HashMap<>();
   private final Map<MFGroundOverlay, RMFGroundOverlay> groundOverlayMap = new HashMap<>();
@@ -275,6 +276,17 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         event.putString("action", "circle-press");
         manager.pushEvent(getContext(), rctCircle, "onPress", event);
       }
+    });
+
+    map.setOnUserBuildingClickListener(building -> {
+      RMFBuilding rctBuilding = buildingMap.get(building);
+      if (rctBuilding == null) {
+        return;
+      }
+
+      WritableMap event = getBuildingEventData(building);
+      event.putString("action", "building-press");
+      manager.pushEvent(getContext(), rctBuilding, "onPress", event);
     });
 
     map.setOnUserPOIClickListener(new Map4D.OnUserPOIClickListener() {
@@ -807,6 +819,47 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     return event;
   }
 
+  private WritableMap getBuildingEventData(MFBuilding building) {
+    WritableMap event = new WritableNativeMap();
+    WritableMap location = new WritableNativeMap();
+
+    WritableMap buildingData = new WritableNativeMap();
+    buildingData.putString("name", building.getName());
+    WritableMap buildingLocation = new WritableNativeMap();
+    buildingLocation.putDouble("latitude", building.getLocation().getLatitude());
+    buildingLocation.putDouble("longitude", building.getLocation().getLongitude());
+    buildingData.putMap("location", buildingLocation);
+    Object userData = building.getUserData();
+    if (userData != null) {
+      String userDataByString = "";
+      userDataByString = userData.toString();
+      int begin = userDataByString.indexOf(":") + 2;
+      int end = userDataByString.length() - 2;
+      userDataByString = userDataByString.substring(begin, end);
+      buildingData.putString("userData", userDataByString);
+    }
+    else {
+      buildingData.putMap("userData", new WritableNativeMap());
+    }
+
+    WritableMap screenCoordinate = new WritableNativeMap();
+    screenCoordinate.putDouble("x", touchPointX);
+    screenCoordinate.putDouble("y", touchPointY);
+
+    MFLocationCoordinate coordinate =
+      map.getProjection().coordinateForPoint(
+        new Point((int) (touchPointX / MapContext.getDensity()), (int) (touchPointY / MapContext.getDensity()))
+      );
+    location.putDouble("latitude", coordinate.getLatitude());
+    location.putDouble("longitude", coordinate.getLongitude());
+
+    event.putMap("building", buildingData);
+    event.putMap("location", location);
+    event.putMap("pixel", screenCoordinate);
+
+    return event;
+  }
+
   private WritableMap getCameraMap() {
     WritableMap event = new WritableNativeMap();
     MFCameraPosition pos = map.getCameraPosition();
@@ -1040,7 +1093,21 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
 
       MFPolygon polygon = (MFPolygon) annotation.getFeature();
       polygonMap.put(polygon, annotation);
-    } else if (child instanceof RMFPOI) {
+    } else if (child instanceof RMFBuilding) {
+      RMFBuilding annotation = (RMFBuilding) child;
+      annotation.addToMap(map);
+      features.add(index, annotation);
+
+      // Remove from a view group if already present, prevent "specified child
+      // already had a parent" error.
+      ViewGroup annotationParent = (ViewGroup) annotation.getParent();
+      if (annotationParent != null) {
+        annotationParent.removeView(annotation);
+      }
+
+      MFBuilding building = (MFBuilding) annotation.getFeature();
+      buildingMap.put(building, annotation);
+    }  else if (child instanceof RMFPOI) {
       RMFPOI annotation = (RMFPOI) child;
       annotation.addToMap(map);
       features.add(index, annotation);
@@ -1147,6 +1214,9 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     }
     else if (feature instanceof RMFPolygon) {
       polygonMap.remove(feature.getFeature());
+    }
+    else if (feature instanceof RMFBuilding) {
+      buildingMap.remove(feature.getFeature());
     }
     else if (feature instanceof RMFPOI) {
       MFPOI poi = (MFPOI) feature.getFeature();

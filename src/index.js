@@ -9,6 +9,7 @@ import {MFTileOverlay} from './components/MFTileOverlay'
 import {MFGroundOverlay} from './components/MFGroundOverlay'
 import {MFMarkerCluster} from './components/MFMarkerCluster'
 import {MFClusterItem} from './components/MFClusterItem'
+import {MFBuilding} from './components/MFBuilding'
 
 export {
   MFMapView,
@@ -22,4 +23,5 @@ export {
   MFGroundOverlay,
   MFMarkerCluster,
   MFClusterItem,
+  MFBuilding,
 };
