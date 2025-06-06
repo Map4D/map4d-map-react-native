@@ -7,8 +7,6 @@ import {MFPOI} from './components/MFPOI'
 import {MFDirectionsRenderer} from './components/MFDirectionsRenderer'
 import {MFTileOverlay} from './components/MFTileOverlay'
 import {MFGroundOverlay} from './components/MFGroundOverlay'
-import {MFMarkerCluster} from './components/MFMarkerCluster'
-import {MFClusterItem} from './components/MFClusterItem'
 
 export {
   MFMapView,
@@ -19,7 +17,5 @@ export {
   MFPOI,
   MFDirectionsRenderer,
   MFTileOverlay,
-  MFGroundOverlay,
-  MFMarkerCluster,
-  MFClusterItem,
+  MFGroundOverlay
 };
