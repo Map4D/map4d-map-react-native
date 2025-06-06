@@ -393,7 +393,7 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Map4dMapExample/Pods-Map4dMapExample-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Map4dMap/Map4dMap.framework/Map4dMap",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/iPostMap/Map4dMap.framework/Map4dMap",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (

@@ -1,17 +1,17 @@
-# react-native-map4d-map
+# react-native-ipostmap
 
-Map4dMap SDK for React Native
+iPostMap SDK for React Native
 
 ## Installation
 
 ```sh
-npm install react-native-map4d-map
+npm install react-native-ipostmap
 ```
 
 ## Usage
 
 ```javascript
-import {MFMapView} from 'react-native-map4d-map';
+import {MFMapView} from 'react-native-ipostmap';
 import React from 'react';
 import {
   SafeAreaView,

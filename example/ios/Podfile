@@ -8,7 +8,7 @@ target 'Map4dMapExample' do
 
   use_react_native!(:path => config["reactNativePath"])
 
-  pod 'react-native-map4d-map', :path => '../..'
+  pod 'react-native-ipostmap', :path => '../..'
 
   # Enables Flipper.
   #
