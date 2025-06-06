@@ -17,5 +17,4 @@ Pod::Spec.new do |s|
 
   s.dependency "React-Core"
   s.dependency "Map4dMap", "~> 2.8"
-  s.dependency "Map4dMapUtils", "~> 0.4"
 end

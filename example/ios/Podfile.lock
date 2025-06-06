@@ -78,8 +78,6 @@ PODS:
   - hermes-engine/Pre-built (0.71.15)
   - libevent (2.1.12)
   - Map4dMap (2.8.2)
-  - Map4dMapUtils (0.4.0):
-    - Map4dMap (~> 2.6)
   - OpenSSL-Universal (1.1.1100)
   - RCT-Folly (2021.07.22.00):
     - boost
@@ -334,7 +332,6 @@ PODS:
     - glog
   - react-native-map4d-map (2.8.2):
     - Map4dMap (~> 2.8)
-    - Map4dMapUtils (~> 0.4)
     - React-Core
   - React-perflogger (0.71.15)
   - React-RCTActionSheet (0.71.15):
@@ -502,7 +499,6 @@ SPEC REPOS:
     - fmt
     - libevent
     - Map4dMap
-    - Map4dMapUtils
     - OpenSSL-Universal
     - SocketRocket
     - YogaKit
@@ -599,7 +595,6 @@ SPEC CHECKSUMS:
   hermes-engine: 04437e4291ede4af0c76c25e7efd0eacb8fd25e5
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   Map4dMap: 3addf98dd2e4c35044fbb5acf514f831377342bb
-  Map4dMapUtils: aaeeabf68336d85a1a349ed355e9889cf5d484ee
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: 4ce9da4fa2f8a134f62c70e4ab9d971b9d640f41
@@ -615,7 +610,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e0cde8d57cee18097b3d2b1bf6404ad25dd8d33b
   React-jsinspector: 4ade58a6a355d97a53f847543b14f4cb5033cb70
   React-logger: 56699550750c013096a11dce3bc996e7dd583835
-  react-native-map4d-map: a186b6fd1b99cb3899c789c3cc646facf9b6eda0
+  react-native-map4d-map: d27933472483e380c2fb6ca35b0e3022b8223490
   React-perflogger: 0cc42978a483a47f3696171dac2e7033936fc82d
   React-RCTActionSheet: ea922b476d24f6d40b8e02ac3228412bd3637468
   React-RCTAnimation: 7be2c148398eaa5beac950b2b5ec7102389ec3ad

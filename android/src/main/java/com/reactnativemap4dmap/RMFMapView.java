@@ -17,8 +17,6 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
-import com.reactnativemap4dmap.clustering.RMFClusterItem;
-import com.reactnativemap4dmap.clustering.RMFMarkerCluster;
 
 import java.util.Date;
 import java.util.ArrayList;
@@ -32,7 +30,6 @@ import vn.map4d.map.annotations.*;
 import vn.map4d.map.overlays.MFGroundOverlay;
 import vn.map4d.map.overlays.MFTileOverlay;
 import vn.map4d.types.MFLocationCoordinate;
-import vn.map4d.utils.android.clustering.MFClusterManager;
 import vn.map4d.utils.android.collections.MFMarkerManager;
 
 public class RMFMapView extends MFMapView implements OnMapReadyCallback {
@@ -60,8 +57,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   private final Map<MFGroundOverlay, RMFGroundOverlay> groundOverlayMap = new HashMap<>();
   private final Map<MFDirectionsRenderer, RMFDirectionsRenderer> directionsRendererMap = new HashMap<>();
 
-  private RMFMarkerCluster markerCluster;
-  private MFClusterManager<RMFClusterItem> clusterManager;
   private MFMarkerManager.Collection markerCollection;
 
   private ViewAttacherGroup attacherGroup;
@@ -120,9 +115,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     if (event.getAction() == MotionEvent.ACTION_DOWN) {
       touchPointX = event.getX();
       touchPointY = event.getY();
-      if (markerCluster != null) {
-        markerCluster.setTouchPoint(touchPointX, touchPointY);
-      }
     }
     if (event.getAction() == MotionEvent.ACTION_MOVE) {
       dragPointX = event.getX();
@@ -138,8 +130,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     }
     this.map = map;
     final RMFMapView view = this;
-    clusterManager = new MFClusterManager<>(context, map);
-    MFMarkerManager markerManager = clusterManager.getMarkerManager();
     markerCollection = markerManager.newCollection();
 
     manager.pushEvent(getContext(), this, "onMapReady", new WritableNativeMap());
@@ -498,9 +488,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         WritableMap event = getCameraMap();
         event.putString("action", "camera-idle");
         manager.pushEvent(getContext(), view, "onCameraIdle", event);
-        if (clusterManager != null) {
-          clusterManager.onCameraIdle();
-        }
       }
     });
 
@@ -1165,20 +1152,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
 
         MFGroundOverlay groundOverlay = (MFGroundOverlay) annotation.getFeature();
         groundOverlayMap.put(groundOverlay, annotation);
-      }
-    }
-    else if (child instanceof RMFMarkerCluster) {
-      markerCluster = (RMFMarkerCluster) child;
-      /** Must set cluster manager first then add Marker Cluster to map **/
-      markerCluster.setClusterManager(clusterManager);
-      markerCluster.addToMap(map);
-      features.add(index, markerCluster);
-
-      // Remove from a view group if already present, prevent "specified child
-      // already had a parent" error.
-      ViewGroup annotationParent = (ViewGroup) markerCluster.getParent();
-      if (annotationParent != null) {
-        annotationParent.removeView(markerCluster);
       }
     }
     else if (child instanceof ViewGroup) {
