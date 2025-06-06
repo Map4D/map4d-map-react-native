@@ -1,4 +1,4 @@
-import {MFMapView, MFBuilding} from 'react-native-map4d-map';
+import {MFMapView, MFBuilding} from 'react-native-ipostmap';
 import React from 'react';
 import {
   SafeAreaView,

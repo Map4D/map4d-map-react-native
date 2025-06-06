@@ -48,7 +48,7 @@ target 'Map4dMapExample' do
   #   # Pods for testing
   # end
   
-  pod 'react-native-map4d-map', :path => '../..'
+  pod 'react-native-ipostmap', :path => '../..'
 
   post_install do |installer|
     react_native_post_install(
