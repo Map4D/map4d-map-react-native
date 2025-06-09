@@ -57,6 +57,6 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation 'vn.map4d:Map4dTypes:1.1.+'
-    implementation 'vn.map4d:Map4dMap:2.6.+'
+    implementation 'vn.map4d:iPostMap:1.0.+'
     implementation 'vn.map4d:Map4dMapUtils:0.0.+'
 }
