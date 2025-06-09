@@ -130,6 +130,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     }
     this.map = map;
     final RMFMapView view = this;
+    MFMarkerManager markerManager = new MFMarkerManager(map);
     markerCollection = markerManager.newCollection();
 
     manager.pushEvent(getContext(), this, "onMapReady", new WritableNativeMap());
