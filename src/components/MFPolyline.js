@@ -16,7 +16,7 @@ const propTypes = {
   ...viewPropTypes,
 
   /**
-   * An array of coordinates to describe the polygon
+   * An array of coordinates to describe the polyline
    */
   coordinates: PropTypes.arrayOf(
     PropTypes.shape({
@@ -100,12 +100,12 @@ class MFPolyline extends React.Component {
     this._runCommand("setVisible", [visible])
   }
 
-  setTouchable(color) {
+  setTouchable(touchable) {
     this._runCommand("setTouchable", [touchable])
   }
 
   setZIndex(zIndex) {
-    this._runCommand("setZIndex", [touchable])
+    this._runCommand("setZIndex", [zIndex])
   }
 
   setLineStyle(style) {

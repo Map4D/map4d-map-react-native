@@ -29,6 +29,7 @@ public class Map4dMapPackage implements ReactPackage {
         new RMFPolylineManager(reactContext),
         new RMFPOIManager(),
         new RMFPolygonManager(reactContext),
+        new RMFBuildingManager(),
         new RMFDirectionsRendererManager(reactContext),
         new RMFTileOverlayManager(),
         new RMFGroundOverlayManager(),

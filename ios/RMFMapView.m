@@ -17,6 +17,7 @@
 #import "RMFPolyline.h"
 #import "RMFPolygon.h"
 #import "RMFPOI.h"
+#import "RMFBuilding.h"
 #import "RMFDirectionsRenderer.h"
 #import "RMFTileOverlay.h"
 #import "RMFGroundOverlay.h"
@@ -86,6 +87,10 @@
     [poi setMapView:self];
     //[super insertReactSubview:poi atIndex:atIndex];
   }
+  else if ([subview isKindOfClass:[RMFBuilding class]]) {
+    RMFBuilding* building = (RMFBuilding*)subview;
+    [building setMapView:self];
+  }
   else if ([subview isKindOfClass:[RMFDirectionsRenderer class]]) {
     RMFDirectionsRenderer* renderer = (RMFDirectionsRenderer*)subview;
     [renderer setMapView:self];
@@ -135,6 +140,10 @@
   else if ([subview isKindOfClass:[RMFPOI class]]) {
     RMFPOI* poi = (RMFPOI*)subview;
     poi.map4dPOI.map = nil;
+  }
+  else if ([subview isKindOfClass:[RMFBuilding class]]) {
+    RMFBuilding* building = (RMFBuilding*)subview;
+    [building setMapView:nil];
   }
   else if ([subview isKindOfClass:[RMFDirectionsRenderer class]]) {
     RMFDirectionsRenderer* renderer = (RMFDirectionsRenderer*)subview;
