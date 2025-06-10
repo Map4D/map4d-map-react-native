@@ -332,7 +332,7 @@ PODS:
   - React-jsinspector (0.71.15)
   - React-logger (0.71.15):
     - glog
-  - react-native-map4d-map (2.8.1):
+  - react-native-map4d-map (2.8.2):
     - Map4dMap (~> 2.8)
     - Map4dMapUtils (~> 0.4)
     - React-Core
@@ -615,7 +615,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e0cde8d57cee18097b3d2b1bf6404ad25dd8d33b
   React-jsinspector: 4ade58a6a355d97a53f847543b14f4cb5033cb70
   React-logger: 56699550750c013096a11dce3bc996e7dd583835
-  react-native-map4d-map: c7ef1cd5fac601c4a7689a426fcf8b8639f287c8
+  react-native-map4d-map: a186b6fd1b99cb3899c789c3cc646facf9b6eda0
   React-perflogger: 0cc42978a483a47f3696171dac2e7033936fc82d
   React-RCTActionSheet: ea922b476d24f6d40b8e02ac3228412bd3637468
   React-RCTAnimation: 7be2c148398eaa5beac950b2b5ec7102389ec3ad

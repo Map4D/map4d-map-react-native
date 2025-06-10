@@ -6,7 +6,6 @@ import {MFPolygon} from './components/MFPolygon'
 import {MFPOI} from './components/MFPOI'
 import {MFDirectionsRenderer} from './components/MFDirectionsRenderer'
 import {MFTileOverlay} from './components/MFTileOverlay'
-import {MFGroundOverlay} from './components/MFGroundOverlay'
 import {MFMarkerCluster} from './components/MFMarkerCluster'
 import {MFClusterItem} from './components/MFClusterItem'
 import {MFBuilding} from './components/MFBuilding'
@@ -20,7 +19,6 @@ export {
   MFPOI,
   MFDirectionsRenderer,
   MFTileOverlay,
-  MFGroundOverlay,
   MFMarkerCluster,
   MFClusterItem,
   MFBuilding,
