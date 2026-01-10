@@ -399,6 +399,13 @@ public class RMFMarker extends RMFFeature {
     }
   }
 
+  @Override
+  protected void onLayout(boolean changed, int l, int t, int r, int b) {
+    super.onLayout(changed, l, t, r, b);
+    this.height = b - t;
+    this.width = r - l;
+  }
+
   public Object getFeature() {
     return marker;
   }
