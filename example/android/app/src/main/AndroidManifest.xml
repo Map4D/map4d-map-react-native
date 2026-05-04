@@ -14,7 +14,7 @@
 
       <meta-data
         android:name="vn.map4d.map.ACCESS_KEY"
-        android:value="YOUR_API_KEY" />
+        android:value="1156068eabf4af3e66aea1ec06aa65b4" />
 
       <activity
         android:name=".MainActivity"

@@ -27,7 +27,7 @@ function App() {
             bearing: 0,
             tilt: 0,
           }}
-          mapType='map3d'
+          mapType='roadmap'
           ref={ref => map = ref}
           onDataSourceFeaturePress={onDataSourceFeaturePress}
         >
