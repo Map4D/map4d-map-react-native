@@ -906,26 +906,23 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   public void enable3DMode(Boolean enable) {
     if (map == null) return;
     if (enable) {
-      map.setMapType(MFMapType.MAP3D);
+      map.setBuildingsEnabled(true);
     }
-    else if (map.getMapType() == MFMapType.MAP3D) {
-      map.setMapType(MFMapType.ROADMAP);
+    else if (map.isBuildingsEnabled()) {
+      map.setBuildingsEnabled(false);
     }
   }
 
   public void setMapType(String mapType) {
     if (map == null) return;
-    if (mapType.equals("raster")) {
-      map.setMapType(MFMapType.RASTER);
-    }
-    else if (mapType.equals("roadmap")) {
+    if (mapType.equals("roadmap")) {
       map.setMapType(MFMapType.ROADMAP);
     }
     else if (mapType.equals("satellite")) {
       map.setMapType(MFMapType.SATELLITE);
     }
-    else if (mapType.equals("map3d")) {
-      map.setMapType(MFMapType.MAP3D);
+    else if (mapType.equals("hybrid")) {
+      map.setMapType(MFMapType.HYBRID);
     }
   }
 

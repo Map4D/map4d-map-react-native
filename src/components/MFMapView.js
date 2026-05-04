@@ -85,7 +85,7 @@ const propTypes = {
   /**
    * Type of map tiles to be rendered.
    */
-  mapType: PropTypes.oneOf(['roadmap', 'raster', 'satellite', 'map3d']),
+  mapType: PropTypes.oneOf(['roadmap', 'satellite', 'hybrid']),
 
   /**
    * Callback that is called once the map is fully loaded.
