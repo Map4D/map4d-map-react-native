@@ -511,17 +511,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         manager.pushEvent(getContext(), view, "onCameraMoveStart", event);
       }
     });
-
-    map.setOnReachLimitedZoom(new Map4D.OnReachLimitedZoom() {
-      @Override
-      public void onReachLimitedZoom(double zoom) {
-        WritableMap event = new WritableNativeMap();
-        event.putString("action", "limited-zoom");
-        event.putDouble("zoom", zoom);
-        manager.pushEvent(getContext(), view, "onReachLimitedZoom", event);
-      }
-    });
-
+    
     map.setOnMyLocationButtonClickListener(new Map4D.OnMyLocationButtonClickListener() {
       @Override
       public boolean onMyLocationButtonClick() {

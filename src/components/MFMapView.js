@@ -142,16 +142,6 @@ const propTypes = {
    * Callback that is called when user taps on location Button
    */
   onMyLocationButtonPress: PropTypes.func,
-
-  /**
-   * @deprecated This prop is no longer support, which is subject to removal in a future versions.
-   */
-  onShouldChangeMapMode: PropTypes.func,
-
-  /**
-   * Callback that is called when user zoom in/out reach limited zoom (min/max zoom or zoom at 17 on 3D)
-   */
-  onReachLimitedZoom: PropTypes.func
 };
 
 
