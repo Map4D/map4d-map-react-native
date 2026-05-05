@@ -119,11 +119,6 @@ const propTypes = {
   onDataSourceFeaturePress: PropTypes.func,
 
   /**
-   * @deprecated This prop is no longer support, which is subject to removal in a future versions.
-   */
-  onModeChange: PropTypes.func,
-
-  /**
    * Callback that is called when moving camera
    */
   onCameraMove: PropTypes.func,
