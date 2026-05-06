@@ -52,7 +52,6 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
         "onMapReady", MapBuilder.of("registrationName", "onMapReady"),
         "onMarkerDrag", MapBuilder.of("registrationName", "onMarkerDrag"),
         "onMarkerPress", MapBuilder.of("registrationName", "onMarkerPress"),
-        "onModeChange", MapBuilder.of("registrationName", "onModeChange"),
         "onCameraMoveStart", MapBuilder.of("registrationName", "onCameraMoveStart"),
         "onCameraMove", MapBuilder.of("registrationName", "onCameraMove"),
         "onCameraIdle", MapBuilder.of("registrationName", "onCameraIdle")

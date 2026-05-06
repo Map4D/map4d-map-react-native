@@ -269,7 +269,7 @@ PODS:
   - React-jsinspector (0.71.15)
   - React-logger (0.71.15):
     - glog
-  - react-native-map4d-map (2.8.2):
+  - react-native-map4d-map (3.0.0):
     - Map4dMap (~> 3.3)
     - Map4dMapUtils (~> 0.5)
     - React-Core
@@ -502,7 +502,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e0cde8d57cee18097b3d2b1bf6404ad25dd8d33b
   React-jsinspector: 4ade58a6a355d97a53f847543b14f4cb5033cb70
   React-logger: 56699550750c013096a11dce3bc996e7dd583835
-  react-native-map4d-map: ddf5d806415525ddd1d726324e33c329a9ea8b1c
+  react-native-map4d-map: 98e60438a62a395f2b283b60a0f65501ef42d8d9
   React-perflogger: 0cc42978a483a47f3696171dac2e7033936fc82d
   React-RCTActionSheet: ea922b476d24f6d40b8e02ac3228412bd3637468
   React-RCTAnimation: 7be2c148398eaa5beac950b2b5ec7102389ec3ad
@@ -518,6 +518,6 @@ SPEC CHECKSUMS:
   ReactCommon: 309d965cb51f058d07dea65bc04dcf462911f0a4
   Yoga: 68c9c592c3e80ec37ff28db20eedb13d84aae5df
 
-PODFILE CHECKSUM: ddc86b2739fb50bbb82c2e8d33fa10e381a8ea19
+PODFILE CHECKSUM: d21d70e371e95ab79db0f245e2325bed05ea7eda
 
 COCOAPODS: 1.16.2
