@@ -29,7 +29,6 @@ import java.util.Map;
 import vn.map4d.map.core.*;
 import vn.map4d.map.camera.*;
 import vn.map4d.map.annotations.*;
-import vn.map4d.map.overlays.MFGroundOverlay;
 import vn.map4d.map.overlays.MFTileOverlay;
 import vn.map4d.types.MFLocationCoordinate;
 import vn.map4d.utils.android.clustering.MFClusterManager;
@@ -57,7 +56,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   private final Map<MFBuilding, RMFBuilding> buildingMap = new HashMap<>();
   private final Map<Long, RMFPOI> poiMap = new HashMap<>();
   private final Map<MFTileOverlay, RMFTileOverlay> tileOverlayMap = new HashMap<>();
-  private final Map<MFGroundOverlay, RMFGroundOverlay> groundOverlayMap = new HashMap<>();
   private final Map<MFDirectionsRenderer, RMFDirectionsRenderer> directionsRendererMap = new HashMap<>();
 
   private RMFMarkerCluster markerCluster;
@@ -514,16 +512,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
       }
     });
 
-    map.setOnReachLimitedZoom(new Map4D.OnReachLimitedZoom() {
-      @Override
-      public void onReachLimitedZoom(double zoom) {
-        WritableMap event = new WritableNativeMap();
-        event.putString("action", "limited-zoom");
-        event.putDouble("zoom", zoom);
-        manager.pushEvent(getContext(), view, "onReachLimitedZoom", event);
-      }
-    });
-
     map.setOnMyLocationButtonClickListener(new Map4D.OnMyLocationButtonClickListener() {
       @Override
       public boolean onMyLocationButtonClick() {
@@ -908,32 +896,34 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   public void enable3DMode(Boolean enable) {
     if (map == null) return;
     if (enable) {
-      map.setMapType(MFMapType.MAP3D);
+      map.setBuildingsEnabled(true);
     }
-    else if (map.getMapType() == MFMapType.MAP3D) {
-      map.setMapType(MFMapType.ROADMAP);
+    else if (map.isBuildingsEnabled()) {
+      map.setBuildingsEnabled(false);
     }
   }
 
   public void setMapType(String mapType) {
     if (map == null) return;
-    if (mapType.equals("raster")) {
-      map.setMapType(MFMapType.RASTER);
-    }
-    else if (mapType.equals("roadmap")) {
+    if (mapType.equals("roadmap")) {
       map.setMapType(MFMapType.ROADMAP);
     }
     else if (mapType.equals("satellite")) {
       map.setMapType(MFMapType.SATELLITE);
     }
-    else if (mapType.equals("map3d")) {
-      map.setMapType(MFMapType.MAP3D);
+    else if (mapType.equals("hybrid")) {
+      map.setMapType(MFMapType.HYBRID);
     }
   }
 
   public void setMapId(String mapId) {
     if (map == null) return;
     map.setMapId(mapId);
+  }
+
+  public void setMapStyle(String style) {
+    if (map == null) return;
+    map.setMapStyle(new MFMapStyleOptions(style));
   }
 
   public void setZoomGesturesEnabled(boolean enable) {
@@ -1152,21 +1142,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         tileOverlayMap.put(tileOverlay, annotation);
       }
     }
-    else if (child instanceof RMFGroundOverlay) {
-      RMFGroundOverlay annotation = (RMFGroundOverlay) child;
-      annotation.addToMap(map);
-      features.add(index, annotation);
-
-      // Remove from a view group if already present, prevent "specified child
-      // already had a parent" error.
-      ViewGroup annotationParent = (ViewGroup) annotation.getParent();
-      if (annotationParent != null) {
-        annotationParent.removeView(annotation);
-
-        MFGroundOverlay groundOverlay = (MFGroundOverlay) annotation.getFeature();
-        groundOverlayMap.put(groundOverlay, annotation);
-      }
-    }
     else if (child instanceof RMFMarkerCluster) {
       markerCluster = (RMFMarkerCluster) child;
       /** Must set cluster manager first then add Marker Cluster to map **/
@@ -1224,9 +1199,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     }
     else if (feature instanceof RMFTileOverlay) {
       tileOverlayMap.remove(feature.getFeature());
-    }
-    else if (feature instanceof RMFGroundOverlay) {
-      groundOverlayMap.remove(feature.getFeature());
     }
     else if (feature instanceof RMFDirectionsRenderer) {
       directionsRendererMap.remove(feature.getFeature());

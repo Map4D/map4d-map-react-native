@@ -43,7 +43,7 @@ public class RMFPOIManager extends ViewGroupManager<RMFPOI> {
           view.setTitle(args.getString(0));
           break;
         case k_setTitleColor:
-          view.setTitleColor(args.getInt(0));
+          view.setColor(args.getInt(0));
           break;
         case k_setSubTitle:
           view.setSubTitle(args.getString(0));
@@ -93,7 +93,7 @@ public class RMFPOIManager extends ViewGroupManager<RMFPOI> {
 
   @ReactProp(name = "titleColor", customType = "Color")
   public void setTitleColor(RMFPOI view, @ColorInt int titleColor) {
-    view.setTitleColor(titleColor);
+    view.setColor(titleColor);
   }
 
   @ReactProp(name = "subtitle")

@@ -41,7 +41,7 @@ public class RMFPOI extends RMFFeature {
   private MFPOIOptions options;
   private MFLocationCoordinate position;
   private String title;
-  private @ColorInt int titleColor;
+  private @ColorInt int color;
   private String subTitle;
   private String type;
   private MFBitmapDescriptor iconBitmapDescriptor;
@@ -86,10 +86,10 @@ public class RMFPOI extends RMFFeature {
 
   public RMFPOI(Context context) {
     super(context);
-    this.position = new MFLocationCoordinate(0, 0); 
+    this.position = new MFLocationCoordinate(0, 0);
     this.title = "";
     this.subTitle = "";
-    this.titleColor = Color.BLACK;
+    this.color = Color.BLACK;
     this.type = "";
     this.zIndex = 0.0f;
     logoHolder = DraweeHolder.create(createDraweeHierarchy(), context);
@@ -117,10 +117,10 @@ public class RMFPOI extends RMFFeature {
     }
   }
 
-  public void setTitleColor(@ColorInt int titleColor) {
-    this.titleColor = titleColor;
+  public void setColor(@ColorInt int color) {
+    this.color = color;
     if (poi != null) {
-      poi.setTitleColor(this.titleColor);
+      poi.setColor(this.color);
     }
   }
 
@@ -208,7 +208,7 @@ public class RMFPOI extends RMFFeature {
   private MFPOIOptions fillOptions(MFPOIOptions options) {
     options.position(position);
     options.title(title);
-    options.titleColor(titleColor);
+    options.color(color);
     options.subtitle(subTitle);
     options.type(type);
     options.zIndex(zIndex);

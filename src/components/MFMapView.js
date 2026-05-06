@@ -30,6 +30,11 @@ const propTypes = {
   mapID: PropTypes.string,
 
   /**
+   *  Map style by string for a custom map configuration.
+   */
+  mapStyle: PropTypes.string,
+
+  /**
    * If `false` hide the button to move map to the current user's location.
    * Default value is `false`.
    */
@@ -85,7 +90,7 @@ const propTypes = {
   /**
    * Type of map tiles to be rendered.
    */
-  mapType: PropTypes.oneOf(['roadmap', 'raster', 'satellite', 'map3d']),
+  mapType: PropTypes.oneOf(['roadmap', 'satellite', 'hybrid']),
 
   /**
    * Callback that is called once the map is fully loaded.
@@ -119,11 +124,6 @@ const propTypes = {
   onDataSourceFeaturePress: PropTypes.func,
 
   /**
-   * @deprecated This prop is no longer support, which is subject to removal in a future versions.
-   */
-  onModeChange: PropTypes.func,
-
-  /**
    * Callback that is called when moving camera
    */
   onCameraMove: PropTypes.func,
@@ -142,16 +142,6 @@ const propTypes = {
    * Callback that is called when user taps on location Button
    */
   onMyLocationButtonPress: PropTypes.func,
-
-  /**
-   * @deprecated This prop is no longer support, which is subject to removal in a future versions.
-   */
-  onShouldChangeMapMode: PropTypes.func,
-
-  /**
-   * Callback that is called when user zoom in/out reach limited zoom (min/max zoom or zoom at 17 on 3D)
-   */
-  onReachLimitedZoom: PropTypes.func
 };
 
 

@@ -161,7 +161,7 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
         if (!validateMapView(mapView, promise)) {
           return;
         }
-        promise.resolve(mapView.map.getMapType() == MFMapType.MAP3D);
+        promise.resolve(mapView.map.isBuildingsEnabled());
       }
     });
   }

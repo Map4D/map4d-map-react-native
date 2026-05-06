@@ -61,11 +61,9 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
       map.putAll(MapBuilder.of(
         "onMyLocationButtonPress", MapBuilder.of("registrationName", "onMyLocationButtonPress"),
         "onPress", MapBuilder.of("registrationName", "onPress"),
-        "onShouldChangeMapMode", MapBuilder.of("registrationName", "onShouldChangeMapMode"),
         "onPoiPress", MapBuilder.of("registrationName", "onPoiPress"),
         "onBuildingPress", MapBuilder.of("registrationName", "onBuildingPress"),
-        "onPlacePress", MapBuilder.of("registrationName", "onPlacePress"),
-        "onReachLimitedZoom", MapBuilder.of("registrationName", "onReachLimitedZoom")
+        "onPlacePress", MapBuilder.of("registrationName", "onPlacePress")
       ));
       map.putAll(MapBuilder.of(
         "onDataSourceFeaturePress", MapBuilder.of("registrationName", "onDataSourceFeaturePress")
@@ -175,6 +173,11 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
   @ReactProp(name = "mapID")
   public void setMapId(RMFMapView view, String mapId) {
     view.setMapId(mapId);
+  }
+
+  @ReactProp(name = "mapStyle")
+  public void setMapStyle(RMFMapView view, String style) {
+    view.setMapStyle(style);
   }
 
   @ReactProp(name = "showsMyLocationButton", defaultBoolean = true)
