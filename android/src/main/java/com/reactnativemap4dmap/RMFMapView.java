@@ -511,7 +511,7 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
         manager.pushEvent(getContext(), view, "onCameraMoveStart", event);
       }
     });
-    
+
     map.setOnMyLocationButtonClickListener(new Map4D.OnMyLocationButtonClickListener() {
       @Override
       public boolean onMyLocationButtonClick() {
@@ -919,6 +919,11 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
   public void setMapId(String mapId) {
     if (map == null) return;
     map.setMapId(mapId);
+  }
+
+  public void setMapStyle(String style) {
+    if (map == null) return;
+    map.setMapStyle(new MFMapStyleOptions(style));
   }
 
   public void setZoomGesturesEnabled(boolean enable) {

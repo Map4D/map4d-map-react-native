@@ -175,6 +175,11 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
     view.setMapId(mapId);
   }
 
+  @ReactProp(name = "mapStyle")
+  public void setMapStyle(RMFMapView view, String style) {
+    view.setMapStyle(style);
+  }
+
   @ReactProp(name = "showsMyLocationButton", defaultBoolean = true)
   public void setShowsMyLocationButton(RMFMapView view, boolean showMyLocationButton) {
     view.setShowsMyLocationButton(showMyLocationButton);

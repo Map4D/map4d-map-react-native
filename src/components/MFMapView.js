@@ -30,6 +30,11 @@ const propTypes = {
   mapID: PropTypes.string,
 
   /**
+   *  Map style by string for a custom map configuration.
+   */
+  mapStyle: PropTypes.string,
+
+  /**
    * If `false` hide the button to move map to the current user's location.
    * Default value is `false`.
    */
