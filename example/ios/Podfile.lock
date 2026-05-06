@@ -15,9 +15,9 @@ PODS:
     - hermes-engine/Pre-built (= 0.71.15)
   - hermes-engine/Pre-built (0.71.15)
   - libevent (2.1.12)
-  - Map4dMap (2.8.2)
-  - Map4dMapUtils (0.4.0):
-    - Map4dMap (~> 2.6)
+  - Map4dMap (3.3.2)
+  - Map4dMapUtils (0.5.0):
+    - Map4dMap (~> 3.3)
   - RCT-Folly (2021.07.22.00):
     - boost
     - DoubleConversion
@@ -270,8 +270,8 @@ PODS:
   - React-logger (0.71.15):
     - glog
   - react-native-map4d-map (2.8.2):
-    - Map4dMap (~> 2.8)
-    - Map4dMapUtils (~> 0.4)
+    - Map4dMap (~> 3.3)
+    - Map4dMapUtils (~> 0.5)
     - React-Core
   - React-perflogger (0.71.15)
   - React-RCTActionSheet (0.71.15):
@@ -486,8 +486,8 @@ SPEC CHECKSUMS:
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: 04437e4291ede4af0c76c25e7efd0eacb8fd25e5
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  Map4dMap: 3addf98dd2e4c35044fbb5acf514f831377342bb
-  Map4dMapUtils: aaeeabf68336d85a1a349ed355e9889cf5d484ee
+  Map4dMap: 72a7f39016403bdcc39801f1cb194b42fc9f0376
+  Map4dMapUtils: 12e701658949cf114e28446eea55e38285af267d
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: 4ce9da4fa2f8a134f62c70e4ab9d971b9d640f41
   RCTTypeSafety: decfec2884f0c523f799600d2b6105cdc15e13db
@@ -502,7 +502,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e0cde8d57cee18097b3d2b1bf6404ad25dd8d33b
   React-jsinspector: 4ade58a6a355d97a53f847543b14f4cb5033cb70
   React-logger: 56699550750c013096a11dce3bc996e7dd583835
-  react-native-map4d-map: a186b6fd1b99cb3899c789c3cc646facf9b6eda0
+  react-native-map4d-map: ddf5d806415525ddd1d726324e33c329a9ea8b1c
   React-perflogger: 0cc42978a483a47f3696171dac2e7033936fc82d
   React-RCTActionSheet: ea922b476d24f6d40b8e02ac3228412bd3637468
   React-RCTAnimation: 7be2c148398eaa5beac950b2b5ec7102389ec3ad
@@ -518,6 +518,6 @@ SPEC CHECKSUMS:
   ReactCommon: 309d965cb51f058d07dea65bc04dcf462911f0a4
   Yoga: 68c9c592c3e80ec37ff28db20eedb13d84aae5df
 
-PODFILE CHECKSUM: 45ffe525afb2f550edb74b6137c22327cdfe3e3b
+PODFILE CHECKSUM: ddc86b2739fb50bbb82c2e8d33fa10e381a8ea19
 
 COCOAPODS: 1.16.2

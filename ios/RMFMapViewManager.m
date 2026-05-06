@@ -61,7 +61,6 @@ RCT_EXPORT_VIEW_PROPERTY(onCameraIdle, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCameraMove, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCameraMoveStart, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMyLocationButtonPress, RCTDirectEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(onReachLimitedZoom, RCTDirectEventBlock)
 
 RCT_REMAP_VIEW_PROPERTY(mapID, mapIdProp, NSString)
 RCT_REMAP_VIEW_PROPERTY(camera, cameraProp, MFCameraPosition)
@@ -233,7 +232,7 @@ RCT_EXPORT_METHOD(is3DMode:(nonnull NSNumber *)reactTag
       reject(@"Invalid argument", [NSString stringWithFormat:@"Invalid view returned from registry, expecting RMFMapView, got: %@", view], NULL);
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
-      resolve(@(mapView.mapType == MFMapTypeMap3D));
+      resolve(@([mapView isBuildingsEnabled]));
     }
   }];
   
@@ -247,12 +246,7 @@ RCT_EXPORT_METHOD(enable3DMode:(nonnull NSNumber *)reactTag
       
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
-      if (enable) {
-        mapView.mapType = MFMapTypeMap3D;
-      }
-      else if (mapView.mapType == MFMapTypeMap3D) {
-        mapView.mapType = MFMapTypeRoadmap;
-      }
+      [mapView setBuildingsEnabled:enable];
     }
   }];
 }
@@ -488,11 +482,6 @@ RCT_EXPORT_METHOD(setAllGesturesEnabled:(nonnull NSNumber *)reactTag
 - (void)mapView:(MFMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
   RMFMapView* map = (RMFMapView*)mapView;
   [map didTapAtCoordinate:coordinate];
-}
-
-- (void)mapView:(MFMapView *)mapView didReachLimitedZoom:(double)zoom {
-  RMFMapView* map = (RMFMapView*)mapView;
-  [map onReachLimitedZoom:zoom];
 }
 
 - (void)mapView:(MFMapView *)mapView didTapPOI:(MFPOI *)poi {

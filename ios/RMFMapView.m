@@ -20,7 +20,6 @@
 #import "RMFBuilding.h"
 #import "RMFDirectionsRenderer.h"
 #import "RMFTileOverlay.h"
-#import "RMFGroundOverlay.h"
 #import "RMFEventResponse.h"
 #import "Clustering/RMFMarkerCluster.h"
 
@@ -99,10 +98,6 @@
     RMFTileOverlay* overlay = (RMFTileOverlay*)subview;
     [overlay setMapView:self];
   }
-  else if ([subview isKindOfClass:[RMFGroundOverlay class]]) {
-    RMFGroundOverlay* overlay = (RMFGroundOverlay*)subview;
-    [overlay setMapView:self];
-  }
   else if ([subview isKindOfClass:[RMFMarkerCluster class]]) {
     RMFMarkerCluster *cluster = (RMFMarkerCluster *)subview;
     [cluster setMapView:self];
@@ -153,10 +148,6 @@
     RMFTileOverlay* overlay = (RMFTileOverlay*)subview;
     [overlay setMapView:nil];
   }
-  else if ([subview isKindOfClass:[RMFGroundOverlay class]]) {
-    RMFGroundOverlay* overlay = (RMFGroundOverlay*)subview;
-    [overlay setMapView:nil];
-  }
   else if ([subview isKindOfClass:[RMFMarkerCluster class]]) {
     RMFMarkerCluster *cluster = (RMFMarkerCluster *)subview;
     [cluster setMapView:nil];
@@ -185,14 +176,11 @@
 
 - (void)setMapTypeProp:(NSString *)mapTypeProp {
   _mapTypeProp = mapTypeProp;
-  if ([@"raster" caseInsensitiveCompare:mapTypeProp] == NSOrderedSame) {
-    self.mapType = MFMapTypeRaster;
+  if ([@"hybrid" caseInsensitiveCompare:mapTypeProp] == NSOrderedSame) {
+    self.mapType = MFMapTypeHybrid;
   }
   else if ([@"satellite" caseInsensitiveCompare:mapTypeProp] == NSOrderedSame) {
     self.mapType = MFMapTypeSatellite;
-  }
-  else if ([@"map3d" caseInsensitiveCompare:mapTypeProp] == NSOrderedSame) {
-    self.mapType = MFMapTypeMap3D;
   }
   else {
     self.mapType = MFMapTypeRoadmap;
@@ -358,14 +346,6 @@
   NSMutableDictionary* response = [NSMutableDictionary dictionaryWithDictionary:[RMFEventResponse fromCameraPosition:position]];
   response[@"action"] = @"camera-idle";
   self.onCameraIdle(response);
-}
-
-- (void)onReachLimitedZoom:(double)zoom {
-  if (!self.onReachLimitedZoom) return;
-  self.onReachLimitedZoom(@{
-    @"action": @"limited-zoom",
-    @"zoom": @(zoom)
-  });
 }
 
 #pragma mark - MapView Override
