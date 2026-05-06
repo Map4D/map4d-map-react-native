@@ -10,12 +10,12 @@ Pod::Spec.new do |s|
   s.license      = package["license"]
   s.authors      = package["author"]
 
-  s.platforms    = { :ios => "12.0" }
+  s.platforms    = { :ios => "13.0" }
   s.source       = { :git => "https://github.com/map4d/map4d-map-react-native.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm}"
 
   s.dependency "React-Core"
-  s.dependency "Map4dMap", "~> 2.8"
-  s.dependency "Map4dMapUtils", "~> 0.4"
+  s.dependency "Map4dMap", "~> 3.3"
+  s.dependency "Map4dMapUtils", "~> 0.5"
 end

@@ -36,7 +36,6 @@
 @property (nonatomic, copy) RCTDirectEventBlock onCameraMoveStart;
 @property (nonatomic, copy) RCTDirectEventBlock onCameraIdle;
 @property (nonatomic, copy) RCTDirectEventBlock onMyLocationButtonPress;
-@property (nonatomic, copy) RCTDirectEventBlock onReachLimitedZoom;
 
 //@property (nonatomic, assign) MKCoordinateRegion initialRegion;
 //@property (nonatomic, assign) MKCoordinateRegion region;
@@ -72,7 +71,6 @@
 - (void)movingCameraPosition: (MFCameraPosition*) position;
 - (void)didChangeCameraPosition: (MFCameraPosition*) position;
 - (void)idleAtCameraPosition: (MFCameraPosition *) position;
-- (void)onReachLimitedZoom: (double) zoom;
 
 - (void)didTapAtCoordinate:(CLLocationCoordinate2D)coordinate;
 - (void)didTapPOIWithPlaceID:(NSString *)placeID name:(NSString *)name location:(CLLocationCoordinate2D)location;
