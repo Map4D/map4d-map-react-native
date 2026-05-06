@@ -893,16 +893,6 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
     map.animateCamera(cameraUpdate);
   }
 
-  public void enable3DMode(Boolean enable) {
-    if (map == null) return;
-    if (enable) {
-      map.setBuildingsEnabled(true);
-    }
-    else if (map.isBuildingsEnabled()) {
-      map.setBuildingsEnabled(false);
-    }
-  }
-
   public void setMapType(String mapType) {
     if (map == null) return;
     if (mapType.equals("roadmap")) {

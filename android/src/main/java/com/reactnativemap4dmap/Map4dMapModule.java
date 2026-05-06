@@ -152,20 +152,6 @@ public class Map4dMapModule extends ReactContextBaseJavaModule {
     });
   }
 
-  @ReactMethod
-  public void is3DMode(final int tag, final Promise promise) {
-    getView(tag, new ResolveViewCallback(){
-      @Override
-      public void found(View view) {
-        RMFMapView mapView = (RMFMapView) view;
-        if (!validateMapView(mapView, promise)) {
-          return;
-        }
-        promise.resolve(mapView.map.isBuildingsEnabled());
-      }
-    });
-  }
-
   public void isMyLocationButtonEnabled(final int tag, final Promise promise) {
     getView(tag, new ResolveViewCallback(){
       @Override

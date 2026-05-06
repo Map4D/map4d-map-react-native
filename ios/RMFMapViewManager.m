@@ -222,35 +222,6 @@ RCT_EXPORT_METHOD(moveCamera:(nonnull NSNumber *)reactTag
   }];
 }
 
-
-RCT_EXPORT_METHOD(is3DMode:(nonnull NSNumber *)reactTag
-                  resolver: (RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-    id view = viewRegistry[reactTag];
-    if (![view isKindOfClass:[RMFMapView class]]) {
-      reject(@"Invalid argument", [NSString stringWithFormat:@"Invalid view returned from registry, expecting RMFMapView, got: %@", view], NULL);
-    } else {
-      RMFMapView *mapView = (RMFMapView *)view;
-      resolve(@([mapView isBuildingsEnabled]));
-    }
-  }];
-  
-}
-
-RCT_EXPORT_METHOD(enable3DMode:(nonnull NSNumber *)reactTag
-                  enable:(BOOL)enable) {
-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-    id view = viewRegistry[reactTag];
-    if (![view isKindOfClass:[RMFMapView class]]) {
-      
-    } else {
-      RMFMapView *mapView = (RMFMapView *)view;
-      [mapView setBuildingsEnabled:enable];
-    }
-  }];
-}
-
 RCT_EXPORT_METHOD(showsMyLocationButton:(nonnull NSNumber *)reactTag
                   enable:(BOOL)enable) {
   [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {

@@ -204,21 +204,6 @@ class MFMapView extends React.Component {
     this._runCommand('moveCamera', [camera]);
   }
 
-  enable3DMode(enable) {
-    console.warn("This method was intended to set map type map 3D. It has been superseded by 'mapType' property. This method is subject to removal in a future versions.")
-    this._runCommand('enable3DMode', [enable]);
-  }
-
-  is3DMode() {
-    console.warn("This type of mode checking is not recommended. It is recommended that the 'mapType' property be used instead. This method is subject to removal in a future versions.")
-    if (Platform.OS === 'android') {
-      return NativeModules.Map4dMap.is3DMode(this._getHandle());
-    } else if (Platform.OS === 'ios') {
-      return this._runCommand('is3DMode', []);
-    }
-    return Promise.reject('Function not supported on this platform');
-  }
-
   setMyLocationEnabled(enable) {
     this._runCommand('setMyLocationEnabled', [enable]);
   }
