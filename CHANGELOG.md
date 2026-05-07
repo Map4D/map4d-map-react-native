@@ -10,6 +10,7 @@ This feature is supported on both `roadmap` and `hybrid` map types, allowing ful
 ### Breaking changes
 
 * The map type `raster`, `map3D` has been removed
+* The `enable3DMode` and `is3DMode` method has been removed from `MFMapView`. 3D buildings can now be shown using the `showsBuildings` property of the `MFMapView`
 * The `onModeChange`, `onShouldChangeMapMode`, `onReachLimitedZoom` callback has been removed from the `MFMapView`
 
 ## 2.8.0
