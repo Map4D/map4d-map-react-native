@@ -15,7 +15,7 @@ PODS:
     - hermes-engine/Pre-built (= 0.71.15)
   - hermes-engine/Pre-built (0.71.15)
   - libevent (2.1.12)
-  - Map4dMap (3.3.2)
+  - Map4dMap (3.3.3)
   - Map4dMapUtils (0.5.0):
     - Map4dMap (~> 3.3)
   - RCT-Folly (2021.07.22.00):
@@ -486,7 +486,7 @@ SPEC CHECKSUMS:
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: 04437e4291ede4af0c76c25e7efd0eacb8fd25e5
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  Map4dMap: 72a7f39016403bdcc39801f1cb194b42fc9f0376
+  Map4dMap: 098bea53e6cb46a7f491aa6d744ebd523784864b
   Map4dMapUtils: 12e701658949cf114e28446eea55e38285af267d
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: 4ce9da4fa2f8a134f62c70e4ab9d971b9d640f41
