@@ -1,17 +1,17 @@
-# react-native-map4d-map
+# react-native-map4d-map-dtqg
 
-Map4dMap SDK for React Native
+Map4dMap DTQG SDK for React Native
 
 ## Installation
 
 ```sh
-npm install react-native-map4d-map
+npm install react-native-map4d-map-dtqg
 ```
 
 ## Usage
 
 ```javascript
-import {MFMapView} from 'react-native-map4d-map';
+import {MFMapView} from 'react-native-map4d-map-dtqg';
 import React from 'react';
 import {
   SafeAreaView,
@@ -39,7 +39,3 @@ const styles = StyleSheet.create({
 
 export default App;
 ```
-
-## Samples
-
-https://github.com/map4d/react-native-samples
