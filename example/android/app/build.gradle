@@ -147,6 +147,12 @@ android {
         }
     }
 
+    sourceSets {
+      main {
+        jniLibs.srcDirs = ['src/jniLibs']
+      }
+    }
+
     packagingOptions {
       pickFirst 'lib/x86/libc++_shared.so'
       pickFirst 'lib/armeabi-v7a/libc++_shared.so'
