@@ -14,9 +14,8 @@ PODS:
   - hermes-engine (0.71.15):
     - hermes-engine/Pre-built (= 0.71.15)
   - hermes-engine/Pre-built (0.71.15)
-  - iPostMap (1.0.0)
+  - iPostMap (3.0.0)
   - libevent (2.1.12)
-  - OpenSSL-Universal (1.1.1100)
   - RCT-Folly (2021.07.22.00):
     - boost
     - DoubleConversion
@@ -268,8 +267,8 @@ PODS:
   - React-jsinspector (0.71.15)
   - React-logger (0.71.15):
     - glog
-  - react-native-ipostmap (1.0.0):
-    - iPostMap (~> 1.0)
+  - react-native-ipostmap (3.0.0):
+    - iPostMap (~> 3.0)
     - React-Core
   - React-perflogger (0.71.15)
   - React-RCTActionSheet (0.71.15):
@@ -401,9 +400,6 @@ SPEC REPOS:
     - fmt
     - iPostMap
     - libevent
-    - OpenSSL-Universal
-    - SocketRocket
-    - YogaKit
 
 EXTERNAL SOURCES:
   boost:
@@ -485,9 +481,8 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   hermes-engine: 04437e4291ede4af0c76c25e7efd0eacb8fd25e5
-  iPostMap: e4cd74442d4f2b876fa6d10bb40fdd0e9b41f49b
+  iPostMap: 626f21cb2e4940abfed32de2b3a9bc14fc50b4cb
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: 4ce9da4fa2f8a134f62c70e4ab9d971b9d640f41
   RCTTypeSafety: decfec2884f0c523f799600d2b6105cdc15e13db
@@ -502,7 +497,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: e0cde8d57cee18097b3d2b1bf6404ad25dd8d33b
   React-jsinspector: 4ade58a6a355d97a53f847543b14f4cb5033cb70
   React-logger: 56699550750c013096a11dce3bc996e7dd583835
-  react-native-ipostmap: bcb7116271f2f47416bc3a994f2c23a0a10b8f49
+  react-native-ipostmap: b5a4730d13f996d133d1ad6c898961122351ea24
   React-perflogger: 0cc42978a483a47f3696171dac2e7033936fc82d
   React-RCTActionSheet: ea922b476d24f6d40b8e02ac3228412bd3637468
   React-RCTAnimation: 7be2c148398eaa5beac950b2b5ec7102389ec3ad
@@ -518,6 +513,6 @@ SPEC CHECKSUMS:
   ReactCommon: 309d965cb51f058d07dea65bc04dcf462911f0a4
   Yoga: 68c9c592c3e80ec37ff28db20eedb13d84aae5df
 
-PODFILE CHECKSUM: 05cd85af3e9f6fe35215e9a90f2eeca410f873cb
+PODFILE CHECKSUM: d4340eb07b817a54184500d3d2c7df10e0da7966
 
 COCOAPODS: 1.16.2
