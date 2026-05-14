@@ -9,10 +9,7 @@
 
 @implementation RMFTileURLConstructor
 
-- (NSURL * _Nullable)getTileUrlWithX:(NSUInteger)x
-                                   y:(NSUInteger)y
-                                zoom:(NSUInteger)zoom
-                            is3dMode:(bool)is3dMode {
+- (NSURL * _Nullable)getTileUrlWithX:(NSUInteger)x y:(NSUInteger)y zoom:(NSUInteger)zoom {
   if (_reactTileOverlay.urlTemplate == nil) {
     return nil;
   }

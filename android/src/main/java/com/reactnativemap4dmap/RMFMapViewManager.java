@@ -17,7 +17,6 @@ import android.content.Context;
 public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
     private static final int k_animateCamera = 1;
     private static final int k_moveCamera = 2;
-    private static final int k_enable3DMode = 3;
     private static final int k_setMyLocationEnabled = 4;
     private static final int k_setShowsMyLocationButton = 5;
     private static final int k_setTime = 6;
@@ -53,7 +52,6 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
         "onMapReady", MapBuilder.of("registrationName", "onMapReady"),
         "onMarkerDrag", MapBuilder.of("registrationName", "onMarkerDrag"),
         "onMarkerPress", MapBuilder.of("registrationName", "onMarkerPress"),
-        "onModeChange", MapBuilder.of("registrationName", "onModeChange"),
         "onCameraMoveStart", MapBuilder.of("registrationName", "onCameraMoveStart"),
         "onCameraMove", MapBuilder.of("registrationName", "onCameraMove"),
         "onCameraIdle", MapBuilder.of("registrationName", "onCameraIdle")
@@ -61,11 +59,9 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
       map.putAll(MapBuilder.of(
         "onMyLocationButtonPress", MapBuilder.of("registrationName", "onMyLocationButtonPress"),
         "onPress", MapBuilder.of("registrationName", "onPress"),
-        "onShouldChangeMapMode", MapBuilder.of("registrationName", "onShouldChangeMapMode"),
         "onPoiPress", MapBuilder.of("registrationName", "onPoiPress"),
         "onBuildingPress", MapBuilder.of("registrationName", "onBuildingPress"),
-        "onPlacePress", MapBuilder.of("registrationName", "onPlacePress"),
-        "onReachLimitedZoom", MapBuilder.of("registrationName", "onReachLimitedZoom")
+        "onPlacePress", MapBuilder.of("registrationName", "onPlacePress")
       ));
       map.putAll(MapBuilder.of(
         "onDataSourceFeaturePress", MapBuilder.of("registrationName", "onDataSourceFeaturePress")
@@ -79,7 +75,6 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
     HashMap<String, Integer> map = new HashMap();
     map.put("animateCamera", k_animateCamera);
     map.put("moveCamera", k_moveCamera);
-    map.put("enable3DMode", k_enable3DMode);
     map.put("setMyLocationEnabled", k_setMyLocationEnabled);
     map.put("showsMyLocationButton", k_setShowsMyLocationButton);
     map.put("setPOIsEnabled", k_setPOIsEnabled);
@@ -104,9 +99,6 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
       case k_moveCamera:
         map = args.getMap(0);
         view.moveCamera(map);
-        break;
-      case k_enable3DMode:
-        view.enable3DMode(args.getBoolean(0));
         break;
       case k_setMyLocationEnabled:
         view.setMyLocationEnabled(args.getBoolean(0));
@@ -175,6 +167,11 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
   @ReactProp(name = "mapID")
   public void setMapId(RMFMapView view, String mapId) {
     view.setMapId(mapId);
+  }
+
+  @ReactProp(name = "mapStyle")
+  public void setMapStyle(RMFMapView view, String style) {
+    view.setMapStyle(style);
   }
 
   @ReactProp(name = "showsMyLocationButton", defaultBoolean = true)

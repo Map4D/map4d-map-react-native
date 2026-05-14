@@ -23,7 +23,7 @@ public class RMFTileOverlay extends RMFFeature {
     visible = true;
     zIndex = 0.0f;
     templateUrl = null;
-  } 
+  }
 
   public void addToMap(Map4D map) {
     this.tileOverlay = map.addTileOverlay(getOptions());
@@ -67,7 +67,7 @@ public class RMFTileOverlay extends RMFFeature {
   private MFTileOverlayOptions fillOptions(MFTileOverlayOptions options) {
     MFTileProvider tileProvider = new MFUrlTileProvider() {
       @Override
-      public String getTileUrl(int x, int y, int zoom, boolean _3dMode) {
+      public String getTileUrl(int x, int y, int zoom) {
         if (templateUrl == null) {
           return null;
         }

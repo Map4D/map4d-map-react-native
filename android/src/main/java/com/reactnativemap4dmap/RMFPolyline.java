@@ -2,30 +2,17 @@ package com.reactnativemap4dmap;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.AttributeSet;
-import android.view.View;
-import android.widget.Button;
-import android.view.ViewTreeObserver;
 
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.uimanager.events.RCTEventEmitter;
 
 import vn.map4d.map.core.*;
 import vn.map4d.map.annotations.*;
 
-import android.util.Log;
-import android.graphics.Color;
 import androidx.annotation.ColorInt;
 
 import vn.map4d.map.camera.*;
 import vn.map4d.types.MFLocationCoordinate;
-import vn.map4d.map.camera.MFCameraPosition;
-import vn.map4d.map.core.MFPolylineStyle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +28,7 @@ public class RMFPolyline extends RMFFeature {
   private boolean touchable;
   private float zIndex;
   private String userData;
-  private MFPolylineStyle style;
+  private MFPatternItem pattern;
 
   public RMFPolyline(Context context) {
       super(context);
@@ -52,8 +39,8 @@ public class RMFPolyline extends RMFFeature {
       touchable = true;
       zIndex = 0.0f;
       userData = null;
-      style = MFPolylineStyle.Solid;
-  } 
+      pattern = new MFSolidPattern();
+  }
 
   public void addToMap(Map4D map) {
     this.polyline = map.addPolyline(getOptions());
@@ -92,13 +79,13 @@ public class RMFPolyline extends RMFFeature {
 
   public void setLineStyle(String lineStyle) {
     if (lineStyle.equals("solid")) {
-      this.style = MFPolylineStyle.Solid;
+      this.pattern = new MFSolidPattern();
     }
     else if (lineStyle.equals("dotted")) {
-      this.style = MFPolylineStyle.Dotted;
+      this.pattern = new MFDashPattern((int) this.width, (int) this.width);
     }
     if (polyline != null) {
-      polyline.setStyle(this.style);
+      polyline.setPattern(this.pattern);
     }
   }
 
@@ -148,7 +135,7 @@ public class RMFPolyline extends RMFFeature {
     options.color(color);
     options.visible(visible);
     options.touchable(touchable);
-    options.style(style);
+    options.pattern(pattern);
     options.userData(userData);
     return options;
   }

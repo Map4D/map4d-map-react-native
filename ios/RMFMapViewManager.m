@@ -60,7 +60,6 @@ RCT_EXPORT_VIEW_PROPERTY(onCameraIdle, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCameraMove, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCameraMoveStart, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMyLocationButtonPress, RCTDirectEventBlock)
-RCT_EXPORT_VIEW_PROPERTY(onReachLimitedZoom, RCTDirectEventBlock)
 
 RCT_REMAP_VIEW_PROPERTY(mapID, mapIdProp, NSString)
 RCT_REMAP_VIEW_PROPERTY(camera, cameraProp, MFCameraPosition)
@@ -218,40 +217,6 @@ RCT_EXPORT_METHOD(moveCamera:(nonnull NSNumber *)reactTag
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
       [mapView moveCamera:[MFCameraUpdate setCamera:[RCTConvert MFCameraPosition:json withDefaultCamera:mapView.camera]]];
-    }
-  }];
-}
-
-
-RCT_EXPORT_METHOD(is3DMode:(nonnull NSNumber *)reactTag
-                  resolver: (RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-    id view = viewRegistry[reactTag];
-    if (![view isKindOfClass:[RMFMapView class]]) {
-      reject(@"Invalid argument", [NSString stringWithFormat:@"Invalid view returned from registry, expecting RMFMapView, got: %@", view], NULL);
-    } else {
-      RMFMapView *mapView = (RMFMapView *)view;
-      resolve(@(mapView.mapType == MFMapTypeMap3D));
-    }
-  }];
-  
-}
-
-RCT_EXPORT_METHOD(enable3DMode:(nonnull NSNumber *)reactTag
-                  enable:(BOOL)enable) {
-  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-    id view = viewRegistry[reactTag];
-    if (![view isKindOfClass:[RMFMapView class]]) {
-      
-    } else {
-      RMFMapView *mapView = (RMFMapView *)view;
-      if (enable) {
-        mapView.mapType = MFMapTypeMap3D;
-      }
-      else if (mapView.mapType == MFMapTypeMap3D) {
-        mapView.mapType = MFMapTypeRoadmap;
-      }
     }
   }];
 }
@@ -473,11 +438,6 @@ RCT_EXPORT_METHOD(setAllGesturesEnabled:(nonnull NSNumber *)reactTag
 - (void)mapView:(MFMapView *)mapView didTapAtCoordinate:(CLLocationCoordinate2D)coordinate {
   RMFMapView* map = (RMFMapView*)mapView;
   [map didTapAtCoordinate:coordinate];
-}
-
-- (void)mapView:(MFMapView *)mapView didReachLimitedZoom:(double)zoom {
-  RMFMapView* map = (RMFMapView*)mapView;
-  [map onReachLimitedZoom:zoom];
 }
 
 - (void)mapView:(MFMapView *)mapView didTapPOI:(MFPOI *)poi {

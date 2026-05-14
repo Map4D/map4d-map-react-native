@@ -3,7 +3,6 @@ buildscript {
         repositories {
             google()
             mavenCentral()
-            jcenter()
         }
 
         dependencies {
@@ -50,13 +49,12 @@ repositories {
     }
     google()
     mavenCentral()
-    jcenter()
 }
 
 dependencies {
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation 'vn.map4d:Map4dTypes:1.1.+'
-    implementation 'vn.map4d:iPostMap:1.1.+'
+    implementation 'vn.map4d:iPostMap:3.0.+'
     implementation 'vn.map4d:Map4dMapUtils:0.0.+'
 }
