@@ -7,6 +7,7 @@ import {MFPOI} from './components/MFPOI'
 import {MFDirectionsRenderer} from './components/MFDirectionsRenderer'
 import {MFTileOverlay} from './components/MFTileOverlay'
 import {MFBuilding} from './components/MFBuilding'
+import {AreaFocuser} from './components/extends/AreaFocuser'
 
 export {
   MFMapView,
@@ -18,4 +19,5 @@ export {
   MFDirectionsRenderer,
   MFTileOverlay,
   MFBuilding,
+  AreaFocuser,
 };
