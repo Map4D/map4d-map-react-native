@@ -39,3 +39,50 @@ const styles = StyleSheet.create({
 
 export default App;
 ```
+
+## AreaFocuser usage
+
+```javascript
+import {MFMapView} from 'react-native-map4d-map-dtqg';
+import React, {useRef} from 'react';
+import {Button, SafeAreaView} from 'react-native';
+
+function App() {
+  const mapRef = useRef(null);
+
+  const onFocusWithHighlight = async () => {
+    const areaFocuser = mapRef.current?.areaFocuser;
+    if (!areaFocuser) return;
+
+    await areaFocuser.focusProvince({
+      name: 'Ha Noi',
+      highlight: true,
+    });
+  };
+
+  const onRemoveHighlight = async () => {
+    const areaFocuser = mapRef.current?.areaFocuser;
+    if (!areaFocuser) return;
+
+    await areaFocuser.focusProvince(null);
+  };
+
+  return (
+    <SafeAreaView style={{flex: 1}}>
+      <Button title="Focus with highlight" onPress={onFocusWithHighlight} />
+      <Button title="Remove highlight" onPress={onRemoveHighlight} />
+      <MFMapView style={{flex: 1}} ref={mapRef} />
+    </SafeAreaView>
+  );
+}
+```
+
+`focusProvince(options)` options:
+- `name`: province name, example `Ha Noi`
+- `highlight`: `true` to show a highlight polygon mask managed internally by `MFMapView`
+- Pass `null` (or no `name`) to clear current highlight.
+
+Examples:
+- `focusProvince({ name: 'Ha Noi' })`
+- `focusProvince({ name: 'Ha Noi', highlight: true })`
+- `focusProvince(null)`

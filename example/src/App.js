@@ -1,51 +1,78 @@
-import {MFMapView, MFBuilding} from 'react-native-map4d-map-dtqg';
-import React from 'react';
+import {MFMapView, MFBuilding} from 'react-native-map4d-map-dtqg'
+import React, {useRef} from 'react'
 import {
   SafeAreaView,
-  StyleSheet
-} from 'react-native';
+  StyleSheet,
+  Button,
+} from 'react-native'
 
 function App() {
-  const camera = {latitude: 16.103254, longitude: 108.214835}
+  const mapRef = useRef(null)
+
+  const camera = {
+    latitude: 16.103254,
+    longitude: 108.214835,
+  }
 
   const onDataSourceFeaturePress = async (e) => {
     console.log('Press Data Source Feature:', e.nativeEvent)
   }
 
-  
   const onPressBuilding = async (e) => {
     console.log('Press Building:', e.nativeEvent)
   }
 
+  const onFocusWithHighlight = async () => {
+    const areaFocuser = mapRef.current?.areaFocuser
+    if (!areaFocuser) {
+      return
+    }
+
+    await areaFocuser.focusProvince({
+      name: 'Ha Noi',
+      highlight: true,
+    })
+  }
+
+  const onRemoveHighlight = async () => {
+    const areaFocuser = mapRef.current?.areaFocuser
+    if (!areaFocuser) {
+      return
+    }
+
+    await areaFocuser.focusProvince(null)
+  }
+
   return (
-    <>
-      <SafeAreaView style={styles.safeView}>
-        <MFMapView style={styles.container}
-          camera={{
-            center: camera,
-            zoom: 17,
-            bearing: 0,
-            tilt: 0,
+    <SafeAreaView style={styles.safeView}>
+      <Button title="Focus with highlight" onPress={onFocusWithHighlight} />
+      <Button title="Remove highlight" onPress={onRemoveHighlight} />
+      <MFMapView
+        style={styles.container}
+        camera={{
+          center: camera,
+          zoom: 17,
+          bearing: 0,
+          tilt: 0,
+        }}
+        mapType="roadmap"
+        ref={mapRef}
+        onDataSourceFeaturePress={onDataSourceFeaturePress}
+      >
+        <MFBuilding
+          onPress={onPressBuilding}
+          coordinate={{
+            latitude: 16.103254,
+            longitude: 108.214835,
           }}
-          mapType='roadmap'
-          ref={ref => map = ref}
-          onDataSourceFeaturePress={onDataSourceFeaturePress}
-        >
-          <MFBuilding
-            onPress={onPressBuilding}
-            coordinate={{
-              latitude: 16.103254,
-              longitude: 108.214835,
-            }}
-            modelUrl="https://maptile.s3-sgn10.fptcloud.com/sdk/models/5db6b4798b4711141457d8a9.obj"
-            textureUrl="https://maptile.s3-sgn10.fptcloud.com/sdk/textures/5db6b4798b4711141457d8ab.jpg"
-            name="Building test"
-            />
-        </MFMapView>
-      </SafeAreaView>
-    </>
-  );
-};
+          modelUrl="https://maptile.s3-sgn10.fptcloud.com/sdk/models/5db6b4798b4711141457d8a9.obj"
+          textureUrl="https://maptile.s3-sgn10.fptcloud.com/sdk/textures/5db6b4798b4711141457d8ab.jpg"
+          name="Building test"
+        />
+      </MFMapView>
+    </SafeAreaView>
+  )
+}
 
 const styles = StyleSheet.create({
   safeView: {
@@ -54,6 +81,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-});
+})
 
-export default App;
+export default App

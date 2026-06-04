@@ -1,6 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {ViewPropTypes, ColorPropType} from 'deprecated-react-native-prop-types';
+import {AreaFocuser} from './extends/AreaFocuser';
+import {MFPolygon} from './MFPolygon';
 import {
   requireNativeComponent,
   Platform,
@@ -148,12 +150,66 @@ const propTypes = {
 class MFMapView extends React.Component {
   constructor(props) {
     super(props);
+    this.areaFocuser = new AreaFocuser(this);
     this.state = {
       isReady: Platform.OS === 'ios',
+      managedPolygons: {},
     };
 
     this._onMapReady = this._onMapReady.bind(this);
     this._ref = this._ref.bind(this);
+  }
+
+  _addPolygon(polygon) {
+    if (polygon == null || typeof polygon !== 'object') {
+      return null;
+    }
+
+    const id =
+      typeof polygon.id === 'string' && polygon.id.trim().length > 0
+        ? polygon.id
+        : 'polygon-highlight-id-default';
+
+    const _polygon = {
+      ...polygon,
+      id,
+    };
+
+    this.setState((prevState) => ({
+      managedPolygons: {
+        ...prevState.managedPolygons,
+        [id]: _polygon,
+      },
+    }));
+
+    return id;
+  }
+
+  _removePolygon(id) {
+    if (typeof id !== 'string' || id.trim().length === 0) {
+      return;
+    }
+
+    this.setState((prevState) => {
+      if (!prevState.managedPolygons[id]) {
+        return null;
+      }
+
+      const managedPolygons = {
+        ...prevState.managedPolygons,
+      };
+      delete managedPolygons[id];
+
+      return {
+        managedPolygons,
+      };
+    });
+  }
+
+  _clearManagedPolygons() {
+    this.setState({
+      managedPolygons: {},
+    });
   }
 
   _onMapReady() {
@@ -346,12 +402,30 @@ class MFMapView extends React.Component {
 
   render() {
     let props;
+    const { children, ...restProps } = this.props;
+    const managedPolygons = Object.values(this.state.managedPolygons);
 
     if (this.state.isReady) {
       props = {
         style: this.props.style,
         onMapReady: this._onMapReady,
-        ...this.props,
+        ...restProps,
+        children: (
+          <React.Fragment>
+            {children}
+            {managedPolygons.map((polygon) => (
+              <MFPolygon
+                key={polygon.id}
+                coordinates={polygon.coordinates}
+                holes={polygon.holes}
+                fillColor={polygon.fillColor}
+                strokeColor={polygon.strokeColor}
+                strokeWidth={polygon.strokeWidth}
+                zIndex={polygon.zIndex}
+              />
+            ))}
+          </React.Fragment>
+        ),
       };
     } else {
       props = {
