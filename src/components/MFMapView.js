@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {ViewPropTypes, ColorPropType} from 'deprecated-react-native-prop-types';
 import {AreaFocuser} from './extends/AreaFocuser';
-import {MFPolygon} from './MFPolygon';
+import {MFPolygonFocus} from './MFPolygonFocus';
 import {
   requireNativeComponent,
   Platform,
@@ -144,6 +144,7 @@ const propTypes = {
    * Callback that is called when user taps on location Button
    */
   onMyLocationButtonPress: PropTypes.func,
+
 };
 
 
@@ -153,7 +154,7 @@ class MFMapView extends React.Component {
     this.areaFocuser = new AreaFocuser(this);
     this.state = {
       isReady: Platform.OS === 'ios',
-      managedPolygons: {},
+      managedPolygons: [],
     };
 
     this._onMapReady = this._onMapReady.bind(this);
@@ -161,54 +162,53 @@ class MFMapView extends React.Component {
   }
 
   _addPolygon(polygon) {
-    if (polygon == null || typeof polygon !== 'object') {
+    if (polygon == null || typeof polygon !== 'object' || Array.isArray(polygon)) {
       return null;
     }
 
     const id =
-      typeof polygon.id === 'string' && polygon.id.trim().length > 0
+      (typeof polygon.id === 'string' && polygon.id.trim().length > 0) || typeof polygon.id === 'number'
         ? polygon.id
         : 'polygon-highlight-id-default';
 
     const _polygon = {
       ...polygon,
       id,
+      _internalKey: `${String(id)}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     };
 
     this.setState((prevState) => ({
-      managedPolygons: {
-        ...prevState.managedPolygons,
-        [id]: _polygon,
-      },
+      managedPolygons: [...prevState.managedPolygons, _polygon],
     }));
 
     return id;
   }
 
   _removePolygon(id) {
-    if (typeof id !== 'string' || id.trim().length === 0) {
+    const isValidStringId = typeof id === 'string' && id.trim().length > 0;
+    const isValidNumberId = typeof id === 'number';
+    if (!isValidStringId && !isValidNumberId) {
       return;
     }
 
     this.setState((prevState) => {
-      if (!prevState.managedPolygons[id]) {
+      const remainingPolygons = prevState.managedPolygons.filter(
+        (polygon) => String(polygon.id) !== String(id)
+      );
+
+      if (remainingPolygons.length === prevState.managedPolygons.length) {
         return null;
       }
 
-      const managedPolygons = {
-        ...prevState.managedPolygons,
-      };
-      delete managedPolygons[id];
-
       return {
-        managedPolygons,
+        managedPolygons: remainingPolygons,
       };
     });
   }
 
   _clearManagedPolygons() {
     this.setState({
-      managedPolygons: {},
+      managedPolygons: [],
     });
   }
 
@@ -399,11 +399,10 @@ class MFMapView extends React.Component {
     return NativeModules[`RMFMapView`][name];
   }
 
-
   render() {
     let props;
     const { children, ...restProps } = this.props;
-    const managedPolygons = Object.values(this.state.managedPolygons);
+    const managedPolygons = this.state.managedPolygons;
 
     if (this.state.isReady) {
       props = {
@@ -414,8 +413,9 @@ class MFMapView extends React.Component {
           <React.Fragment>
             {children}
             {managedPolygons.map((polygon) => (
-              <MFPolygon
-                key={polygon.id}
+              <MFPolygonFocus
+                key={polygon._internalKey || `${String(polygon.id)}-${polygon.coordinates?.length || 0}`}
+                id={polygon.id}
                 coordinates={polygon.coordinates}
                 holes={polygon.holes}
                 fillColor={polygon.fillColor}

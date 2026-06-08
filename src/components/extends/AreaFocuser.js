@@ -1,21 +1,35 @@
+import {
+  BoundHelper,
+} from './BoundHelper'
+
 export class AreaFocuser {
 
   constructor(mapView) {
     this.mapView = mapView
     this.highlightPaths = []
     this.highlightPolygonId = 'area-focuser-highlight-polygon'
+    this.currentIndustrialZoneFocusId = null
   }
 
   /**
-   * @param {{name?: string, highlight?: boolean}=} options
+   * @typedef {{type: 'Point', coordinates: [number, number]}} PointGeometry
+   * @typedef {Array<Array<[number, number]>>} PolygonCoordinates
+   * @typedef {{type: 'Polygon', coordinates: PolygonCoordinates}} PolygonGeometry
+   * @typedef {{type: 'MultiPolygon', coordinates: Array<PolygonCoordinates>}} MultiPolygonGeometry
+   * @typedef {PointGeometry | PolygonGeometry | MultiPolygonGeometry} Geometry
+   * @typedef {{id?: number, type: 'province' | 'industrial' | 'economic', display?: 'normal' | 'highlight'}} FocusOptions
+   * @typedef {{name?: string, highlight?: boolean}} FocusProvinceOptions
+   */
+
+  /**
+   * @param {FocusProvinceOptions} options
    */
   async focusProvince(options) {
-    const provinceName = this.getProvinceName(options)
-    const shouldHighlight = this.shouldHighlight(options)
+    const provinceName = this._getProvinceName(options)
+    const shouldHighlight = this._shouldHighlight(options)
 
     if (!provinceName) {
-      this.clearHighlightPaths()
-      this.clearHighlightPolygon()
+      this._clearHighlight()
       return
     }
 
@@ -53,11 +67,11 @@ export class AreaFocuser {
         feature.properties && feature.properties.viewbox ? feature.properties.viewbox : null
 
       if (viewbox != null && viewbox.trim() != '') {
-        bounds = this.parseViewbox(viewbox)
+        bounds = this._parseViewbox(viewbox)
       }
 
       if (!bounds) {
-        bounds = this.getViewboxFromGeometry(geometry)
+        bounds = this._getViewboxFromGeometry(geometry)
       }
 
       if (!bounds) {
@@ -77,10 +91,10 @@ export class AreaFocuser {
         }
       })
 
-      this.createHighlightPaths(geometry)
-
+      this._createHighlightPaths(geometry)
+      this._clearHighlightPolygons()
       if (shouldHighlight) {
-        const polygon = this.getHighlightPolygonProps()
+        const polygon = this._getHighlightPolygonProps()
 
         if (polygon) {
           this.mapView._addPolygon({
@@ -90,16 +104,114 @@ export class AreaFocuser {
           })
         }
       }
-      else {
-        this.clearHighlightPolygon()
-      }
     }
     catch (error) {
       console.error('Cannot focus province:', error)
     }
   }
 
-  getProvinceName(options) {
+  async _focusIndustrialZone(options) {
+    this._clearHighlight()
+
+    if (this.currentIndustrialZoneFocusId != null) {
+      this.currentIndustrialZoneFocusId = null
+    }
+
+    if (!options || typeof options !== 'object' || typeof options.id !== 'number') {
+      return
+    }
+
+    const focusId = options.id
+
+    this.currentIndustrialZoneFocusId = focusId
+
+    const url = `https://bdsapi.omyto.com/api/BDS/KhuCongNghiep/${focusId}`
+
+    try {
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        console.error('Failed to fetch industrial zone data:', response.status, response.statusText)
+        return
+      }
+
+      const data = await response.json()
+
+      if (!data.success) {
+        console.error('API returned error:', data.message)
+        return
+      }
+
+      const geometry = data?.data?.geometry
+      if (!geometry) {
+        return
+      }
+
+      const camera = await this._getCameraForGeometry(geometry)
+      if (camera) {
+        this.mapView.animateCamera(camera)
+      }
+
+      if (options.display === 'highlight') {
+        this._createHighlightPaths(geometry)
+        const polygon = this._getHighlightPolygonProps()
+
+        if (polygon) {
+          this.mapView._addPolygon({
+            ...polygon,
+            id: focusId,
+            zIndex: 999,
+          })
+        }
+      }
+      else {
+        const polygons = this._getPolygonPathsFromGeometry(geometry)
+        polygons.forEach((coordinates) => {
+          this.mapView._addPolygon({
+            id: focusId,
+            coordinates,
+            fillColor: '#2196F3BF',
+            strokeColor: '#0D47A1FF',
+            strokeWidth: 1.5,
+            visible: true,
+          })
+        })
+      }
+    }
+    catch (error) {
+      console.error('Cannot focus industrial zone:', error)
+    }
+  }
+
+  _clearHighlight() {
+    this._clearHighlightPaths()
+    this._clearHighlightPolygons()
+  }
+
+  /**
+   * @param {FocusOptions} options
+   */
+  async focus(options) {
+    if (options == null || options.id == null) {
+      this._clearHighlight()
+      return
+    }
+
+    switch (options.type) {
+      case 'province':
+        break
+      case 'industrial':
+        await this._focusIndustrialZone(options)
+        break
+      case 'economic':
+        break
+      default:
+        console.warn('Unsupported focus type:', options.type)
+        return
+    }
+  }
+
+  _getProvinceName(options) {
     if (options == null || typeof options !== 'object') {
       return null
     }
@@ -120,7 +232,7 @@ export class AreaFocuser {
     return null
   }
 
-  shouldHighlight(options) {
+  _shouldHighlight(options) {
     if (options == null || typeof options !== 'object') {
       return false
     }
@@ -128,7 +240,7 @@ export class AreaFocuser {
     return options.highlight === true
   }
 
-  parseViewbox(viewbox) {
+  _parseViewbox(viewbox) {
     const bounds = viewbox.split(',').map(Number)
 
     if (bounds.length != 4) {
@@ -154,15 +266,155 @@ export class AreaFocuser {
     ]
   }
 
-  getViewboxFromGeometry(geometry) {
-    const bounds = {
-      minLat: Infinity,
-      minLng: Infinity,
-      maxLat: -Infinity,
-      maxLng: -Infinity,
+  /**
+   * @param {Geometry} geometry
+   */
+  async _getCameraForGeometry(geometry) {
+    if (!geometry || typeof geometry !== 'object') {
+      return null
     }
 
-    const updateBounds = function (coordinate) {
+    switch (geometry.type) {
+      case 'Point': {
+        const point = geometry.coordinates
+        if (!Array.isArray(point) || point.length < 2) {
+          return null
+        }
+
+        return {
+          center: {
+            latitude: point[1],
+            longitude: point[0],
+          },
+          zoom: 16,
+          bearing: 0,
+          tilt: 0,
+        }
+      }
+
+      case 'Polygon': {
+        const bounds = this._polygonToLatLngBounds(geometry.coordinates)
+        return this._getCameraForBounds(bounds)
+      }
+
+      case 'MultiPolygon': {
+        const bounds = BoundHelper.createEmptyBounds()
+
+        geometry.coordinates.forEach((polygonCoordinates) => {
+          const polygonBounds = this._polygonToLatLngBounds(polygonCoordinates)
+          BoundHelper.extendBounds(bounds, polygonBounds)
+        })
+
+        if (!BoundHelper.isValidBounds(bounds)) {
+          return null
+        }
+
+        return this._getCameraForBounds(bounds)
+      }
+
+      default:
+        console.warn('Unsupported geometry:', geometry)
+        return null
+    }
+  }
+
+  async _getCameraForBounds(bounds) {
+    if (!bounds || !this.mapView || typeof this.mapView.cameraForBounds !== 'function') {
+      return null
+    }
+
+    try {
+      return await this.mapView.cameraForBounds({
+        bounds: {
+          southWest: {
+            latitude: bounds.minLat,
+            longitude: bounds.minLng,
+          },
+          northEast: {
+            latitude: bounds.maxLat,
+            longitude: bounds.maxLng,
+          },
+        },
+      })
+    }
+    catch (error) {
+      return null
+    }
+  }
+
+  /**
+   * @param {PolygonCoordinates} coordinates
+   */
+  _polygonToLatLngBounds(coordinates) {
+    if (!Array.isArray(coordinates) || coordinates.length === 0) {
+      return null
+    }
+
+    const ring = coordinates[0]
+    if (!Array.isArray(ring) || ring.length === 0) {
+      return null
+    }
+
+    const bounds = BoundHelper.createEmptyBounds()
+
+    ring.forEach((coordinate) => {
+      if (!Array.isArray(coordinate) || coordinate.length < 2) {
+        return
+      }
+
+      const lng = coordinate[0]
+      const lat = coordinate[1]
+      if (Number.isNaN(lat) || Number.isNaN(lng)) {
+        return
+      }
+
+      BoundHelper.updateBounds(bounds, lat, lng)
+    })
+
+    if (!BoundHelper.isValidBounds(bounds)) {
+      return null
+    }
+
+    return bounds
+  }
+
+  _getPolygonPathsFromGeometry(geometry) {
+    const paths = []
+
+    if (!geometry || typeof geometry !== 'object') {
+      return paths
+    }
+
+    if (geometry.type === 'Polygon') {
+      if (Array.isArray(geometry.coordinates) && geometry.coordinates.length > 0) {
+        const path = this._convertAndClosePath(geometry.coordinates[0])
+        if (path.length > 0) {
+          paths.push(path)
+        }
+      }
+      return paths
+    }
+
+    if (geometry.type === 'MultiPolygon') {
+      geometry.coordinates.forEach((polygonCoordinates) => {
+        if (!Array.isArray(polygonCoordinates) || polygonCoordinates.length === 0) {
+          return
+        }
+
+        const path = this._convertAndClosePath(polygonCoordinates[0])
+        if (path.length > 0) {
+          paths.push(path)
+        }
+      })
+    }
+
+    return paths
+  }
+
+  _getViewboxFromGeometry(geometry) {
+    const bounds = BoundHelper.createEmptyBounds()
+
+    const updateBounds = (coordinate) => {
       if (coordinate.length < 2) {
         return
       }
@@ -174,10 +426,7 @@ export class AreaFocuser {
         return
       }
 
-      bounds.minLat = Math.min(bounds.minLat, lat)
-      bounds.minLng = Math.min(bounds.minLng, lng)
-      bounds.maxLat = Math.max(bounds.maxLat, lat)
-      bounds.maxLng = Math.max(bounds.maxLng, lng)
+      BoundHelper.updateBounds(bounds, lat, lng)
     }
 
     if (geometry.type === 'Polygon') {
@@ -202,12 +451,7 @@ export class AreaFocuser {
       })
     }
 
-    if (
-      bounds.minLat === Infinity ||
-      bounds.minLng === Infinity ||
-      bounds.maxLat === -Infinity ||
-      bounds.maxLng === -Infinity
-    ) {
+    if (!BoundHelper.isValidBounds(bounds)) {
       return null
     }
 
@@ -219,10 +463,10 @@ export class AreaFocuser {
     ]
   }
 
-  createHighlightPaths(geometry) {
-    this.clearHighlightPaths()
+  _createHighlightPaths(geometry) {
+    this._clearHighlightPaths()
 
-    const paths = this.createWorldMaskPaths(geometry)
+    const paths = this._createWorldMaskPaths(geometry)
 
     if (paths.length <= 1) {
       return
@@ -231,19 +475,20 @@ export class AreaFocuser {
     this.highlightPaths = paths
   }
 
-  clearHighlightPaths() {
+  _clearHighlightPaths() {
     this.highlightPaths = []
   }
 
-  clearHighlightPolygon() {
+  _clearHighlightPolygons() {
     if (!this.mapView) {
       return
     }
 
     this.mapView._removePolygon(this.highlightPolygonId)
+    this.mapView._removePolygon(this.currentIndustrialZoneFocusId)
   }
 
-  getHighlightPolygonProps() {
+  _getHighlightPolygonProps() {
     if (!this.highlightPaths || this.highlightPaths.length <= 1) {
       return null
     }
@@ -259,7 +504,7 @@ export class AreaFocuser {
     }
   }
 
-  createWorldMaskPaths(geometry) {
+  _createWorldMaskPaths(geometry) {
     const worldPath = [
       { longitude: -180, latitude: -90 },
       { longitude: 180, latitude: -90 },
@@ -272,7 +517,7 @@ export class AreaFocuser {
       worldPath,
     ]
 
-    const holes = this.getHolePathsFromGeometry(geometry)
+    const holes = this._getHolePathsFromGeometry(geometry)
 
     holes.forEach((hole) => {
       paths.push(hole)
@@ -281,14 +526,14 @@ export class AreaFocuser {
     return paths
   }
 
-  getHolePathsFromGeometry(geometry) {
+  _getHolePathsFromGeometry(geometry) {
     const paths = []
 
     if (geometry.type == 'Polygon') {
       const polygon = geometry.coordinates
 
       if (polygon.length > 0) {
-        paths.push(this.convertAndClosePath(polygon[0]))
+        paths.push(this._convertAndClosePath(polygon[0]))
       }
     }
 
@@ -297,7 +542,7 @@ export class AreaFocuser {
 
       multiPolygon.forEach((polygon) => {
         if (polygon.length > 0) {
-          paths.push(this.convertAndClosePath(polygon[0]))
+          paths.push(this._convertAndClosePath(polygon[0]))
         }
       })
     }
@@ -305,7 +550,7 @@ export class AreaFocuser {
     return paths
   }
 
-  convertAndClosePath(path) {
+  _convertAndClosePath(path) {
     if (path.length == 0) {
       return []
     }

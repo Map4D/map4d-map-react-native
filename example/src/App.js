@@ -22,7 +22,7 @@ function App() {
     console.log('Press Building:', e.nativeEvent)
   }
 
-  const onFocusWithHighlight = async () => {
+  const onFocusProvince = async (highlight) => {
     const areaFocuser = mapRef.current?.areaFocuser
     if (!areaFocuser) {
       return
@@ -30,7 +30,7 @@ function App() {
 
     await areaFocuser.focusProvince({
       name: 'Ha Noi',
-      highlight: true,
+      highlight: highlight,
     })
   }
 
@@ -43,10 +43,39 @@ function App() {
     await areaFocuser.focusProvince(null)
   }
 
+  const onFocusIndustrialZone = async () => {
+    const areaFocuser = mapRef.current?.areaFocuser
+    if (!areaFocuser) {
+      return
+    }
+
+    await areaFocuser.focus({
+      id: 2,
+      type: 'industrial',
+      display: 'normal',
+    })
+  }
+
+  const onFocusIndustrialZoneHighlight = async () => {
+    const areaFocuser = mapRef.current?.areaFocuser
+    if (!areaFocuser) {
+      return
+    }
+
+    await areaFocuser.focus({
+      id: 2,
+      type: 'industrial',
+      display: 'highlight',
+    })
+  }
+
   return (
     <SafeAreaView style={styles.safeView}>
-      <Button title="Focus with highlight" onPress={onFocusWithHighlight} />
+      <Button title="Focus with highlight" onPress={() => onFocusProvince(true)} />
+      <Button title="Focus no highlight" onPress={() => onFocusProvince(false)} />
       <Button title="Remove highlight" onPress={onRemoveHighlight} />
+      <Button title="Focus industrial zone" onPress={onFocusIndustrialZone} />
+      <Button title="Focus industrial zone highlight" onPress={onFocusIndustrialZoneHighlight} />
       <MFMapView
         style={styles.container}
         camera={{
