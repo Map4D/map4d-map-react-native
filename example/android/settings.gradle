@@ -5,3 +5,6 @@ includeBuild('../node_modules/react-native-gradle-plugin')
 
 include ':reactnativemap4dmap'
 project(':reactnativemap4dmap').projectDir = new File(rootProject.projectDir, '../../android')
+
+include ':Map4dMap'
+project(':Map4dMap').projectDir = new File("C:/Users/DUYDUNG/Documents/MyProject/mapes/platforms/android/Map4dMap")

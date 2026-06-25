@@ -1,29 +1,37 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext {
-        buildToolsVersion = "33.0.0"
-        minSdkVersion = 21
-        compileSdkVersion = 33
-        targetSdkVersion = 33
+  ext {
+    buildToolsVersion = "33.0.0"
+    minSdkVersion = 21
+    compileSdkVersion = 33
+    targetSdkVersion = 33
 
-        // We use NDK 28 to use 16 KB page size for native code.
-        ndkVersion = "28.2.13676358"
-    }
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle:7.3.1")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-    }
+    // 1. Add the Kotlin version here
+    kotlin_version = "1.8.0"
+
+    // We use NDK 28 to use 16 KB page size for native code.
+    ndkVersion = "28.2.13676358"
+  }
+  repositories {
+    google()
+    mavenCentral()
+  }
+  dependencies {
+    classpath("com.android.tools.build:gradle:7.3.1")
+    classpath("com.facebook.react:react-native-gradle-plugin")
+
+    // 2. Add this line to make the Kotlin plugin available to sub-projects
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+  }
 }
 
 allprojects {
-    repositories {
-        maven {
-          url = "https://packages.map4d.vn/repository/maven-public"
-        }
+  repositories {
+    google()        // Ensure google() is here
+    mavenCentral()  // Ensure mavenCentral() is here
+    maven {
+      url = "https://packages.map4d.vn/repository/maven-public"
     }
+  }
 }
