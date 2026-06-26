@@ -17,6 +17,7 @@ import android.content.Context;
 public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
     private static final int k_animateCamera = 1;
     private static final int k_moveCamera = 2;
+  private static final int k_setMapStyle = 3;
     private static final int k_setMyLocationEnabled = 4;
     private static final int k_setShowsMyLocationButton = 5;
     private static final int k_setTime = 6;
@@ -75,6 +76,7 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
     HashMap<String, Integer> map = new HashMap();
     map.put("animateCamera", k_animateCamera);
     map.put("moveCamera", k_moveCamera);
+    map.put("setMapStyle", k_setMapStyle);
     map.put("setMyLocationEnabled", k_setMyLocationEnabled);
     map.put("showsMyLocationButton", k_setShowsMyLocationButton);
     map.put("setPOIsEnabled", k_setPOIsEnabled);
@@ -99,6 +101,9 @@ public class RMFMapViewManager extends ViewGroupManager<RMFMapView> {
       case k_moveCamera:
         map = args.getMap(0);
         view.moveCamera(map);
+        break;
+      case k_setMapStyle:
+        view.setMapStyle(args.getString(0));
         break;
       case k_setMyLocationEnabled:
         view.setMyLocationEnabled(args.getBoolean(0));

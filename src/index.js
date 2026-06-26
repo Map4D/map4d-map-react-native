@@ -1,4 +1,5 @@
 import {MFMapView} from './components/MFMapView'
+import {MFGeojsonView} from './components/MFGeojsonView'
 import {MFMarker} from './components/MFMarker'
 import {MFCircle} from './components/MFCircle'
 import {MFPolyline} from './components/MFPolyline'
@@ -11,6 +12,7 @@ import {AreaFocuser} from './components/extends/AreaFocuser'
 
 export {
   MFMapView,
+  MFGeojsonView,
   MFMarker,
   MFCircle,
   MFPolyline,
