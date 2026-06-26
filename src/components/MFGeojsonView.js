@@ -1,157 +1,70 @@
 import PropTypes from 'prop-types';
 import { MFMapView } from './MFMapView';
-import defaultRoadmapStyle from './internal/DefaultRoadmapStyle';
+import {
+  buildGeojsonStyle,
+  createCategoryItemsSignature,
+  isSameLayerIds,
+} from './internal/GeojsonStyleUtils';
 
-const GEOJSON_SOURCE_NAME = 'geojson';
+const FilterStylePropType = PropTypes.shape({
+  kind: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.arrayOf(PropTypes.string),
+  ]),
+  kind_detail: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.arrayOf(PropTypes.string),
+  ]),
+});
 
-const GEOJSON_LAYER_TEMPLATES = [
-  {
-    id: 'line',
-    source: GEOJSON_SOURCE_NAME,
-    source_layer: '',
-    type: 'line',
-    draw: {
-      color: '$line-color',
-      outline_color: '$outline-color',
-      outline_width: '$outline-width',
-      width: '$line-width',
-    },
-  },
-  {
-    id: 'area',
-    source: GEOJSON_SOURCE_NAME,
-    source_layer: '',
-    type: 'fill',
-    draw: {
-      color: '$fill-color',
-    },
-  },
-  {
-    id: 'point',
-    source: GEOJSON_SOURCE_NAME,
-    source_layer: '',
-    type: 'symbol',
-    draw: {
-      icon_image: '$icon-image',
-      text_size: '$text-size',
-      icon_color: '$icon-color',
-      text_color: '$text-color',
-      icon_overlap: true,
-      use_direct_icon_url: true,
-    },
-  },
-  {
-    id: 'label',
-    source: GEOJSON_SOURCE_NAME,
-    source_layer: '',
-    type: 'label',
-    draw: {
-      text_size: '$label-text-size',
-      text_color: '$label-text-color',
-      text_field: '@label-property-name',
-      position_type: '$label-position-type',
-    },
-  },
-];
+const DrawLinePropType = PropTypes.shape({
+  color: PropTypes.string,
+  width: PropTypes.oneOfType([PropTypes.number, PropTypes.array]),
+});
 
-function deepClone(value) {
-  return JSON.parse(JSON.stringify(value));
-}
+const DrawFillPropType = PropTypes.shape({
+  color: PropTypes.string,
+});
 
-function normalizeLayerIds(layerIds) {
-  if (!Array.isArray(layerIds)) {
-    return [];
-  }
+const DrawSymbolPropType = PropTypes.shape({
+  icon_image: PropTypes.string,
+  icon_index: PropTypes.number,
+  icon_color: PropTypes.string,
+  use_direct_icon_url: PropTypes.bool,
+});
 
-  return layerIds
-    .map((layerId) => String(layerId).trim())
-    .filter((layerId) => layerId.length > 0);
-}
+const CategoryStylePropType = PropTypes.shape({
+  line: PropTypes.arrayOf(
+    PropTypes.shape({
+      layer: PropTypes.string,
+      filter: FilterStylePropType,
+      draw: DrawLinePropType,
+    })
+  ),
+  fill: PropTypes.arrayOf(
+    PropTypes.shape({
+      layer: PropTypes.string,
+      filter: FilterStylePropType,
+      draw: DrawFillPropType,
+    })
+  ),
+  symbol: PropTypes.arrayOf(
+    PropTypes.shape({
+      layer: PropTypes.string,
+      filter: FilterStylePropType,
+      draw: DrawSymbolPropType,
+    })
+  ),
+});
 
-function toStyleObject(mapStyle) {
-  if (mapStyle == null) {
-    return deepClone(defaultRoadmapStyle);
-  }
-
-  if (typeof mapStyle === 'string') {
-    try {
-      return JSON.parse(mapStyle);
-    } catch (error) {
-      return deepClone(defaultRoadmapStyle);
-    }
-  }
-
-  if (typeof mapStyle === 'object' && !Array.isArray(mapStyle)) {
-    try {
-      return deepClone(mapStyle);
-    } catch (error) {
-      return deepClone(defaultRoadmapStyle);
-    }
-  }
-
-  return deepClone(defaultRoadmapStyle);
-}
-
-function createManagedLayers(layerIds) {
-  return layerIds.flatMap((layerId, layerIndex) =>
-    GEOJSON_LAYER_TEMPLATES.map((template, templateIndex) => ({
-      ...deepClone(template),
-      id: `mf-geojson-${template.id}-${layerIndex}-${templateIndex}`,
-      source_layer: layerId,
-      metadata: {
-        managedBy: 'MFGeojsonView',
-      },
-    }))
-  );
-}
-
-function buildGeojsonStyle(mapStyle, sourceUrl, layerIds) {
-  const nextStyle = toStyleObject(mapStyle);
-  nextStyle.sources = nextStyle.sources || {};
-  nextStyle.layers = Array.isArray(nextStyle.layers) ? nextStyle.layers : [];
-
-  const prevGeojsonSource =
-    typeof nextStyle.sources[GEOJSON_SOURCE_NAME] === 'object' &&
-    nextStyle.sources[GEOJSON_SOURCE_NAME] !== null
-      ? nextStyle.sources[GEOJSON_SOURCE_NAME]
-      : {};
-
-  nextStyle.sources[GEOJSON_SOURCE_NAME] = {
-    type: 'geojson',
-    ...prevGeojsonSource,
-  };
-
-  if (typeof sourceUrl === 'string' && sourceUrl.trim().length > 0) {
-    nextStyle.sources[GEOJSON_SOURCE_NAME].url = sourceUrl;
-  }
-
-  const baseLayers = nextStyle.layers.filter((layer) => {
-    const metadata = layer && typeof layer === 'object' ? layer.metadata : null;
-    return !(metadata && metadata.managedBy === 'MFGeojsonView');
-  });
-
-  const managedLayers = createManagedLayers(normalizeLayerIds(layerIds));
-  nextStyle.layers = baseLayers.concat(managedLayers);
-
-  return JSON.stringify(nextStyle);
-}
-
-function isSameLayerIds(prevLayerIds, nextLayerIds) {
-  const prev = normalizeLayerIds(prevLayerIds);
-  const next = normalizeLayerIds(nextLayerIds);
-
-  if (prev.length !== next.length) {
-    return false;
-  }
-
-  for (let index = 0; index < prev.length; index += 1) {
-    if (prev[index] !== next[index]) {
-      return false;
-    }
-  }
-
-  return true;
-}
+const CategoryItemPropType = PropTypes.shape({
+  key: PropTypes.string,
+  title: PropTypes.string,
+  group: PropTypes.string,
+  order: PropTypes.number,
+  checked: PropTypes.bool,
+  style: CategoryStylePropType,
+});
 
 class MFGeojsonView extends MFMapView {
   constructor(props) {
@@ -168,15 +81,19 @@ class MFGeojsonView extends MFMapView {
     const mapStyleChanged = prevProps.mapStyle !== this.props.mapStyle;
     const sourceUrlChanged = prevProps.sourceUrl !== this.props.sourceUrl;
     const layerIdsChanged = !isSameLayerIds(
-      prevProps.layerIds,
-      this.props.layerIds
+      prevProps.layerIds || [],
+      this.props.layerIds || []
     );
+    const categoryItemsChanged =
+      createCategoryItemsSignature(prevProps.categoryItems) !==
+      createCategoryItemsSignature(this.props.categoryItems);
 
     if (
       mapReadyChanged ||
       mapStyleChanged ||
       sourceUrlChanged ||
-      layerIdsChanged
+      layerIdsChanged ||
+      categoryItemsChanged
     ) {
       this._syncGeojsonStyle();
     }
@@ -187,10 +104,14 @@ class MFGeojsonView extends MFMapView {
       return;
     }
 
+    const layerIds = this.props.layerIds || [];
+    const categoryItems = this.props.categoryItems || [];
+
     const geojsonStyle = buildGeojsonStyle(
       this.props.mapStyle,
       this.props.sourceUrl,
-      this.props.layerIds
+      layerIds,
+      categoryItems
     );
 
     if (!geojsonStyle || geojsonStyle === this._appliedGeojsonStyle) {
@@ -205,11 +126,8 @@ class MFGeojsonView extends MFMapView {
 MFGeojsonView.propTypes = {
   ...MFMapView.propTypes,
   layerIds: PropTypes.arrayOf(PropTypes.string),
+  categoryItems: PropTypes.arrayOf(CategoryItemPropType),
   sourceUrl: PropTypes.string.isRequired,
-};
-
-MFGeojsonView.defaultProps = {
-  layerIds: [],
 };
 
 export { MFGeojsonView };
