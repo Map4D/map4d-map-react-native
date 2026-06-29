@@ -292,6 +292,21 @@ RCT_EXPORT_METHOD(setTime:(nonnull NSNumber *)reactTag
   }];
 }
 
+RCT_EXPORT_METHOD(setMapStyle:(nonnull NSNumber *)reactTag
+                  withStyle:(NSString *)style) {
+  [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
+    id view = viewRegistry[reactTag];
+    if (![view isKindOfClass:[RMFMapView class]]) {
+
+    } else {
+      RMFMapView *mapView = (RMFMapView *)view;
+      if (style.length > 0) {
+        [mapView setMapStyle:[MFMapStyleOptions styleOptionsWithJson:style]];
+      }
+    }
+  }];
+}
+
 
 RCT_EXPORT_METHOD(setZoomGesturesEnabled:(nonnull NSNumber *)reactTag
                   enable:(BOOL)enable) {
