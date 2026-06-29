@@ -3,7 +3,6 @@ import { MFMapView } from './MFMapView';
 import {
   buildGeojsonStyle,
   createCategoryItemsSignature,
-  isSameLayerIds,
 } from './internal/GeojsonStyleUtils';
 
 const FilterStylePropType = PropTypes.shape({
@@ -66,7 +65,7 @@ const CategoryItemPropType = PropTypes.shape({
   style: CategoryStylePropType,
 });
 
-class MFGeojsonView extends MFMapView {
+class MFBanDoSo extends MFMapView {
   constructor(props) {
     super(props);
     this._appliedGeojsonStyle = null;
@@ -80,20 +79,15 @@ class MFGeojsonView extends MFMapView {
     const mapReadyChanged = prevState.isReady !== this.state.isReady;
     const mapStyleChanged = prevProps.mapStyle !== this.props.mapStyle;
     const sourceUrlChanged = prevProps.sourceUrl !== this.props.sourceUrl;
-    const layerIdsChanged = !isSameLayerIds(
-      prevProps.layerIds || [],
-      this.props.layerIds || []
-    );
-    const categoryItemsChanged =
-      createCategoryItemsSignature(prevProps.categoryItems) !==
-      createCategoryItemsSignature(this.props.categoryItems);
+    const itemsChanged =
+      createCategoryItemsSignature(prevProps.items) !==
+      createCategoryItemsSignature(this.props.items);
 
     if (
       mapReadyChanged ||
       mapStyleChanged ||
       sourceUrlChanged ||
-      layerIdsChanged ||
-      categoryItemsChanged
+      itemsChanged
     ) {
       this._syncGeojsonStyle();
     }
@@ -104,14 +98,12 @@ class MFGeojsonView extends MFMapView {
       return;
     }
 
-    const layerIds = this.props.layerIds || [];
-    const categoryItems = this.props.categoryItems || [];
+    const items = this.props.items || [];
 
     const geojsonStyle = buildGeojsonStyle(
       this.props.mapStyle,
       this.props.sourceUrl,
-      layerIds,
-      categoryItems
+      items
     );
 
     if (!geojsonStyle || geojsonStyle === this._appliedGeojsonStyle) {
@@ -123,11 +115,10 @@ class MFGeojsonView extends MFMapView {
   }
 }
 
-MFGeojsonView.propTypes = {
+MFBanDoSo.propTypes = {
   ...MFMapView.propTypes,
-  layerIds: PropTypes.arrayOf(PropTypes.string),
-  categoryItems: PropTypes.arrayOf(CategoryItemPropType),
+  items: PropTypes.arrayOf(CategoryItemPropType),
   sourceUrl: PropTypes.string.isRequired,
 };
 
-export { MFGeojsonView };
+export { MFBanDoSo };

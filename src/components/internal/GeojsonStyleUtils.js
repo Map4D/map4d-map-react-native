@@ -84,39 +84,12 @@ function generateLayerStyle(source, items) {
   return layers;
 }
 
-function normalizeLayerIds(layerIds) {
-  if (!Array.isArray(layerIds)) {
-    return [];
-  }
-
-  return layerIds
-    .map((layerId) => String(layerId).trim())
-    .filter((layerId) => layerId.length > 0);
-}
-
-function isSameLayerIds(prevLayerIds, nextLayerIds) {
-  const prev = normalizeLayerIds(prevLayerIds);
-  const next = normalizeLayerIds(nextLayerIds);
-
-  if (prev.length !== next.length) {
-    return false;
-  }
-
-  for (let index = 0; index < prev.length; index += 1) {
-    if (prev[index] !== next[index]) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function createCategoryItemsSignature(categoryItems) {
-  if (!Array.isArray(categoryItems)) {
+function createCategoryItemsSignature(items) {
+  if (!Array.isArray(items)) {
     return '';
   }
 
-  const normalized = categoryItems.map((item) => ({
+  const normalized = items.map((item) => ({
     key: item?.key || '',
     checked: !!item?.checked,
     style: item?.style || null,
@@ -125,18 +98,18 @@ function createCategoryItemsSignature(categoryItems) {
   return JSON.stringify(normalized);
 }
 
-function buildGeojsonStyle(mapStyle, sourceUrl, layerIds, categoryItems) {
+function buildGeojsonStyle(mapStyle, sourceUrl, items) {
   const result = toStyleObject(mapStyle);
   result.sources = result.sources || {};
 
-  const prevGeojsonSource =
+  const defaultGeojsonSource =
     typeof result.sources[GEOJSON_SOURCE_NAME] === 'object' &&
     result.sources[GEOJSON_SOURCE_NAME] !== null
       ? result.sources[GEOJSON_SOURCE_NAME]
       : {};
 
   result.sources[GEOJSON_SOURCE_NAME] = {
-    ...prevGeojsonSource,
+    ...defaultGeojsonSource,
     type: 'vector',
   };
 
@@ -144,14 +117,8 @@ function buildGeojsonStyle(mapStyle, sourceUrl, layerIds, categoryItems) {
     result.sources[GEOJSON_SOURCE_NAME].url = sourceUrl;
   }
 
-  const nextLayerKeys = normalizeLayerIds(layerIds);
-  const selectedLayerKeySet = new Set(nextLayerKeys);
-  const nextCategoryItems = Array.isArray(categoryItems) ? categoryItems : [];
-  const checkedItems = nextCategoryItems.filter((item) =>
-    selectedLayerKeySet.has(String(item?.key || ''))
-  );
-
-  const checkedStyles = generateLayerStyle(GEOJSON_SOURCE_NAME, checkedItems);
+  const normalizeItems = Array.isArray(items) ? items : [];
+  const layerStyle = generateLayerStyle(GEOJSON_SOURCE_NAME, normalizeItems);
 
   const baseLayers = (Array.isArray(result.layers) ? result.layers : []).filter(
     (layer) => {
@@ -164,13 +131,13 @@ function buildGeojsonStyle(mapStyle, sourceUrl, layerIds, categoryItems) {
       }
 
       const metadata = layer.metadata;
-      return !(metadata && metadata.managedBy === 'MFGeojsonView');
+      return !(metadata && metadata.managedBy === 'MFBanDoSo');
     }
   );
 
-  result.layers = baseLayers.concat(checkedStyles);
+  result.layers = baseLayers.concat(layerStyle);
 
   return JSON.stringify(result);
 }
 
-export { buildGeojsonStyle, createCategoryItemsSignature, isSameLayerIds };
+export { buildGeojsonStyle, createCategoryItemsSignature };
