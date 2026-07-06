@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {ViewPropTypes, ColorPropType} from 'deprecated-react-native-prop-types';
+import {AreaFocusManager} from './extends/AreaFocusManager';
 import {AreaFocuser} from './extends/AreaFocuser';
 import {MFPolygon} from './MFPolygon';
 import {
@@ -144,13 +145,15 @@ const propTypes = {
    * Callback that is called when user taps on location Button
    */
   onMyLocationButtonPress: PropTypes.func,
+
 };
 
 
 class MFMapView extends React.Component {
   constructor(props) {
     super(props);
-    this.areaFocuser = new AreaFocuser(this);
+    this.areaFocusManager = new AreaFocusManager(this);
+    this.areaFocuser = new AreaFocuser(this.areaFocusManager);
     this.state = {
       isReady: Platform.OS === 'ios',
       managedPolygons: {},
@@ -361,6 +364,21 @@ class MFMapView extends React.Component {
     return Promise.reject('coordinateForPoint not supported on this platform');
   }
 
+  focusArea(focusOptions) {
+    if (!this.areaFocusManager) {
+      return Promise.resolve(null)
+    }
+
+    return this.areaFocusManager.focus(focusOptions)
+  }
+
+  clearFocusedArea() {
+    if (!this.areaFocusManager) {
+      return
+    }
+    this.areaFocusManager.clear()
+  }
+
   _getHandle() {
     return findNodeHandle(this.map);
   }
@@ -398,7 +416,6 @@ class MFMapView extends React.Component {
   _mapManagerCommand(name) {
     return NativeModules[`RMFMapView`][name];
   }
-
 
   render() {
     let props;
