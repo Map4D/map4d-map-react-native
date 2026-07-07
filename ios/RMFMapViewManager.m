@@ -301,7 +301,8 @@ RCT_EXPORT_METHOD(setMapStyle:(nonnull NSNumber *)reactTag
     } else {
       RMFMapView *mapView = (RMFMapView *)view;
       if (style.length > 0) {
-        [mapView setMapStyle:[MFMapStyleOptions styleOptionsWithJson:style]];
+        MFMapStyle *mapStyle = [[MFMapStyle alloc] initWithJSONString:style];
+        [mapView setMapStyle:mapStyle];
       }
     }
   }];
