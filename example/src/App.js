@@ -1,130 +1,199 @@
-import {MFMapView, MFBuilding} from 'react-native-map4d-map-dtqg'
-import React, {useRef} from 'react'
+import React from 'react'
 import {
   SafeAreaView,
   StyleSheet,
-  Button,
+  FlatList,
+  Pressable,
+  Text,
+  View,
 } from 'react-native'
+import {NavigationContainer} from '@react-navigation/native'
+import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import BasicMapScreen from './screens/BasicMapScreen'
+import FocusAreaScreen from './screens/FocusAreaScreen'
+import BanDoSoScreen from './screens/BanDoSoDemoScreen'
 
-function App() {
-  const mapRef = useRef(null)
+const Stack = createNativeStackNavigator()
 
-  const camera = {
-    latitude: 16.103254,
-    longitude: 108.214835,
-  }
+const menuItems = [
+  {
+    id: 'basic-map-item',
+    routeName: 'BasicMapScreen',
+    title: 'Basic Map',
+    subtitle: 'Simple map with basic interaction',
+    badge: 'Core',
+  },
+  {
+    id: 'current-demo-item',
+    routeName: 'FocusAreaScreen',
+    title: 'Focus area',
+    subtitle: 'Focus province, economic zone, industrial zone',
+    badge: 'Interactive',
+  },
+  {
+    id: 'bandoso-demo-item',
+    routeName: 'BanDoSoScreen',
+    title: 'MFBanDoSo',
+    subtitle: 'Demo for MFBanDoSo component with data source and category config',
+    badge: 'Data Layer',
+  },
+]
 
-  const onDataSourceFeaturePress = async (e) => {
-    console.log('Press Data Source Feature:', e.nativeEvent)
-  }
-
-  const onPressBuilding = async (e) => {
-    console.log('Press Building:', e.nativeEvent)
-  }
-
-  const focusByOptions = async (options) => {
-    const mapView = mapRef.current
-    if (!mapView || typeof mapView.focusArea !== 'function') {
-      return
-    }
-
-    await mapView.focusArea(options)
-  }
-
-  const onClearFocus = async () => {
-    const mapView = mapRef.current
-    if (!mapView || typeof mapView.clearFocusedArea !== 'function') {
-      return
-    }
-
-    mapView.clearFocusedArea()
-  }
-
-  const onFocusIndustrialZone = async (highlight) => {
-    await focusByOptions({
-      id: 2,
-      type: 'industrialZone',
-      display: highlight ? 'highlight' : 'normal',
-    })
-  }
-
-  const onFocusEconomicZone = async (highlight) => {
-    await focusByOptions({
-      id: 2,
-      type: 'economicZone',
-      display: highlight ? 'highlight' : 'normal',
-      padding: {
-        left: 100,
-        right: 0,
-        top: 100,
-        bottom: 0,
-      },
-    })
-  }
-
-  const onFocusProvinceById = async (highlight) => {
-    await focusByOptions({
-      type: 'province',
-      id: 30,
-      display: highlight ? 'highlight' : 'normal',
-    })
-  }
-
-  const onFocusProvinceByName = async (highlight) => {
-    const areaFocuser = mapRef.current?.areaFocuser
-    if (!areaFocuser) {
-      return
-    }
-
-    await areaFocuser.focusProvince({
-      name: 'Ha Noi',
-      highlight: true,
-    })
-  }
-
+function MenuScreen({navigation}) {
   return (
     <SafeAreaView style={styles.safeView}>
-      <Button title="Focus province by name with highlight" onPress={() => onFocusProvinceByName(true)} />
-      <Button title="Focus province by id" onPress={() => onFocusProvinceById(false)} />
-      <Button title="Focus province by id highlight" onPress={() => onFocusProvinceById(true)} />
-      <Button title="Focus industrial zone" onPress={() => onFocusIndustrialZone(false)} />
-      <Button title="Focus industrial zone highlight" onPress={() => onFocusIndustrialZone(true)} />
-      <Button title="Focus economic zone" onPress={() => onFocusEconomicZone(false)} />
-      <Button title="Focus economic zone highlight" onPress={() => onFocusEconomicZone(true)} />
-      <Button title="Clear focus" onPress={onClearFocus} />
-      <MFMapView
-        style={styles.container}
-        camera={{
-          center: camera,
-          zoom: 17,
-          bearing: 0,
-          tilt: 0,
-        }}
-        mapType="roadmap"
-        ref={mapRef}
-        onDataSourceFeaturePress={onDataSourceFeaturePress}
-      >
-        <MFBuilding
-          onPress={onPressBuilding}
-          coordinate={{
-            latitude: 16.103254,
-            longitude: 108.214835,
-          }}
-          modelUrl="https://maptile.s3-sgn10.fptcloud.com/sdk/models/5db6b4798b4711141457d8a9.obj"
-          textureUrl="https://maptile.s3-sgn10.fptcloud.com/sdk/textures/5db6b4798b4711141457d8ab.jpg"
-          name="Building test"
-        />
-      </MFMapView>
+      <View style={styles.heroGlow} />
+      <FlatList
+        contentContainerStyle={styles.menuContainer}
+        data={menuItems}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={
+          <View style={styles.menuHeader}>
+            <Text style={styles.menuEyebrow}>MAP4D EXAMPLE</Text>
+            <Text style={styles.menuTitle}>Demo</Text>
+            <Text style={styles.menuDescription}>Chọn một màn hình để trải nghiệm tính năng.</Text>
+          </View>
+        }
+        renderItem={({item}) => (
+          <Pressable
+            style={({pressed}) => [styles.menuItem, pressed && styles.menuItemPressed]}
+            onPress={() => navigation.navigate(item.routeName)}
+          >
+            <View style={styles.menuItemTopRow}>
+              <Text style={styles.menuItemText}>{item.title}</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{item.badge}</Text>
+              </View>
+            </View>
+            <View style={styles.menuItemBottomRow}>
+              <Text style={styles.menuItemSubText}>{item.subtitle}</Text>
+              <Text style={styles.arrowText}>{'>'}</Text>
+            </View>
+          </Pressable>
+        )}
+      />
     </SafeAreaView>
+  )
+}
+
+function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName="Menu"
+        screenOptions={{
+          headerTitleAlign: 'center',
+          headerStyle: {
+            backgroundColor: '#ffffff',
+          },
+          headerTintColor: '#0f172a',
+          headerShadowVisible: false,
+          headerTitleStyle: {
+            fontSize: 17,
+            fontWeight: '700',
+          },
+        }}
+      >
+        <Stack.Screen name="Menu" component={MenuScreen} options={{headerShown: false}} />
+        <Stack.Screen name="BasicMapScreen" component={BasicMapScreen} options={{title: 'Basic Map'}} />
+        <Stack.Screen name="FocusAreaScreen" component={FocusAreaScreen} options={{title: 'Focus area'}} />
+        <Stack.Screen name="BanDoSoScreen" component={BanDoSoScreen} options={{title: 'MFBanDoSo'}} />
+      </Stack.Navigator>
+    </NavigationContainer>
   )
 }
 
 const styles = StyleSheet.create({
   safeView: {
     flex: 1,
+    backgroundColor: '#eef2f7',
   },
-  container: {
+  heroGlow: {
+    position: 'absolute',
+    top: -120,
+    right: -80,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: '#dbeafe',
+  },
+  menuContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+  menuHeader: {
+    marginBottom: 16,
+  },
+  menuEyebrow: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: '#475569',
+    marginBottom: 8,
+  },
+  menuTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: 8,
+  },
+  menuDescription: {
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 22,
+  },
+  menuItem: {
+    backgroundColor: '#ffffff',
+    borderColor: '#d9e2ec',
+    borderWidth: 1,
+    borderRadius: 16,
+    marginBottom: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+  },
+  menuItemPressed: {
+    transform: [{scale: 0.99}],
+    opacity: 0.92,
+  },
+  menuItemTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  menuItemBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  menuItemText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  menuItemSubText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#4b5563',
     flex: 1,
+    marginRight: 12,
+  },
+  badge: {
+    backgroundColor: '#e2e8f0',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  arrowText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#64748b',
   },
 })
 
