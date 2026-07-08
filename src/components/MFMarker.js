@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Platform,
   Image,
+  UIManager,
   NativeModules,
   findNodeHandle
 } from 'react-native';
@@ -172,13 +173,19 @@ class MFMarker extends React.Component {
 
     _runCommand(name, args) {
         switch (Platform.OS) {
-          case 'android':
-            NativeModules.UIManager.dispatchViewManagerCommand(
-              this._getHandle(),
-              this._uiManagerCommand(name),
-              args
-            );
+          case 'android': {
+            if (!UIManager || typeof UIManager.dispatchViewManagerCommand !== 'function') {
+              return;
+            }
+
+            const commandId = this._uiManagerCommand(name);
+            if (commandId == null) {
+              return;
+            }
+
+            UIManager.dispatchViewManagerCommand(this._getHandle(), commandId, args);
             break;
+          }
     
           case 'ios':
             //this.getMapManagerCommand(name)(this._getHandle(), ...args);
@@ -191,16 +198,22 @@ class MFMarker extends React.Component {
       }
 
       _uiManagerCommand(name) {
-        const UIManager = NativeModules.UIManager;
+        const uiManager = UIManager || NativeModules.UIManager;
         const componentName = "RMFMarker";
+
+        if (!uiManager) {
+          return null;
+        }
     
-        if (!UIManager.getViewManagerConfig) {
+        if (!uiManager.getViewManagerConfig) {
           // RN < 0.58
-          return UIManager[componentName].Commands[name];
+          const legacyConfig = uiManager[componentName];
+          return legacyConfig && legacyConfig.Commands ? legacyConfig.Commands[name] : null;
         }
     
         // RN >= 0.58        
-        return UIManager.getViewManagerConfig(componentName).Commands[name];
+        const config = uiManager.getViewManagerConfig(componentName);
+        return config && config.Commands ? config.Commands[name] : null;
       }
       
       _mapManagerCommand(name) {
