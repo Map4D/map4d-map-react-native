@@ -7,6 +7,7 @@ import {MFPolygon} from './MFPolygon';
 import {
   requireNativeComponent,
   Platform,
+  UIManager,
   NativeModules,
   findNodeHandle
 } from 'react-native';
@@ -385,12 +386,22 @@ class MFMapView extends React.Component {
 
   _runCommand(name, args) {
     switch (Platform.OS) {
-      case 'android':
-        return NativeModules.UIManager.dispatchViewManagerCommand(
+      case 'android': {
+        if (!UIManager || typeof UIManager.dispatchViewManagerCommand !== 'function') {
+          return Promise.reject('UIManager.dispatchViewManagerCommand is unavailable on this React Native version')
+        }
+
+        const commandId = this._uiManagerCommand(name)
+        if (commandId == null) {
+          return Promise.reject(`Cannot find native command "${name}" for RMFMapView`)
+        }
+
+        return UIManager.dispatchViewManagerCommand(
           this._getHandle(),
-          this._uiManagerCommand(name),
+          commandId,
           args
         );
+      }
 
       case 'ios':
         return this._mapManagerCommand(name)(this._getHandle(), ...args);
@@ -401,16 +412,21 @@ class MFMapView extends React.Component {
   }
 
   _uiManagerCommand(name) {
-    const UIManager = NativeModules.UIManager;
+    const uiManager = UIManager || NativeModules.UIManager;
     const componentName = "RMFMapView";
 
-    if (!UIManager.getViewManagerConfig) {
+    if (!uiManager) {
+      return null;
+    }
+
+    if (!uiManager.getViewManagerConfig) {
       // RN < 0.58
-      return UIManager[componentName].Commands[name];
+      return uiManager[componentName].Commands[name];
     }
 
     // RN >= 0.58        
-    return UIManager.getViewManagerConfig(componentName).Commands[name];
+    const config = uiManager.getViewManagerConfig(componentName);
+    return config && config.Commands ? config.Commands[name] : null;
   }
 
   _mapManagerCommand(name) {
