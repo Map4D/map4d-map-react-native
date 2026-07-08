@@ -1,3 +1,7 @@
+## 0.1.4
+
+* Fixed an issue that occurred when running on React Native versions using Turbo Native Modules
+
 ## 0.1.3
 
 * Fix bugs
