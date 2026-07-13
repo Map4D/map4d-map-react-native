@@ -28,8 +28,12 @@
     "prepare": "bob build",
     "release": "release-it",
     "example": "yarn --cwd example",
+    "example:new": "yarn --cwd example-new-arch",
+    "example:new:start": "yarn --cwd example-new-arch start",
     "pods": "cd example && pod-install --quiet",
-    "bootstrap": "yarn example && yarn && yarn pods"
+    "pods:new": "cd example-new-arch && pod-install --quiet",
+    "bootstrap": "yarn example && yarn && yarn pods",
+    "bootstrap:new": "yarn example:new && yarn pods:new"
   },
   "keywords": [
     "react",
