@@ -1,11 +1,9 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import {ViewPropTypes, ColorPropType} from 'deprecated-react-native-prop-types';
+import {runViewManagerCommand} from '../native/ViewManagerCommand';
 import {
   requireNativeComponent,
-  Platform,
-  UIManager,
-  NativeModules,
   findNodeHandle,
   processColor
 } from 'react-native';
@@ -111,51 +109,13 @@ class MFCircle extends React.Component {
 
 
   _runCommand(name, args) {
-    switch (Platform.OS) {
-      case 'android': {
-        if (!UIManager || typeof UIManager.dispatchViewManagerCommand !== 'function') {
-          return;
-        }
-
-        const commandId = this._uiManagerCommand(name);
-        if (commandId == null) {
-          return;
-        }
-
-        UIManager.dispatchViewManagerCommand(this._getHandle(), commandId, args);
-        break;
-      }
-
-      case 'ios':
-        this._mapManagerCommand(name)(this._getHandle(), ...args);
-        break;
-
-      default:
-        break;
-    }
-  }
-
-  _uiManagerCommand(name) {
-    const uiManager = UIManager || NativeModules.UIManager;
-    const componentName = "RMFCircle";
-
-    if (!uiManager) {
-      return null;
-    }
-
-    if (!uiManager.getViewManagerConfig) {
-      // RN < 0.58
-      const legacyConfig = uiManager[componentName];
-      return legacyConfig && legacyConfig.Commands ? legacyConfig.Commands[name] : null;
-    }
-
-    // RN >= 0.58        
-    const config = uiManager.getViewManagerConfig(componentName);
-    return config && config.Commands ? config.Commands[name] : null;
-  }
-  
-  _mapManagerCommand(name) {
-    return NativeModules[`RMFCircle`][name];
+    return runViewManagerCommand({
+      componentName: 'RMFCircle',
+      moduleName: 'RMFCircle',
+      commandName: name,
+      args,
+      reactTag: this._getHandle(),
+    });
   }
 
   _onPress(event) {
