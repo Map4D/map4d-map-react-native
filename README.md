@@ -143,3 +143,49 @@ Examples:
 - `focusArea({ type: 'freeTradeZone', id: 10 })`
 - `focusArea({ type: IndustrialEconomicType.NON_TARIFF_ZONE, id: 11 })`
 - `clearFocusedArea()` to clear current focus
+
+## MFBanDoSo usage
+
+`MFBanDoSo` extends `MFMapView`. It fetches a category config from a fixed internal URL, lets the user toggle which categories are shown, and syncs the resulting GeoJSON style to the map against a fixed internal vector tile source. Both URLs are internal to the SDK (only the `/staging` path segment can be toggled via `isStaging`) and are not otherwise configurable via props. It renders its own layer-selector and legend UI on top of the map — there is no prop to disable or reposition this UI.
+
+```javascript
+import {MFBanDoSo} from 'react-native-map4d-map-dtqg';
+import React from 'react';
+import {SafeAreaView, StyleSheet} from 'react-native';
+
+const INITIAL_CAMERA = {
+  center: {latitude: 16.157436, longitude: 106.243699},
+  zoom: 6,
+  bearing: 0,
+  tilt: 0,
+};
+
+function App() {
+  const onDataSourceFeaturePress = async (e) => {
+    console.log('Press Data Source Feature:', e.nativeEvent);
+  };
+
+  return (
+    <SafeAreaView style={styles.safeView}>
+      <MFBanDoSo
+        style={styles.container}
+        camera={INITIAL_CAMERA}
+        mapType="roadmap"
+        onDataSourceFeaturePress={onDataSourceFeaturePress}
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeView: {flex: 1},
+  container: {flex: 1},
+});
+
+export default App;
+```
+
+Props:
+- `isStaging`: optional `boolean`, default `true`. Selects between the staging and production API for both the category config and vector tile source (toggles the `/staging` path segment on the fixed internal host). Pass `isStaging={false}` to use production.
+- Otherwise no `MFBanDoSo`-specific props — the category config URL and vector tile source URL are fixed internally by the SDK.
+- All `MFMapView` props (`camera`, `mapType`, `mapStyle`, `onDataSourceFeaturePress`, etc.) and children (e.g. `MFBuilding`, `MFMarker`) are supported the same way as on `MFMapView`.

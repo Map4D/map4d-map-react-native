@@ -50,6 +50,7 @@ function generateLayerStyle(source, items) {
           source_layer: line.layer,
           filter: line.filter,
           draw: line.draw,
+          metadata: { managedBy: 'MFBanDoSo' },
         });
       });
     }
@@ -63,6 +64,7 @@ function generateLayerStyle(source, items) {
           source_layer: fill.layer,
           filter: fill.filter,
           draw: fill.draw,
+          metadata: { managedBy: 'MFBanDoSo' },
         });
       });
     }
@@ -76,6 +78,7 @@ function generateLayerStyle(source, items) {
           source_layer: symbol.layer,
           filter: symbol.filter,
           draw: symbol.draw,
+          metadata: { managedBy: 'MFBanDoSo' },
         });
       });
     }
