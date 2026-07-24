@@ -16,51 +16,43 @@ import {
 import { styles } from './styles';
 
 function LayerButton({ show, isActive, onPress }) {
-  if (!show) {
-    return null;
-  }
-
   return (
-    <View style={styles.layerButtonContainer} pointerEvents="box-none">
-      <Pressable
-        style={[
-          styles.layerButton,
-          isActive && styles.layerButtonActive,
-        ]}
-        onPress={onPress}
-      >
-        <View style={styles.layerIconBoxPrimary} />
-        <View style={styles.layerIconBoxSecondary} />
-      </Pressable>
-    </View>
+    <Pressable
+      style={[
+        styles.layerButton,
+        isActive && styles.layerButtonActive,
+        !show && styles.hiddenButton,
+      ]}
+      onPress={onPress}
+      pointerEvents={show ? 'auto' : 'none'}
+    >
+      <View style={styles.layerIconBoxPrimary} />
+      <View style={styles.layerIconBoxSecondary} />
+    </Pressable>
   );
 }
 
 function LegendButton({ show, isActive, onPress }) {
-  if (!show) {
-    return null;
-  }
-
   return (
-    <View style={styles.layerButtonContainer} pointerEvents="box-none">
-      <Pressable
-        style={[
-          styles.layerButton,
-          styles.legendButton,
-          isActive && styles.layerButtonActive,
-        ]}
-        onPress={onPress}
-      >
-        <View style={styles.legendToggleIconRow}>
-          <View style={styles.legendToggleIconDot} />
-          <View style={styles.legendToggleIconLine} />
-        </View>
-        <View style={styles.legendToggleIconRow}>
-          <View style={styles.legendToggleIconDot} />
-          <View style={styles.legendToggleIconLine} />
-        </View>
-      </Pressable>
-    </View>
+    <Pressable
+      style={[
+        styles.layerButton,
+        styles.legendButton,
+        isActive && styles.layerButtonActive,
+        !show && styles.hiddenButton,
+      ]}
+      onPress={onPress}
+      pointerEvents={show ? 'auto' : 'none'}
+    >
+      <View style={styles.legendToggleIconRow}>
+        <View style={styles.legendToggleIconDot} />
+        <View style={styles.legendToggleIconLine} />
+      </View>
+      <View style={styles.legendToggleIconRow}>
+        <View style={styles.legendToggleIconDot} />
+        <View style={styles.legendToggleIconLine} />
+      </View>
+    </Pressable>
   );
 }
 

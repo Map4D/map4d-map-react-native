@@ -116,7 +116,7 @@ function FocusAreaScreen() {
   ]
 
   return (
-    <SafeAreaView style={styles.safeView}>
+    <SafeAreaView style={styles.safeView} edges={['left', 'right', 'bottom']}>
       {actions.map((action) => (
         <Button key={action.key} title={action.title} onPress={action.onPress} />
       ))}

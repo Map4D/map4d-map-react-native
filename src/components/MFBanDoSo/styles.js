@@ -1,10 +1,21 @@
 import { StyleSheet } from 'react-native';
 
+// Workaround for a React Native Fabric/Android Yoga bug: an absolutely-positioned
+// view stretched via top+bottom (e.g. StyleSheet.absoluteFillObject) can have its
+// top offset silently dropped, collapsing the view to zero height pinned at the
+// parent's bottom edge. Anchoring with top + height: '100%' instead avoids that
+// code path. Do not replace this with absoluteFillObject/bottom-based stretching.
+const fullFill = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  height: '100%',
+};
+
 const styles = StyleSheet.create({
-  layerButtonContainer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 20,
-    elevation: 20,
+  hiddenButton: {
+    display: 'none',
   },
   layerButton: {
     position: 'absolute',
@@ -73,22 +84,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#6b7280',
   },
   selectorContainer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 18,
-    elevation: 18,
+    ...fullFill,
   },
   selectorBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...fullFill,
     backgroundColor: '#11182740',
   },
   selectorBackdropPressable: {
-    ...StyleSheet.absoluteFillObject,
+    ...fullFill,
   },
   selectorPanel: {
     position: 'absolute',
     top: 0,
     left: 0,
-    bottom: 0,
+    height: '100%',
     width: '76%',
     maxWidth: 320,
     minWidth: 260,
@@ -243,9 +252,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563eb',
   },
   legendContainer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 10,
-    elevation: 10,
+    ...fullFill,
   },
   legendPanel: {
     position: 'absolute',

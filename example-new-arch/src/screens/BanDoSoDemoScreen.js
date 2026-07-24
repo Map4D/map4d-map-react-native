@@ -1,7 +1,7 @@
 import { MFBanDoSo } from 'react-native-map4d-map-dtqg';
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const INITIAL_CAMERA = {
   center: {
@@ -19,7 +19,7 @@ function BanDoSoScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeView}>
+    <SafeAreaView style={styles.safeView} edges={['left', 'right', 'bottom']}>
       <MFBanDoSo
         style={styles.container}
         camera={INITIAL_CAMERA}

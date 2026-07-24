@@ -46,7 +46,7 @@ function BasicMapScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeView}>
+    <SafeAreaView style={styles.safeView} edges={['left', 'right', 'bottom']}>
       <View style={styles.topActions}>
         <Button title="Get Camera" onPress={onGetCamera} />
       </View>
