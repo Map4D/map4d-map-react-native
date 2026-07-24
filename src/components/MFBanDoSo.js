@@ -63,6 +63,7 @@ class MFBanDoSo extends MFMapView {
     this._toggleLegendVisibility = this._toggleLegendVisibility.bind(this);
     this._openSelector = this._openSelector.bind(this);
     this._closeSelector = this._closeSelector.bind(this);
+    this._snapSelectorOpen = this._snapSelectorOpen.bind(this);
   }
 
   componentDidMount() {
@@ -217,6 +218,15 @@ class MFBanDoSo extends MFMapView {
     });
   }
 
+  _snapSelectorOpen() {
+    Animated.timing(this._selectorAnim, {
+      toValue: 1,
+      duration: SELECTOR_OPEN_DURATION_MS,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }
+
   _syncGeojsonStyle() {
     if (!this.state.isReady) {
       return;
@@ -287,9 +297,11 @@ class MFBanDoSo extends MFMapView {
           title={selectorTitle}
           groupSections={groupSections}
           expandedGroupKeys={this.state.expandedGroupKeys}
+          dragAnim={this._selectorAnim}
           backdropAnimatedStyle={backdropAnimatedStyle}
           panelAnimatedStyle={panelAnimatedStyle}
           onClose={this._toggleSelectorVisibility}
+          onDragCancel={this._snapSelectorOpen}
           onToggleGroup={this._toggleGroup}
           onToggleGroupChecked={this._toggleGroupChecked}
           onToggleItem={this._toggleItem}

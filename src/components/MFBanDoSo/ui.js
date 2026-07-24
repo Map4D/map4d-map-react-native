@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Animated,
+  PanResponder,
   Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import {
+  SELECTOR_DRAWER_TRANSLATE_X,
+  SELECTOR_SWIPE_ACTIVATION_DISTANCE,
+  SELECTOR_SWIPE_CLOSE_DISTANCE,
+  SELECTOR_SWIPE_CLOSE_VELOCITY,
+} from './constants';
 import { styles } from './styles';
 
 function LayerButton({ show, isActive, onPress }) {
@@ -62,13 +69,42 @@ function SelectorDrawer({
   title,
   groupSections,
   expandedGroupKeys,
+  dragAnim,
   backdropAnimatedStyle,
   panelAnimatedStyle,
   onClose,
+  onDragCancel,
   onToggleGroup,
   onToggleGroupChecked,
   onToggleItem,
 }) {
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) =>
+        Math.abs(gestureState.dx) > SELECTOR_SWIPE_ACTIVATION_DISTANCE &&
+        Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
+      onPanResponderMove: (evt, gestureState) => {
+        const clampedDx = Math.min(0, gestureState.dx);
+        const nextValue = 1 + clampedDx / Math.abs(SELECTOR_DRAWER_TRANSLATE_X);
+        dragAnim.setValue(Math.max(0, Math.min(1, nextValue)));
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        const shouldClose =
+          gestureState.dx < -SELECTOR_SWIPE_CLOSE_DISTANCE ||
+          gestureState.vx < -SELECTOR_SWIPE_CLOSE_VELOCITY;
+
+        if (shouldClose) {
+          onClose();
+        } else {
+          onDragCancel();
+        }
+      },
+      onPanResponderTerminate: () => {
+        onDragCancel();
+      },
+    })
+  ).current;
+
   if (!show) {
     return null;
   }
@@ -81,7 +117,10 @@ function SelectorDrawer({
           onPress={onClose}
         />
       </Animated.View>
-      <Animated.View style={[styles.selectorPanel, panelAnimatedStyle]}>
+      <Animated.View
+        style={[styles.selectorPanel, panelAnimatedStyle]}
+        {...panResponder.panHandlers}
+      >
         <View style={styles.selectorHeader}>
           <Text style={styles.selectorTitle}>{title}</Text>
         </View>
