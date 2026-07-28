@@ -1,3 +1,8 @@
+## 0.1.6
+
+* Fixed MFBanDoSo UI on new arch
+* Fixed 'Cannot specify link libraries for target "react_codegen_Map4dMapSpec" when build Android
+
 ## 0.1.5
 
 * Add layer selector and legend panel UI to `MFBanDoSo`, with categories fetched and managed internally
