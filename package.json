@@ -159,10 +159,15 @@
   },
   "codegenConfig": {
     "name": "Map4dMapSpec",
-    "type": "modules",
+    "type": "all",
     "jsSrcsDir": "src/specs",
     "android": {
       "javaPackageName": "com.reactnativemap4dmap"
+    },
+    "ios": {
+      "componentProvider": {
+        "RMFMapView": "RMFMapViewComponentView"
+      }
     }
   }
 }

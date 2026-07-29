@@ -202,10 +202,16 @@
   [_iconView insertSubview:subview atIndex:atIndex];
 }
 
+// Each entry in `observables` is @[view, keyPaths] -- the exact keyPaths
+// registered on that view -- so we only ever remove observers we actually
+// added. Removing a keyPath that was never added throws and crashes.
 - (void) removeAllObserver {
-    for (UIView* v in observables) {
-        [v removeObserver:self forKeyPath:@"image"];
-        [v removeObserver:self forKeyPath:@"bounds"];
+    for (NSArray *entry in observables) {
+        UIView *v = entry[0];
+        NSArray<NSString *> *keyPaths = entry[1];
+        for (NSString *keyPath in keyPaths) {
+            [v removeObserver:self forKeyPath:keyPath];
+        }
     }
     [observables removeAllObjects];
 }
@@ -232,11 +238,34 @@
 
 - (void)addObserver:(UIView*)view {
   if ([view isKindOfClass:[RCTImageView class]]) {
-    [view addObserver:self forKeyPath:@"image" options:NSKeyValueObservingOptionNew context:(__bridge void * _Nullable)(_iconView)];
+    // Old architecture (Paper): the loaded UIImage lives directly on this view.
+    NSArray<NSString *> *keyPaths = @[@"image", @"bounds"];
+    for (NSString *keyPath in keyPaths) {
+      [view addObserver:self forKeyPath:keyPath options:NSKeyValueObservingOptionNew context:(__bridge void * _Nullable)(_iconView)];
+    }
+    [observables addObject:@[view, keyPaths]];
+  } else if ([view isKindOfClass:NSClassFromString(@"RCTImageComponentView")]) {
+    // New Architecture (Fabric): <Image> renders via RCTImageComponentView,
+    // whose loaded UIImage lives on its `contentView` (an internal
+    // RCTUIImageViewAnimated, a real UIImageView) instead of on this view
+    // itself. Resolved via KVC/runtime introspection only -- deliberately no
+    // compile-time reference to any Fabric-only header/class here, since
+    // this file is compiled under both architectures.
+    UIView *innerImageView = nil;
+    if ([view respondsToSelector:@selector(contentView)]) {
+      id candidate = [view valueForKey:@"contentView"];
+      if ([candidate isKindOfClass:[UIView class]] && [candidate respondsToSelector:@selector(image)]) {
+        innerImageView = candidate;
+      }
+    }
+    if (innerImageView) {
+      [innerImageView addObserver:self forKeyPath:@"image" options:NSKeyValueObservingOptionNew context:(__bridge void * _Nullable)(_iconView)];
+      [observables addObject:@[innerImageView, @[@"image"]]];
+    }
     [view addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:(__bridge void * _Nullable)(_iconView)];
-    [observables addObject:view];
+    [observables addObject:@[view, @[@"bounds"]]];
   }
-  
+
   NSArray<UIView *> *reactSubviews = [view reactSubviews];
   for (int i = 0; i < reactSubviews.count; i++) {
     UIView* view = [reactSubviews objectAtIndex:i];

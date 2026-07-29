@@ -7,5 +7,5 @@
     "rootDir": "src"
   },
   "include": ["src/**/*"],
-  "exclude": ["src/specs/NativeMap4dMap.js"]
+  "exclude": ["src/specs/NativeMap4dMap.js", "src/specs/RMFMapViewNativeComponent.js"]
 }

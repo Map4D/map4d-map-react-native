@@ -19,6 +19,7 @@
 #import <React/RCTLog.h>
 #import <React/RCTBridge.h>
 #import <React/RCTUIManager.h>
+#import <React/RCTSurfacePresenterStub.h>
 #import <React/RCTConvert+CoreLocation.h>
 #import "RCTConvert+Map4dMap.h"
 #import "RMFEventResponse.h"
@@ -31,10 +32,48 @@
 
 RCT_EXPORT_MODULE(RMFMapView)
 
+// Unwraps whatever RMFMapView instance a raw resolved view actually wraps.
+// Under the New Architecture, `view` may be `RMFMapViewComponentView`
+// (ios/Fabric/), whose real RMFMapView lives at `.contentView`; under Paper,
+// `view` already is the RMFMapView. Uses KVC only (no `RCTViewComponentView`
+// import) so this file keeps compiling under both architectures.
++ (nullable RMFMapView *)RMFMapView_fromResolvedView:(nullable UIView *)view
+{
+  if ([view isKindOfClass:[RMFMapView class]]) {
+    return (RMFMapView *)view;
+  }
+  if (view != nil && [view respondsToSelector:@selector(contentView)]) {
+    id contentView = [view valueForKey:@"contentView"];
+    if ([contentView isKindOfClass:[RMFMapView class]]) {
+      return (RMFMapView *)contentView;
+    }
+  }
+  return nil;
+}
+
 - (void)withMapViewForTag:(nonnull NSNumber *)reactTag
                   rejecter:(RCTPromiseRejectBlock)reject
                    handler:(void (^)(RMFMapView *mapView))handler
 {
+  // New Architecture (Fabric/Bridgeless): `self.bridge.uiManager addUIBlock:`
+  // below is unreliable for Fabric-mounted views -- see
+  // facebook/react-native#50800 (open, unresolved upstream as of RN 0.86).
+  // `findComponentViewWithTag_DO_NOT_USE_DEPRECATED:` is the same escape
+  // hatch React Native's own RCTViewRegistry uses internally for this exact
+  // bridge/Fabric split, and it's available on both RCTBridge and
+  // RCTBridgeProxy (Bridgeless), so this works without knowing which one
+  // `self.bridge` actually is.
+  id<RCTSurfacePresenterStub> surfacePresenter = self.bridge.surfacePresenter;
+  if ([surfacePresenter respondsToSelector:@selector(findComponentViewWithTag_DO_NOT_USE_DEPRECATED:)]) {
+    UIView *resolvedView = [surfacePresenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:reactTag.integerValue];
+    RMFMapView *mapView = [RMFMapViewManager RMFMapView_fromResolvedView:resolvedView];
+    if (mapView != nil) {
+      handler(mapView);
+      return;
+    }
+  }
+
+  // Old architecture (Paper) fallback: classic view-registry lookup.
   RCTUIManager *uiManager = self.bridge.uiManager;
   if (uiManager == nil) {
     if (reject) {
@@ -46,17 +85,17 @@ RCT_EXPORT_MODULE(RMFMapView)
   }
 
   [uiManager addUIBlock:^(__unused RCTUIManager *manager, NSDictionary<NSNumber *, UIView *> *viewRegistry) {
-    id view = viewRegistry[reactTag];
-    if (![view isKindOfClass:[RMFMapView class]]) {
+    RMFMapView *mapView = [RMFMapViewManager RMFMapView_fromResolvedView:viewRegistry[reactTag]];
+    if (mapView == nil) {
       if (reject) {
-        reject(@"E_INVALID_VIEW", [NSString stringWithFormat:@"Invalid view returned from registry, expecting RMFMapView, got: %@", view], nil);
+        reject(@"E_INVALID_VIEW", [NSString stringWithFormat:@"Invalid view returned from registry, expecting RMFMapView, got: %@", viewRegistry[reactTag]], nil);
       } else {
-        RCTLogError(@"Invalid view returned from registry, expecting RMFMapView, got: %@", view);
+        RCTLogError(@"Invalid view returned from registry, expecting RMFMapView, got: %@", viewRegistry[reactTag]);
       }
       return;
     }
 
-    handler((RMFMapView *)view);
+    handler(mapView);
   }];
 }
 
