@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Animated,
+  Dimensions,
   Easing,
 } from 'react-native';
 import {
@@ -9,7 +10,17 @@ import {
   SELECTOR_DRAWER_TRANSLATE_X,
   SELECTOR_OPEN_DURATION_MS,
   SELECTOR_TITLE,
+  SHEET_CLOSE_DURATION_MS,
+  SHEET_EMPTY_TEXT,
+  SHEET_FOCUS_PADDING,
+  SHEET_HALF_SNAP_RATIO,
+  SHEET_INITIAL_SNAP_RATIO,
+  SHEET_LOADING_TEXT,
+  SHEET_MARKER_ID,
+  SHEET_OPEN_DURATION_MS,
+  SHEET_TITLE,
   getCategoryConfigUrl,
+  getProvinceInvestmentInfoUrl,
   getSourceUrl,
 } from './MFBanDoSo/constants';
 import {
@@ -27,8 +38,12 @@ import {
 import {
   banDoSoPropTypes,
 } from './MFBanDoSo/propTypes';
+import {
+  resolveProvinceInvestmentInfo,
+} from './MFBanDoSo/investmentInfoHelpers';
 import { MFMapView } from './MFMapView';
 import {
+  InvestmentSheet,
   LayerButton,
   LegendButton,
   LegendPanel,
@@ -44,7 +59,11 @@ class MFBanDoSo extends MFMapView {
     this._appliedGeojsonStyle = null;
     this._isMounted = false;
     this._categoryRequestId = 0;
+    this._investmentRequestId = 0;
+    this._hasFocusedFromSheet = false;
+    this._sheetPanelHeight = 0;
     this._selectorAnim = new Animated.Value(0);
+    this._sheetAnim = new Animated.Value(0);
     this.state = {
       ...this.state,
       categoryItems: [],
@@ -54,8 +73,17 @@ class MFBanDoSo extends MFMapView {
       isLegendVisible: false,
       isSelectorVisible: false,
       isSelectorMounted: false,
+      investmentInfo: null,
+      investmentStatusText: SHEET_LOADING_TEXT,
+      isInvestmentLoading: false,
+      isSheetMounted: false,
+      sheetSnapValue: SHEET_INITIAL_SNAP_RATIO,
     };
 
+    this._closeSheet = this._closeSheet.bind(this);
+    this._focusProvinceFromSheet = this._focusProvinceFromSheet.bind(this);
+    this._onSheetPanelHeightChange = this._onSheetPanelHeightChange.bind(this);
+    this._snapSheetTo = this._snapSheetTo.bind(this);
     this._toggleItem = this._toggleItem.bind(this);
     this._toggleGroupChecked = this._toggleGroupChecked.bind(this);
     this._toggleGroup = this._toggleGroup.bind(this);
@@ -136,6 +164,196 @@ class MFBanDoSo extends MFMapView {
       }
       console.warn('Cannot load category items', error);
     }
+  }
+
+  _onPress(event) {
+    super._onPress(event);
+
+    const location = event?.nativeEvent?.location;
+    const latitude = location?.latitude;
+    const longitude = location?.longitude;
+
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+      return;
+    }
+
+    // Reachable while the sheet is already open, since the map stays
+    // interactive: drop the previous province highlight so it cannot outlive
+    // the info it belongs to.
+    if (this._hasFocusedFromSheet) {
+      this._hasFocusedFromSheet = false;
+      this.clearFocusedArea();
+    }
+
+    this._addMarker({
+      id: SHEET_MARKER_ID,
+      coordinate: { latitude, longitude },
+    });
+    this._openSheet();
+    this._loadInvestmentInfo(latitude, longitude);
+  }
+
+  async _loadInvestmentInfo(latitude, longitude) {
+    const requestId = this._investmentRequestId + 1;
+    this._investmentRequestId = requestId;
+
+    this.setState({
+      investmentInfo: null,
+      investmentStatusText: SHEET_LOADING_TEXT,
+      isInvestmentLoading: true,
+    });
+
+    const isCurrentRequest = () =>
+      this._isMounted && requestId === this._investmentRequestId;
+
+    try {
+      const response = await fetch(
+        getProvinceInvestmentInfoUrl(this.props.isStaging, latitude, longitude)
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch investment info: ${response.status}`);
+      }
+
+      const json = await response.json();
+      const investmentInfo = resolveProvinceInvestmentInfo(json);
+
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      this.setState({
+        investmentInfo,
+        investmentStatusText: investmentInfo ? '' : SHEET_EMPTY_TEXT,
+        isInvestmentLoading: false,
+      });
+    } catch (error) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      console.warn('Cannot load investment info', error);
+      this.setState({
+        investmentInfo: null,
+        investmentStatusText: SHEET_EMPTY_TEXT,
+        isInvestmentLoading: false,
+      });
+    }
+  }
+
+  _animateSheetTo(toValue, duration, easing, onDone) {
+    Animated.timing(this._sheetAnim, {
+      toValue,
+      duration,
+      easing,
+      useNativeDriver: true,
+    }).start(onDone);
+  }
+
+  _openSheet() {
+    this.setState({
+      isSheetMounted: true,
+      sheetSnapValue: SHEET_INITIAL_SNAP_RATIO,
+    }, () => {
+      this._animateSheetTo(
+        SHEET_INITIAL_SNAP_RATIO,
+        SHEET_OPEN_DURATION_MS,
+        Easing.out(Easing.cubic)
+      );
+    });
+  }
+
+  /**
+   * Settles the sheet on one of its open anchors (see SHEET_HALF_SNAP_RATIO).
+   * It never closes the sheet: dismissing is the close button's job alone, and
+   * goes through `_closeSheet`, which also unmounts.
+   */
+  _snapSheetTo(snapValue) {
+    if (typeof snapValue !== 'number' || snapValue <= 0) {
+      return;
+    }
+
+    this.setState({ sheetSnapValue: snapValue });
+    this._animateSheetTo(
+      snapValue,
+      SHEET_OPEN_DURATION_MS,
+      Easing.out(Easing.cubic)
+    );
+  }
+
+  _closeSheet() {
+    this._investmentRequestId += 1;
+    this._removeMarker(SHEET_MARKER_ID);
+
+    this._animateSheetTo(
+      0,
+      SHEET_CLOSE_DURATION_MS,
+      Easing.in(Easing.cubic),
+      () => {
+        if (!this._isMounted) {
+          return;
+        }
+
+        this.setState({
+          investmentInfo: null,
+          isInvestmentLoading: false,
+          isSheetMounted: false,
+          sheetSnapValue: SHEET_INITIAL_SNAP_RATIO,
+        });
+      }
+    );
+
+    if (this._hasFocusedFromSheet) {
+      this._hasFocusedFromSheet = false;
+      this.clearFocusedArea();
+    }
+  }
+
+  _onSheetPanelHeightChange(panelHeight) {
+    this._sheetPanelHeight =
+      typeof panelHeight === 'number' && panelHeight > 0 ? panelHeight : 0;
+  }
+
+  /**
+   * fitBounds padding is in dp on both platforms, so the measured layout
+   * heights can be handed over as they are.
+   */
+  _getFocusPadding(snapValue) {
+    const panelHeight =
+      this._sheetPanelHeight || Dimensions.get('window').height;
+    const coveredHeight = Math.max(0, Math.round(panelHeight * snapValue));
+
+    return {
+      top: SHEET_FOCUS_PADDING,
+      left: SHEET_FOCUS_PADDING,
+      right: SHEET_FOCUS_PADDING,
+      bottom: coveredHeight + SHEET_FOCUS_PADDING,
+    };
+  }
+
+  _focusProvinceFromSheet() {
+    const focusProvince = this.state.investmentInfo?.focusProvince;
+    if (!focusProvince || !this.areaFocusManager) {
+      return;
+    }
+
+    // Fitting the camera into the strip of map the sheet leaves uncovered only
+    // makes sense if there is one, so collapse a fully open sheet first and pad
+    // the fit by however much map it still hides.
+    const snapValue = Math.min(
+      this.state.sheetSnapValue,
+      SHEET_HALF_SNAP_RATIO
+    );
+    if (this.state.sheetSnapValue > snapValue) {
+      this._snapSheetTo(snapValue);
+    }
+
+    this._hasFocusedFromSheet = true;
+    this.areaFocusManager.focus({
+      type: 'province',
+      name: focusProvince.name,
+      display: focusProvince.highlight === true ? 'highlight' : 'normal',
+      padding: this._getFocusPadding(snapValue),
+    });
   }
 
   _toggleItem(targetKey, targetIndex) {
@@ -311,6 +529,19 @@ class MFBanDoSo extends MFMapView {
           title={legendTitle}
           items={items}
           getItemColor={(item) => resolveCategoryItemColor(item)}
+        />
+        <InvestmentSheet
+          show={this.state.isSheetMounted}
+          title={SHEET_TITLE}
+          loading={this.state.isInvestmentLoading}
+          statusText={this.state.investmentStatusText}
+          info={this.state.investmentInfo}
+          dragAnim={this._sheetAnim}
+          snapValue={this.state.sheetSnapValue}
+          onClose={this._closeSheet}
+          onSnapTo={this._snapSheetTo}
+          onPanelHeightChange={this._onSheetPanelHeightChange}
+          onFocusProvince={this._focusProvinceFromSheet}
         />
       </React.Fragment>
     );

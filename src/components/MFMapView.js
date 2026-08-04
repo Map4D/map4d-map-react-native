@@ -3,6 +3,7 @@ import React from 'react';
 import {ViewPropTypes, ColorPropType} from 'deprecated-react-native-prop-types';
 import {AreaFocusManager} from './extends/AreaFocusManager';
 import {AreaFocuser} from './extends/AreaFocuser';
+import {MFMarker} from './MFMarker';
 import {MFPolygon} from './MFPolygon';
 import {getMap4dMapNativeModule} from '../native/Map4dMapNativeModule';
 import {runViewManagerCommand} from '../native/ViewManagerCommand';
@@ -158,9 +159,11 @@ class MFMapView extends React.Component {
     this.state = {
       isReady: Platform.OS === 'ios',
       managedPolygons: {},
+      managedMarkers: {},
     };
 
     this._onMapReady = this._onMapReady.bind(this);
+    this._onPress = this._onPress.bind(this);
     this._ref = this._ref.bind(this);
   }
 
@@ -216,6 +219,56 @@ class MFMapView extends React.Component {
     });
   }
 
+  /**
+   * Markers owned by the component itself rather than passed in as children,
+   * mirroring the managed polygons above.
+   */
+  _addMarker(marker) {
+    if (marker == null || typeof marker !== 'object') {
+      return null;
+    }
+
+    const id =
+      typeof marker.id === 'string' && marker.id.trim().length > 0
+        ? marker.id
+        : 'marker-managed-id-default';
+
+    const _marker = {
+      ...marker,
+      id,
+    };
+
+    this.setState((prevState) => ({
+      managedMarkers: {
+        ...prevState.managedMarkers,
+        [id]: _marker,
+      },
+    }));
+
+    return id;
+  }
+
+  _removeMarker(id) {
+    if (typeof id !== 'string' || id.trim().length === 0) {
+      return;
+    }
+
+    this.setState((prevState) => {
+      if (!prevState.managedMarkers[id]) {
+        return null;
+      }
+
+      const managedMarkers = {
+        ...prevState.managedMarkers,
+      };
+      delete managedMarkers[id];
+
+      return {
+        managedMarkers,
+      };
+    });
+  }
+
   _onMapReady() {
     const { onMapReady } = this.props;
     this.setState({ isReady: true }, () => {
@@ -223,6 +276,18 @@ class MFMapView extends React.Component {
         onMapReady();
       }
     });
+  }
+
+  /**
+   * Native map taps are routed through this method instead of being bound
+   * straight to `props.onPress`, so subclasses can react to a tap without
+   * swallowing the consumer callback.
+   */
+  _onPress(event) {
+    const { onPress } = this.props;
+    if (onPress) {
+      onPress(event);
+    }
   }
 
   _ref(ref) {
@@ -415,12 +480,14 @@ class MFMapView extends React.Component {
     let props;
     const { children, ...restProps } = this.props;
     const managedPolygons = Object.values(this.state.managedPolygons);
+    const managedMarkers = Object.values(this.state.managedMarkers);
 
     if (this.state.isReady) {
       props = {
         style: this.props.style,
         onMapReady: this._onMapReady,
         ...restProps,
+        onPress: this._onPress,
         children: (
           <React.Fragment>
             {children}
@@ -433,6 +500,18 @@ class MFMapView extends React.Component {
                 strokeColor={polygon.strokeColor}
                 strokeWidth={polygon.strokeWidth}
                 zIndex={polygon.zIndex}
+              />
+            ))}
+            {managedMarkers.map((marker) => (
+              <MFMarker
+                key={marker.id}
+                coordinate={marker.coordinate}
+                icon={marker.icon}
+                title={marker.title}
+                snippet={marker.snippet}
+                anchor={marker.anchor}
+                elevation={marker.elevation}
+                zIndex={marker.zIndex}
               />
             ))}
           </React.Fragment>

@@ -166,7 +166,7 @@ function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safeView}>
+    <SafeAreaView style={styles.safeView} edges={['left', 'right', 'bottom']}>
       <MFBanDoSo
         style={styles.container}
         camera={INITIAL_CAMERA}

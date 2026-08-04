@@ -1,6 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Animated,
+  Dimensions,
+  Image,
   PanResponder,
   Pressable,
   ScrollView,
@@ -12,6 +15,15 @@ import {
   SELECTOR_SWIPE_ACTIVATION_DISTANCE,
   SELECTOR_SWIPE_CLOSE_DISTANCE,
   SELECTOR_SWIPE_CLOSE_VELOCITY,
+  SHEET_FOCUS_ACTION_LABEL,
+  SHEET_FOOTER_FADE_RATIO,
+  SHEET_HALF_SNAP_RATIO,
+  SHEET_INDUSTRIAL_ZONES_TITLE,
+  SHEET_STATS_TITLE,
+  SHEET_SWIPE_ACTIVATION_DISTANCE,
+  SHEET_SWIPE_FLICK_VELOCITY,
+  SHEET_TOP_PEEK,
+  SHEET_TRANSLATE_Y,
 } from './constants';
 import { styles } from './styles';
 
@@ -258,4 +270,366 @@ function LegendPanel({ show, title, items, getItemColor }) {
   );
 }
 
-export { LayerButton, LegendButton, LegendPanel, SelectorDrawer };
+function InvestmentSheetBody({ info }) {
+  const stats = Array.isArray(info.stats) ? info.stats : [];
+  const sectors = Array.isArray(info.sectors) ? info.sectors : [];
+  const hasContact = !!(info.contactPhone || info.contactEmail);
+
+  return (
+    <React.Fragment>
+      <View style={styles.sheetHero}>
+        {info.bannerImage ? (
+          <Image
+            style={styles.sheetHeroImage}
+            source={{ uri: info.bannerImage }}
+            resizeMode="cover"
+          />
+        ) : null}
+        <View style={styles.sheetHeroScrim} />
+        <View style={styles.sheetHeroContent}>
+          {info.code ? (
+            <View style={styles.sheetHeroBadge}>
+              <Text style={styles.sheetHeroBadgeText}>{info.code}</Text>
+            </View>
+          ) : null}
+          <Text style={styles.sheetHeroTitle} numberOfLines={1}>
+            {info.name}
+          </Text>
+          {info.subtitle ? (
+            <Text style={styles.sheetHeroSubtitle} numberOfLines={2}>
+              {info.subtitle}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+
+      {stats.length > 0 ? (
+        <View style={styles.sheetSection}>
+          <Text style={styles.sheetSectionTitle}>{SHEET_STATS_TITLE}</Text>
+          <View style={styles.sheetStatGrid}>
+            {stats.map((stat, index) => (
+              <View key={`${stat.label}-${index}`} style={styles.sheetStatCard}>
+                <View style={styles.sheetStatCardInner}>
+                  <Text style={styles.sheetStatLabel} numberOfLines={2}>
+                    {stat.label}
+                  </Text>
+                  <Text style={styles.sheetStatValue} numberOfLines={1}>
+                    {stat.value}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {info.overviewContent ? (
+        <View style={styles.sheetSection}>
+          {info.overviewTitle ? (
+            <Text style={styles.sheetSectionTitle}>{info.overviewTitle}</Text>
+          ) : null}
+          <View style={styles.sheetOverviewBox}>
+            <Text style={styles.sheetOverviewText}>{info.overviewContent}</Text>
+          </View>
+        </View>
+      ) : null}
+
+      {sectors.length > 0 ? (
+        <View style={styles.sheetSection}>
+          {info.sectorsTitle ? (
+            <Text style={styles.sheetSectionTitle}>{info.sectorsTitle}</Text>
+          ) : null}
+          <View style={styles.sheetChipRow}>
+            {sectors.map((sector, index) => (
+              <View key={`${sector}-${index}`} style={styles.sheetChip}>
+                <Text style={styles.sheetChipText}>{sector}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {info.industrialZones != null ? (
+        <View style={styles.sheetSection}>
+          <View style={styles.sheetCountCard}>
+            <Text style={styles.sheetCountLabel}>
+              {SHEET_INDUSTRIAL_ZONES_TITLE}
+            </Text>
+            <Text style={styles.sheetCountValue}>{`${info.industrialZones}`}</Text>
+          </View>
+        </View>
+      ) : null}
+
+      {hasContact ? (
+        <View style={styles.sheetSection}>
+          {info.contactTitle ? (
+            <Text style={styles.sheetSectionTitle}>{info.contactTitle}</Text>
+          ) : null}
+          <View style={styles.sheetContactBox}>
+            {info.contactPhone ? (
+              <View style={styles.sheetContactRow}>
+                <Text style={styles.sheetContactIcon}>✆</Text>
+                <Text style={styles.sheetContactText} numberOfLines={1}>
+                  {info.contactPhone}
+                </Text>
+              </View>
+            ) : null}
+            {info.contactEmail ? (
+              <View style={styles.sheetContactRow}>
+                <Text style={styles.sheetContactIcon}>✉</Text>
+                <Text style={styles.sheetContactText} numberOfLines={1}>
+                  {info.contactEmail}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      ) : null}
+    </React.Fragment>
+  );
+}
+
+const SHEET_SNAP_FULL = 1;
+
+/**
+ * Anchors a drag may settle on. Closing is deliberately not one of them — the
+ * sheet is dismissed only through its close button — so dragging down stops at
+ * the smallest anchor instead of throwing the sheet away.
+ */
+function getSheetSnapAnchors() {
+  return [SHEET_HALF_SNAP_RATIO, SHEET_SNAP_FULL].sort((a, b) => a - b);
+}
+
+function clampSnapValue(value) {
+  const anchors = getSheetSnapAnchors();
+  return Math.max(anchors[0], Math.min(anchors[anchors.length - 1], value));
+}
+
+/**
+ * Picks the anchor a released drag should settle on. A fast flick moves one
+ * anchor in the flick direction regardless of distance travelled; a slow drag
+ * settles on whichever anchor the panel ended up closest to.
+ */
+function resolveSheetSnapTarget(releasedValue, velocity, startValue) {
+  const anchors = getSheetSnapAnchors();
+
+  if (velocity > SHEET_SWIPE_FLICK_VELOCITY) {
+    const lower = anchors.filter((anchor) => anchor < startValue - 0.001);
+    return lower.length > 0 ? lower[lower.length - 1] : anchors[0];
+  }
+
+  if (velocity < -SHEET_SWIPE_FLICK_VELOCITY) {
+    const higher = anchors.filter((anchor) => anchor > startValue + 0.001);
+    return higher.length > 0 ? higher[0] : anchors[anchors.length - 1];
+  }
+
+  return anchors.reduce(
+    (best, anchor) =>
+      Math.abs(anchor - releasedValue) < Math.abs(best - releasedValue)
+        ? anchor
+        : best,
+    anchors[0]
+  );
+}
+
+function InvestmentSheet({
+  show,
+  title,
+  loading,
+  statusText,
+  info,
+  dragAnim,
+  snapValue,
+  onClose,
+  onSnapTo,
+  onPanelHeightChange,
+  onFocusProvince,
+}) {
+  const [containerHeight, setContainerHeight] = useState(0);
+  const availableHeight = containerHeight || Dimensions.get('window').height;
+  const panelHeight = Math.max(
+    0,
+    Math.round(availableHeight - SHEET_TOP_PEEK)
+  );
+
+  // How much map the sheet hides is only known here, where the map area is
+  // measured, but the camera fit that has to work around it lives in MFBanDoSo.
+  useEffect(() => {
+    if (typeof onPanelHeightChange === 'function') {
+      onPanelHeightChange(panelHeight);
+    }
+  }, [panelHeight, onPanelHeightChange]);
+  // The animated value is the fraction of the panel left visible, so a drag and
+  // the anchors it settles on share one travel distance: the panel's own
+  // height. Without that the drag would stop tracking the finger 1:1.
+  const travel = panelHeight || SHEET_TRANSLATE_Y;
+  const travelRef = useRef(travel);
+  travelRef.current = travel;
+  const snapValueRef = useRef(snapValue);
+  snapValueRef.current = snapValue;
+  const gestureStartValueRef = useRef(snapValue);
+  const handlersRef = useRef({ onSnapTo });
+  handlersRef.current = { onSnapTo };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) =>
+        Math.abs(gestureState.dy) > SHEET_SWIPE_ACTIVATION_DISTANCE &&
+        Math.abs(gestureState.dy) > Math.abs(gestureState.dx),
+      onPanResponderGrant: () => {
+        gestureStartValueRef.current = snapValueRef.current;
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        dragAnim.setValue(
+          clampSnapValue(
+            gestureStartValueRef.current - gestureState.dy / travelRef.current
+          )
+        );
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        const releasedValue = clampSnapValue(
+          gestureStartValueRef.current - gestureState.dy / travelRef.current
+        );
+
+        handlersRef.current.onSnapTo(
+          resolveSheetSnapTarget(
+            releasedValue,
+            gestureState.vy,
+            gestureStartValueRef.current
+          )
+        );
+      },
+      onPanResponderTerminate: () => {
+        handlersRef.current.onSnapTo(gestureStartValueRef.current);
+      },
+    })
+  ).current;
+
+  if (!show) {
+    return null;
+  }
+
+  const panelAnimatedStyle = {
+    transform: [
+      {
+        translateY: dragAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [travel, 0],
+        }),
+      },
+    ],
+  };
+
+  // The action bar cancels out however far the panel was pushed down, so it
+  // stays glued to the bottom of the screen at every anchor instead of riding
+  // off-screen with the rest of the panel. It only fades once the sheet is
+  // nearly closed, otherwise it would still be sitting there after the panel
+  // has slid away.
+  const footerFadeAt = Math.max(
+    0.01,
+    Math.min(SHEET_FOOTER_FADE_RATIO, SHEET_HALF_SNAP_RATIO / 2)
+  );
+  const footerAnimatedStyle = {
+    opacity: dragAnim.interpolate({
+      inputRange: [0, footerFadeAt, 1],
+      outputRange: [0, 1, 1],
+    }),
+    transform: [
+      {
+        translateY: dragAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-travel, 0],
+        }),
+      },
+    ],
+  };
+
+  // At the smaller anchors the bottom of the scroll viewport sits off-screen,
+  // so the tail of the content could never be scrolled into view. Padding it by
+  // exactly the hidden slice makes the last row reachable at every anchor. The
+  // action bar needs no allowance on top of that: its flow slot already sits
+  // below the scroll area, so counter-translating it only moves it up into the
+  // slice this padding compensates for.
+  const scrollTailSpace = Math.max(
+    0,
+    Math.round(panelHeight * (1 - clampSnapValue(snapValue)))
+  );
+
+  const onContainerLayout = (event) => {
+    const nextHeight = event?.nativeEvent?.layout?.height;
+    if (typeof nextHeight !== 'number' || nextHeight <= 0) {
+      return;
+    }
+
+    setContainerHeight((prevHeight) =>
+      Math.abs(prevHeight - nextHeight) < 1 ? prevHeight : nextHeight
+    );
+  };
+
+  return (
+    // box-none so only the panel itself takes touches: the map underneath stays
+    // pannable and tappable while the sheet is open. That rules out a dimming
+    // backdrop, which would both block the map and read as "map disabled".
+    <View
+      style={styles.sheetContainer}
+      onLayout={onContainerLayout}
+      pointerEvents="box-none"
+    >
+      <Animated.View
+        style={[styles.sheetPanel, { height: panelHeight }, panelAnimatedStyle]}
+      >
+        <View style={styles.sheetHeader} {...panResponder.panHandlers}>
+          <Text style={styles.sheetHeaderTitle} numberOfLines={1}>
+            {title}
+          </Text>
+          <Pressable style={styles.sheetCloseButton} onPress={onClose}>
+            <Text style={styles.sheetCloseMark}>✕</Text>
+          </Pressable>
+        </View>
+
+        {loading || !info ? (
+          <View style={styles.sheetStatusBox}>
+            {loading ? <ActivityIndicator color="#b91c1c" /> : null}
+            <Text style={styles.sheetStatusText}>{statusText}</Text>
+          </View>
+        ) : (
+          <React.Fragment>
+            <ScrollView
+              style={styles.sheetScroll}
+              contentContainerStyle={styles.sheetScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <InvestmentSheetBody info={info} />
+              {scrollTailSpace > 0 ? (
+                <View style={{ height: scrollTailSpace }} />
+              ) : null}
+            </ScrollView>
+            {info.focusProvince ? (
+              <Animated.View
+                style={[styles.sheetActionBar, footerAnimatedStyle]}
+              >
+                <Pressable
+                  style={styles.sheetActionButton}
+                  onPress={onFocusProvince}
+                >
+                  <View style={styles.sheetActionIcon} />
+                  <Text style={styles.sheetActionLabel}>
+                    {SHEET_FOCUS_ACTION_LABEL}
+                  </Text>
+                </Pressable>
+              </Animated.View>
+            ) : null}
+          </React.Fragment>
+        )}
+      </Animated.View>
+    </View>
+  );
+}
+
+export {
+  InvestmentSheet,
+  LayerButton,
+  LegendButton,
+  LegendPanel,
+  SelectorDrawer,
+};

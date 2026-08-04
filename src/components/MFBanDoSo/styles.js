@@ -318,6 +318,275 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderColor: '#9ca3af',
   },
+  sheetContainer: {
+    ...fullFill,
+  },
+  // height is applied at runtime in pixels (see InvestmentSheet), measured from
+  // the map area. It is fixed rather than content-driven so the panel geometry
+  // never shifts under the snap anchors, which are fractions of the panel's own
+  // height: a panel that grew when data replaced the loading state would make
+  // the sheet jump. A percentage height is not an option either — it does not
+  // resolve reliably against an absolutely positioned parent, letting the panel
+  // grow past the top of the map and push its drag header out of view.
+  sheetPanel: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+    elevation: 12,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 48,
+    paddingLeft: 16,
+    paddingRight: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  sheetHeaderTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  sheetCloseButton: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sheetCloseMark: {
+    fontSize: 20,
+    lineHeight: 22,
+    color: '#4b5563',
+  },
+  // The panel has a fixed height, so the scroll area takes whatever is left
+  // between the header and the action bar.
+  sheetScroll: {
+    flex: 1,
+  },
+  sheetScrollContent: {
+    paddingBottom: 12,
+  },
+  sheetStatusBox: {
+    paddingHorizontal: 16,
+    paddingVertical: 28,
+    alignItems: 'center',
+  },
+  sheetStatusText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  sheetHero: {
+    height: 150,
+    backgroundColor: '#1f2937',
+    justifyContent: 'flex-end',
+  },
+  sheetHeroImage: {
+    ...fullFill,
+  },
+  sheetHeroScrim: {
+    ...fullFill,
+    backgroundColor: '#0f172a59',
+  },
+  sheetHeroContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+  },
+  sheetHeroBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    backgroundColor: '#ffffff33',
+    borderWidth: 1,
+    borderColor: '#ffffff80',
+    marginBottom: 8,
+  },
+  sheetHeroBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  sheetHeroTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  sheetHeroSubtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    color: '#e5e7eb',
+  },
+  sheetSection: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  sheetSectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#7f1d1d',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  sheetStatGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -5,
+  },
+  sheetStatCard: {
+    width: '50%',
+    paddingHorizontal: 5,
+    marginBottom: 10,
+  },
+  sheetStatCardInner: {
+    borderWidth: 1,
+    borderColor: '#f1d7d7',
+    borderRadius: 10,
+    backgroundColor: '#fdf7f7',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  sheetStatLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#9ca3af',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  sheetStatValue: {
+    marginTop: 6,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#b91c1c',
+  },
+  sheetOverviewBox: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    backgroundColor: '#f9fafb',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  sheetOverviewText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#374151',
+  },
+  sheetChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -3,
+  },
+  sheetChip: {
+    marginHorizontal: 3,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#f9fafb',
+  },
+  sheetChipText: {
+    fontSize: 12,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  sheetCountCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    backgroundColor: '#f9fafb',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  sheetCountLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  sheetCountValue: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#b91c1c',
+  },
+  sheetContactBox: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    backgroundColor: '#f9fafb',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  sheetContactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 34,
+  },
+  sheetContactIcon: {
+    width: 20,
+    fontSize: 13,
+    color: '#b91c1c',
+  },
+  sheetContactText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#374151',
+  },
+  // Counter-translated over the scroll area at the smaller anchors, so it needs
+  // to paint above it on both platforms.
+  sheetActionBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
+    zIndex: 2,
+    elevation: 4,
+  },
+  sheetActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#b91c1c',
+  },
+  sheetActionIcon: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2.5,
+    borderColor: '#ffffff',
+    marginRight: 8,
+  },
+  sheetActionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
 });
 
 export { styles };
