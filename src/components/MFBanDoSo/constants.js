@@ -82,6 +82,29 @@ const ZONE_STATUS_LABEL = 'Tình trạng';
 const ZONE_TYPE_LABEL = 'Loại hình';
 const ZONE_INVESTMENT_PROJECTS_LABEL = 'Dự án đầu tư';
 const ZONE_ATTRACTED_PROJECTS_LABEL = 'Dự án thu hút';
+const ZONE_PROJECTS_SUBTITLE = 'Danh sách dự án thuộc khu';
+const ZONE_PROJECTS_COUNT_SUFFIX = ' dự án';
+const ZONE_PROJECTS_LOADING_TEXT = 'Đang tải danh sách dự án...';
+
+// The two project lists differ only in endpoint suffix and wording, so they are
+// described here instead of being branched on at every use site.
+const ZONE_PROJECT_KIND_INVESTMENT = 'investment';
+const ZONE_PROJECT_KIND_ATTRACTED = 'attracted';
+const ZONE_PROJECT_KINDS = {
+  [ZONE_PROJECT_KIND_INVESTMENT]: {
+    urlSuffix: 'du-an-dau-tu',
+    title: ZONE_INVESTMENT_PROJECTS_LABEL,
+    emptyText: 'Chưa có dự án đầu tư.',
+  },
+  [ZONE_PROJECT_KIND_ATTRACTED]: {
+    urlSuffix: 'du-an-thu-hut',
+    title: ZONE_ATTRACTED_PROJECTS_LABEL,
+    emptyText: 'Chưa có dự án thu hút đầu tư.',
+  },
+};
+const ZONE_PROJECT_AREA_LABEL = 'Diện tích dự kiến';
+const ZONE_PROJECT_INVESTMENT_LABEL = 'Tổng mức đầu tư dự kiến';
+const ZONE_AREA_SUFFIX = ' m²';
 
 const API_HOST = 'https://cmcdtqg-gateway.dieuhanhso.vn';
 const SOURCE_URL_PATH = 'bds/api/tile/vector/{z}/{x}/{y}.pbf?p=1';
@@ -106,6 +129,15 @@ function getCategoryConfigUrl(isStaging) {
 function getZoneDetailUrl(isStaging, id) {
   const base = buildApiUrl(ZONE_DETAIL_URL_PATH, isStaging);
   return `${base}/${encodeURIComponent(id)}`;
+}
+
+function getZoneProjectsUrl(isStaging, id, kind) {
+  const config = ZONE_PROJECT_KINDS[kind];
+  if (!config) {
+    return null;
+  }
+
+  return `${getZoneDetailUrl(isStaging, id)}/${config.urlSuffix}`;
 }
 
 function getProvinceInvestmentInfoUrl(isStaging, latitude, longitude) {
@@ -168,8 +200,18 @@ export {
   ZONE_TYPE_LABEL,
   ZONE_INVESTMENT_PROJECTS_LABEL,
   ZONE_ATTRACTED_PROJECTS_LABEL,
+  ZONE_PROJECTS_SUBTITLE,
+  ZONE_PROJECTS_COUNT_SUFFIX,
+  ZONE_PROJECTS_LOADING_TEXT,
+  ZONE_PROJECT_KINDS,
+  ZONE_PROJECT_KIND_INVESTMENT,
+  ZONE_PROJECT_KIND_ATTRACTED,
+  ZONE_PROJECT_AREA_LABEL,
+  ZONE_PROJECT_INVESTMENT_LABEL,
+  ZONE_AREA_SUFFIX,
   getSourceUrl,
   getCategoryConfigUrl,
   getProvinceInvestmentInfoUrl,
   getZoneDetailUrl,
+  getZoneProjectsUrl,
 };

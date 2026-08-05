@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   sheetHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 48,
+    minHeight: 56,
     paddingLeft: 16,
     paddingRight: 8,
     borderBottomWidth: 1,
@@ -357,19 +357,19 @@ const styles = StyleSheet.create({
   },
   sheetHeaderTitle: {
     flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#374151',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1f2937',
   },
   sheetCloseButton: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sheetCloseMark: {
-    fontSize: 20,
-    lineHeight: 22,
+    fontSize: 22,
+    lineHeight: 24,
     color: '#4b5563',
   },
   // The panel has a fixed height, so the scroll area takes whatever is left
@@ -707,6 +707,149 @@ const styles = StyleSheet.create({
   },
   zoneProjectButtonLabelPrimary: {
     color: '#ffffff',
+  },
+  sheetBackButton: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -12,
+    marginRight: 2,
+  },
+  // Drawn from two borders on a rotated square rather than a '‹' glyph: the
+  // character sits off-centre in its em box by an amount that differs per
+  // platform, so it drifted out of line with the title as it got bigger. A
+  // border chevron has no font metrics to fight and stays centred at any size.
+  // marginRight offsets the stroke sitting in the left half of the rotated box.
+  sheetBackChevron: {
+    width: 14,
+    height: 14,
+    borderLeftWidth: 2.5,
+    borderBottomWidth: 2.5,
+    borderColor: '#374151',
+    transform: [{ rotate: '45deg' }],
+    marginRight: 4,
+  },
+  zoneProjectsHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  zoneProjectsHeaderTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1f2937',
+  },
+  zoneProjectsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  zoneProjectsHeaderSubtitle: {
+    flex: 1,
+    fontSize: 13,
+    color: '#6b7280',
+    paddingRight: 10,
+  },
+  zoneProjectsCountBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
+  },
+  zoneProjectsCountText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  zoneProjectList: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  zoneProjectCard: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 10,
+  },
+  zoneProjectCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  zoneProjectName: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1f2937',
+    paddingRight: 10,
+  },
+  zoneProjectStatusPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    backgroundColor: '#fef2f2',
+  },
+  zoneProjectStatusText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#b91c1c',
+  },
+  zoneProjectCode: {
+    marginTop: 6,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#9ca3af',
+    letterSpacing: 0.3,
+  },
+  zoneProjectSector: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#f9fafb',
+  },
+  zoneProjectSectorText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  zoneProjectStatRow: {
+    flexDirection: 'row',
+    marginTop: 12,
+    marginHorizontal: -4,
+  },
+  zoneProjectStatCell: {
+    flex: 1,
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#f1d7d7',
+    borderRadius: 10,
+    backgroundColor: '#fdf7f7',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  zoneProjectStatLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#9ca3af',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  zoneProjectStatValue: {
+    marginTop: 5,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#b91c1c',
   },
 });
 

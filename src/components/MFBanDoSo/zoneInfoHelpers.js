@@ -1,4 +1,5 @@
 import {
+  ZONE_AREA_SUFFIX,
   ZONE_CURRENCY_SUFFIX,
   ZONE_ESTABLISHED_YEAR_LABEL,
   ZONE_PLACEHOLDER_ADVANTAGES,
@@ -59,7 +60,7 @@ function resolveZoneFeatureId(feature) {
   return toNumericId(properties.id);
 }
 
-function formatAmount(value) {
+function formatGroupedNumber(value, suffix) {
   const amount = typeof value === 'number' ? value : Number(value);
   if (!Number.isFinite(amount) || amount <= 0) {
     return null;
@@ -67,7 +68,11 @@ function formatAmount(value) {
 
   const grouped = `${Math.trunc(amount)}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-  return `${grouped}${ZONE_CURRENCY_SUFFIX}`;
+  return `${grouped}${suffix}`;
+}
+
+function formatAmount(value) {
+  return formatGroupedNumber(value, ZONE_CURRENCY_SUFFIX);
 }
 
 function formatYear(value) {
@@ -177,6 +182,7 @@ function resolveZoneDetailInfo(json) {
   const intro = firstNonEmptyString([data.gioiThieu]);
 
   return {
+    id: toNumericId(data.id),
     name,
     typeLabel: firstNonEmptyString([data.tenLoaiKhu]),
     subtitle: firstNonEmptyString([data.tenTiengAnh]),
@@ -197,4 +203,32 @@ function resolveZoneDetailInfo(json) {
   };
 }
 
-export { resolveZoneDetailInfo, resolveZoneFeatureId };
+/**
+ * Maps the `portal/kcnkkt/{id}/du-an-thu-hut` payload — a flat array — to the
+ * rows the project list renders. Entries without a name are dropped: there
+ * would be nothing to label the card with.
+ */
+function resolveZoneProjects(json) {
+  const data = json?.data;
+
+  return (Array.isArray(data) ? data : [])
+    .map((item, index) => {
+      const name = firstNonEmptyString([item?.tenDuAn, item?.maDuAn]);
+      if (!name) {
+        return null;
+      }
+
+      return {
+        key: toNumericId(item?.id) ?? `index-${index}`,
+        name,
+        code: firstNonEmptyString([item?.maDuAn]),
+        sector: firstNonEmptyString([item?.linhVuc]),
+        status: firstNonEmptyString([item?.trangThai]),
+        area: formatGroupedNumber(item?.dienTichDatDuKien, ZONE_AREA_SUFFIX),
+        investment: formatAmount(item?.tongMucDauTuDuKien),
+      };
+    })
+    .filter((project) => project != null);
+}
+
+export { resolveZoneDetailInfo, resolveZoneFeatureId, resolveZoneProjects };

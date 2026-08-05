@@ -22,6 +22,8 @@ import {
   SHEET_ZONE_EMPTY_TEXT,
   SHEET_ZONE_LOADING_TEXT,
   SHEET_ZONE_TITLE,
+  ZONE_PROJECT_KINDS,
+  ZONE_PROJECTS_LOADING_TEXT,
   ZONE_HIGHLIGHT_FILL_COLOR,
   ZONE_HIGHLIGHT_STROKE_COLOR,
   ZONE_HIGHLIGHT_STROKE_WIDTH,
@@ -31,6 +33,7 @@ import {
   getProvinceInvestmentInfoUrl,
   getSourceUrl,
   getZoneDetailUrl,
+  getZoneProjectsUrl,
 } from './MFBanDoSo/constants';
 import {
   createCategoryGroupSections,
@@ -53,6 +56,7 @@ import {
 import {
   resolveZoneDetailInfo,
   resolveZoneFeatureId,
+  resolveZoneProjects,
 } from './MFBanDoSo/zoneInfoHelpers';
 import {
   areaGeometryToPolygonPaths,
@@ -87,6 +91,7 @@ class MFBanDoSo extends MFMapView {
     this._sheetPanelHeight = 0;
     this._featurePressAt = 0;
     this._zonePolygonIds = [];
+    this._zoneProjectsRequestId = 0;
     this._selectorAnim = new Animated.Value(0);
     this._sheetAnim = new Animated.Value(0);
     this.state = {
@@ -104,11 +109,17 @@ class MFBanDoSo extends MFMapView {
       isSheetLoading: false,
       isSheetMounted: false,
       sheetSnapValue: SHEET_INITIAL_SNAP_RATIO,
+      projectsKind: null,
+      zoneProjects: [],
+      zoneProjectsStatusText: ZONE_PROJECTS_LOADING_TEXT,
+      isZoneProjectsLoading: false,
     };
 
     this._closeSheet = this._closeSheet.bind(this);
     this._focusProvinceFromSheet = this._focusProvinceFromSheet.bind(this);
     this._onSheetPanelHeightChange = this._onSheetPanelHeightChange.bind(this);
+    this._openZoneProjects = this._openZoneProjects.bind(this);
+    this._closeZoneProjects = this._closeZoneProjects.bind(this);
     this._snapSheetTo = this._snapSheetTo.bind(this);
     this._toggleItem = this._toggleItem.bind(this);
     this._toggleGroupChecked = this._toggleGroupChecked.bind(this);
@@ -314,12 +325,17 @@ class MFBanDoSo extends MFMapView {
   _beginSheetRequest(kind, loadingText) {
     const requestId = this._sheetRequestId + 1;
     this._sheetRequestId = requestId;
+    // Whatever the sheet was showing belonged to the previous target, the
+    // drilled-down project list included.
+    this._zoneProjectsRequestId += 1;
 
     this.setState({
       sheetKind: kind,
       sheetInfo: null,
       sheetStatusText: loadingText,
       isSheetLoading: true,
+      projectsKind: null,
+      zoneProjects: [],
     });
 
     return () => this._isMounted && requestId === this._sheetRequestId;
@@ -400,6 +416,73 @@ class MFBanDoSo extends MFMapView {
     }
   }
 
+  /**
+   * A project list is a drill-down inside the same sheet: the zone detail stays
+   * in state so going back needs no refetch, and the list keeps its own request
+   * id so a slow list response cannot land on a different zone — or on the
+   * other list, since both kinds share this one slot.
+   */
+  _openZoneProjects(kind) {
+    const zoneId = this.state.sheetInfo?.id;
+    const url = getZoneProjectsUrl(this.props.isStaging, zoneId, kind);
+
+    if (zoneId == null || !url) {
+      return;
+    }
+
+    this.setState({ projectsKind: kind });
+    this._loadZoneProjects(url, kind);
+  }
+
+  _closeZoneProjects() {
+    this._zoneProjectsRequestId += 1;
+    this.setState({ projectsKind: null });
+  }
+
+  async _loadZoneProjects(url, kind) {
+    const requestId = this._zoneProjectsRequestId + 1;
+    this._zoneProjectsRequestId = requestId;
+    const emptyText = ZONE_PROJECT_KINDS[kind].emptyText;
+
+    this.setState({
+      zoneProjects: [],
+      zoneProjectsStatusText: ZONE_PROJECTS_LOADING_TEXT,
+      isZoneProjectsLoading: true,
+    });
+
+    const isCurrentRequest = () =>
+      this._isMounted && requestId === this._zoneProjectsRequestId;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch zone projects: ${response.status}`);
+      }
+
+      const json = await response.json();
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      this.setState({
+        zoneProjects: resolveZoneProjects(json),
+        zoneProjectsStatusText: emptyText,
+        isZoneProjectsLoading: false,
+      });
+    } catch (error) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      console.warn('Cannot load zone projects', error);
+      this.setState({
+        zoneProjects: [],
+        zoneProjectsStatusText: emptyText,
+        isZoneProjectsLoading: false,
+      });
+    }
+  }
+
   _animateSheetTo(toValue, duration, easing, onDone) {
     Animated.timing(this._sheetAnim, {
       toValue,
@@ -442,6 +525,7 @@ class MFBanDoSo extends MFMapView {
 
   _closeSheet() {
     this._sheetRequestId += 1;
+    this._zoneProjectsRequestId += 1;
     this._removeMarker(SHEET_MARKER_ID);
     this._clearZoneOverlays();
 
@@ -459,6 +543,8 @@ class MFBanDoSo extends MFMapView {
           isSheetLoading: false,
           isSheetMounted: false,
           sheetSnapValue: SHEET_INITIAL_SNAP_RATIO,
+          projectsKind: null,
+          zoneProjects: [],
         });
       }
     );
@@ -671,6 +757,10 @@ class MFBanDoSo extends MFMapView {
     const selectorTitle = SELECTOR_TITLE;
     const legendTitle = LEGEND_TITLE;
     const isZoneSheet = this.state.sheetKind === SHEET_KIND_ZONE;
+    const projectsConfig = ZONE_PROJECT_KINDS[this.state.projectsKind];
+    const showProjects = isZoneSheet && projectsConfig != null;
+    const zoneTitle = showProjects ? projectsConfig.title : SHEET_ZONE_TITLE;
+    const sheetTitle = isZoneSheet ? zoneTitle : SHEET_TITLE;
     const backdropAnimatedStyle = {
       opacity: this._selectorAnim.interpolate({
         inputRange: [0, 1],
@@ -723,17 +813,23 @@ class MFBanDoSo extends MFMapView {
         />
         <InvestmentSheet
           show={this.state.isSheetMounted}
-          title={isZoneSheet ? SHEET_ZONE_TITLE : SHEET_TITLE}
+          title={sheetTitle}
           kind={this.state.sheetKind}
           loading={this.state.isSheetLoading}
           statusText={this.state.sheetStatusText}
           info={this.state.sheetInfo}
+          showProjects={showProjects}
+          projects={this.state.zoneProjects}
+          projectsLoading={this.state.isZoneProjectsLoading}
+          projectsStatusText={this.state.zoneProjectsStatusText}
           dragAnim={this._sheetAnim}
           snapValue={this.state.sheetSnapValue}
           onClose={this._closeSheet}
+          onBack={showProjects ? this._closeZoneProjects : null}
           onSnapTo={this._snapSheetTo}
           onPanelHeightChange={this._onSheetPanelHeightChange}
           onFocusProvince={this._focusProvinceFromSheet}
+          onPressProjects={this._openZoneProjects}
         />
       </React.Fragment>
     );

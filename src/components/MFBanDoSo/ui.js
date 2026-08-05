@@ -33,6 +33,12 @@ import {
   ZONE_INVESTOR_TITLE,
   ZONE_LOCATION_TITLE,
   ZONE_MAIN_INFO_TITLE,
+  ZONE_PROJECTS_COUNT_SUFFIX,
+  ZONE_PROJECTS_SUBTITLE,
+  ZONE_PROJECT_AREA_LABEL,
+  ZONE_PROJECT_KIND_ATTRACTED,
+  ZONE_PROJECT_KIND_INVESTMENT,
+  ZONE_PROJECT_INVESTMENT_LABEL,
   ZONE_RESTRICTED_SECTORS_TITLE,
 } from './constants';
 import { styles } from './styles';
@@ -428,7 +434,7 @@ function ZoneChipSection({ title, items, danger }) {
   );
 }
 
-function ZoneSheetBody({ info }) {
+function ZoneSheetBody({ info, onPressProjects }) {
   const stats = Array.isArray(info.stats) ? info.stats : [];
   const introParagraphs = Array.isArray(info.introParagraphs)
     ? info.introParagraphs
@@ -569,13 +575,17 @@ function ZoneSheetBody({ info }) {
       ) : null}
 
       <View style={styles.zoneProjectButtonRow}>
-        <View style={styles.zoneProjectButton}>
+        <Pressable
+          style={styles.zoneProjectButton}
+          onPress={() => onPressProjects(ZONE_PROJECT_KIND_INVESTMENT)}
+        >
           <Text style={styles.zoneProjectButtonLabel}>
             {ZONE_INVESTMENT_PROJECTS_LABEL}
           </Text>
-        </View>
-        <View
+        </Pressable>
+        <Pressable
           style={[styles.zoneProjectButton, styles.zoneProjectButtonPrimary]}
+          onPress={() => onPressProjects(ZONE_PROJECT_KIND_ATTRACTED)}
         >
           <Text
             style={[
@@ -585,7 +595,104 @@ function ZoneSheetBody({ info }) {
           >
             {ZONE_ATTRACTED_PROJECTS_LABEL}
           </Text>
+        </Pressable>
+      </View>
+    </React.Fragment>
+  );
+}
+
+function ZoneProjectsBody({ zoneName, loading, statusText, projects }) {
+  // The count is only meaningful once the request has settled, so the badge
+  // waits rather than flashing "0 du an" while loading.
+  const header = zoneName ? (
+    <View style={styles.zoneProjectsHeader}>
+      <Text style={styles.zoneProjectsHeaderTitle} numberOfLines={2}>
+        {zoneName}
+      </Text>
+      <View style={styles.zoneProjectsHeaderRow}>
+        <Text style={styles.zoneProjectsHeaderSubtitle} numberOfLines={1}>
+          {ZONE_PROJECTS_SUBTITLE}
+        </Text>
+        {loading ? null : (
+          <View style={styles.zoneProjectsCountBadge}>
+            <Text style={styles.zoneProjectsCountText}>
+              {`${projects.length}${ZONE_PROJECTS_COUNT_SUFFIX}`}
+            </Text>
+          </View>
+        )}
+      </View>
+    </View>
+  ) : null;
+
+  if (loading || projects.length === 0) {
+    return (
+      <React.Fragment>
+        {header}
+        <View style={styles.sheetStatusBox}>
+          {loading ? <ActivityIndicator color="#b91c1c" /> : null}
+          <Text style={styles.sheetStatusText}>{statusText}</Text>
         </View>
+      </React.Fragment>
+    );
+  }
+
+  return (
+    <React.Fragment>
+      {header}
+      <View style={styles.zoneProjectList}>
+        {projects.map((project) => (
+          <View key={project.key} style={styles.zoneProjectCard}>
+            <View style={styles.zoneProjectCardHeader}>
+              <Text style={styles.zoneProjectName} numberOfLines={2}>
+                {project.name}
+              </Text>
+              {project.status ? (
+                <View style={styles.zoneProjectStatusPill}>
+                  <Text style={styles.zoneProjectStatusText}>
+                    {project.status}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            {project.code ? (
+              <Text style={styles.zoneProjectCode}>{project.code}</Text>
+            ) : null}
+
+            {project.sector ? (
+              <View style={styles.zoneProjectSector}>
+                <Text style={styles.zoneProjectSectorText}>
+                  {project.sector}
+                </Text>
+              </View>
+            ) : null}
+
+            {project.area || project.investment ? (
+              <View style={styles.zoneProjectStatRow}>
+                {project.area ? (
+                  <View style={styles.zoneProjectStatCell}>
+                    <Text style={styles.zoneProjectStatLabel} numberOfLines={2}>
+                      {ZONE_PROJECT_AREA_LABEL}
+                    </Text>
+                    <Text style={styles.zoneProjectStatValue} numberOfLines={1}>
+                      {project.area}
+                    </Text>
+                  </View>
+                ) : null}
+                {project.investment ? (
+                  <View style={styles.zoneProjectStatCell}>
+                    <Text style={styles.zoneProjectStatLabel} numberOfLines={2}>
+                      {ZONE_PROJECT_INVESTMENT_LABEL}
+                    </Text>
+                    <Text style={styles.zoneProjectStatValue} numberOfLines={1}>
+                      {project.investment}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+        ))}
       </View>
     </React.Fragment>
   );
@@ -643,12 +750,18 @@ function InvestmentSheet({
   loading,
   statusText,
   info,
+  showProjects,
+  projects,
+  projectsLoading,
+  projectsStatusText,
   dragAnim,
   snapValue,
   onClose,
+  onBack,
   onSnapTo,
   onPanelHeightChange,
   onFocusProvince,
+  onPressProjects,
 }) {
   const [containerHeight, setContainerHeight] = useState(0);
   const availableHeight = containerHeight || Dimensions.get('window').height;
@@ -781,6 +894,11 @@ function InvestmentSheet({
         style={[styles.sheetPanel, { height: panelHeight }, panelAnimatedStyle]}
       >
         <View style={styles.sheetHeader} {...panResponder.panHandlers}>
+          {onBack ? (
+            <Pressable style={styles.sheetBackButton} onPress={onBack}>
+              <View style={styles.sheetBackChevron} />
+            </Pressable>
+          ) : null}
           <Text style={styles.sheetHeaderTitle} numberOfLines={1}>
             {title}
           </Text>
@@ -789,7 +907,26 @@ function InvestmentSheet({
           </Pressable>
         </View>
 
-        {loading || !info ? (
+        {showProjects ? (
+          // Keyed apart from the detail scroller so switching views starts at
+          // the top instead of keeping the detail's scroll offset.
+          <ScrollView
+            key="projects"
+            style={styles.sheetScroll}
+            contentContainerStyle={styles.sheetScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <ZoneProjectsBody
+              zoneName={info?.name}
+              loading={projectsLoading}
+              statusText={projectsStatusText}
+              projects={Array.isArray(projects) ? projects : []}
+            />
+            {scrollTailSpace > 0 ? (
+              <View style={{ height: scrollTailSpace }} />
+            ) : null}
+          </ScrollView>
+        ) : loading || !info ? (
           <View style={styles.sheetStatusBox}>
             {loading ? <ActivityIndicator color="#b91c1c" /> : null}
             <Text style={styles.sheetStatusText}>{statusText}</Text>
@@ -797,12 +934,13 @@ function InvestmentSheet({
         ) : (
           <React.Fragment>
             <ScrollView
+              key="detail"
               style={styles.sheetScroll}
               contentContainerStyle={styles.sheetScrollContent}
               showsVerticalScrollIndicator={false}
             >
               {kind === SHEET_KIND_ZONE ? (
-                <ZoneSheetBody info={info} />
+                <ZoneSheetBody info={info} onPressProjects={onPressProjects} />
               ) : (
                 <InvestmentSheetBody info={info} />
               )}
