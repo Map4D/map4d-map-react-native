@@ -587,6 +587,127 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#ffffff',
   },
+  zoneHeroCode: {
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    backgroundColor: '#0f172a80',
+  },
+  zoneHeroCodeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#e5e7eb',
+    letterSpacing: 0.4,
+  },
+  zoneStatusRow: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  zoneStatusPill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    backgroundColor: '#f0fdf4',
+  },
+  zoneStatusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#15803d',
+  },
+  zoneLabeledBox: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    backgroundColor: '#f9fafb',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  zoneLabeledBoxLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#9ca3af',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  zoneLabeledBoxText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#374151',
+  },
+  zoneParagraphSpacing: {
+    marginTop: 8,
+  },
+  zoneChipDanger: {
+    borderColor: '#fecaca',
+    backgroundColor: '#fef2f2',
+  },
+  zoneChipDangerText: {
+    color: '#b91c1c',
+  },
+  zoneStatusPillMuted: {
+    borderColor: '#e5e7eb',
+    backgroundColor: '#f9fafb',
+  },
+  zoneStatusTextMuted: {
+    color: '#6b7280',
+  },
+  zoneInvestorCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    backgroundColor: '#f9fafb',
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  zoneInvestorName: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    paddingRight: 10,
+  },
+  zoneInvestorYear: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#b91c1c',
+  },
+  zoneProjectButtonRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    marginHorizontal: -5,
+  },
+  zoneProjectButton: {
+    flex: 1,
+    marginHorizontal: 5,
+    height: 44,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
+  },
+  zoneProjectButtonPrimary: {
+    borderColor: '#7f1d1d',
+    backgroundColor: '#7f1d1d',
+  },
+  zoneProjectButtonLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  zoneProjectButtonLabelPrimary: {
+    color: '#ffffff',
+  },
 });
 
 export { styles };

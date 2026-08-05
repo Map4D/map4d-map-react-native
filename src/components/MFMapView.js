@@ -164,6 +164,7 @@ class MFMapView extends React.Component {
 
     this._onMapReady = this._onMapReady.bind(this);
     this._onPress = this._onPress.bind(this);
+    this._onDataSourceFeaturePress = this._onDataSourceFeaturePress.bind(this);
     this._ref = this._ref.bind(this);
   }
 
@@ -278,15 +279,17 @@ class MFMapView extends React.Component {
     });
   }
 
-  /**
-   * Native map taps are routed through this method instead of being bound
-   * straight to `props.onPress`, so subclasses can react to a tap without
-   * swallowing the consumer callback.
-   */
   _onPress(event) {
     const { onPress } = this.props;
     if (onPress) {
       onPress(event);
+    }
+  }
+
+  _onDataSourceFeaturePress(event) {
+    const { onDataSourceFeaturePress } = this.props;
+    if (onDataSourceFeaturePress) {
+      onDataSourceFeaturePress(event);
     }
   }
 
@@ -488,6 +491,7 @@ class MFMapView extends React.Component {
         onMapReady: this._onMapReady,
         ...restProps,
         onPress: this._onPress,
+        onDataSourceFeaturePress: this._onDataSourceFeaturePress,
         children: (
           <React.Fragment>
             {children}

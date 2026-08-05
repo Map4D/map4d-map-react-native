@@ -34,11 +34,61 @@ const SHEET_STATS_TITLE = 'Chỉ số nổi bật';
 const SHEET_INDUSTRIAL_ZONES_TITLE = 'Khu công nghiệp';
 const SHEET_FOCUS_ACTION_LABEL = 'Xem tỉnh trên bản đồ';
 
+// Sheet shown when a KCN/KKT feature is tapped instead of bare map.
+const SHEET_ZONE_TITLE = 'Chi tiết khu';
+const SHEET_ZONE_LOADING_TEXT = 'Đang tải thông tin khu...';
+const SHEET_ZONE_EMPTY_TEXT = 'Không có thông tin chi tiết cho khu này.';
+const ZONE_MAIN_INFO_TITLE = 'Thông tin chính';
+const ZONE_LOCATION_TITLE = 'Vị trí';
+const ZONE_ADDRESS_LABEL = 'Địa chỉ';
+const ZONE_INTRO_TITLE = 'Giới thiệu';
+const ZONE_ATTRACTED_SECTORS_TITLE = 'Ngành nghề thu hút đầu tư';
+const ZONE_RESTRICTED_SECTORS_TITLE = 'Ngành nghề hạn chế đầu tư';
+const ZONE_ADVANTAGES_TITLE = 'Lợi thế đầu tư';
+const ZONE_INVESTOR_TITLE = 'Chủ đầu tư';
+// Highlight drawn over the tapped zone's own geometry.
+const ZONE_POLYGON_ID_PREFIX = 'mfbandoso-zone-polygon';
+const ZONE_HIGHLIGHT_FILL_COLOR = '#B91C1C33';
+const ZONE_HIGHLIGHT_STROKE_COLOR = '#B91C1CFF';
+const ZONE_HIGHLIGHT_STROKE_WIDTH = 2;
+const ZONE_HIGHLIGHT_Z_INDEX = 900;
+const ZONE_PUBLISHED_TEXT = 'Đã công bố';
+const ZONE_UNPUBLISHED_TEXT = 'Chưa công bố';
+const ZONE_CURRENCY_SUFFIX = ' đ';
+
+// Placeholders. The `portal/kcnkkt/{id}` payload carries no banner image and no
+// sector/advantage lists, so these sections of the design are filled from here
+// until the API serves them. Swap these for real fields in
+// `zoneInfoHelpers.js` once it does — nothing else has to change.
+const ZONE_PLACEHOLDER_BANNER_IMAGE =
+  'https://minio.zamiga.vn/cmc-dtqg/public/gioithieu/muong_hoa_-_lao_cai_24072026_070844.webp';
+const ZONE_PLACEHOLDER_ATTRACTED_SECTORS = [
+  'Công nghiệp chế biến, chế tạo',
+  'Điện tử và công nghệ thông tin',
+  'Logistics và kho vận',
+];
+const ZONE_PLACEHOLDER_RESTRICTED_SECTORS = [
+  'Sản xuất gây ô nhiễm môi trường',
+  'Chế biến khoáng sản',
+];
+const ZONE_PLACEHOLDER_ADVANTAGES = [
+  'Ưu đãi thuế theo quy định hiện hành',
+  'Hạ tầng kỹ thuật đồng bộ',
+  'Hỗ trợ thủ tục đầu tư một cửa',
+];
+const ZONE_ESTABLISHED_YEAR_LABEL = 'Năm thành lập';
+const ZONE_TOTAL_INVESTMENT_LABEL = 'Tổng vốn đầu tư';
+const ZONE_STATUS_LABEL = 'Tình trạng';
+const ZONE_TYPE_LABEL = 'Loại hình';
+const ZONE_INVESTMENT_PROJECTS_LABEL = 'Dự án đầu tư';
+const ZONE_ATTRACTED_PROJECTS_LABEL = 'Dự án thu hút';
+
 const API_HOST = 'https://cmcdtqg-gateway.dieuhanhso.vn';
 const SOURCE_URL_PATH = 'bds/api/tile/vector/{z}/{x}/{y}.pbf?p=1';
 const CATEGORY_CONFIG_URL_PATH = 'bds/api/BanDo/dau-tu/category-config';
 const PROVINCE_INVESTMENT_INFO_URL_PATH =
   'bds/api/portal/ProvinceInvestmentInfo/reverse';
+const ZONE_DETAIL_URL_PATH = 'bds/api/portal/kcnkkt';
 
 function buildApiUrl(path, isStaging) {
   const stagingSegment = isStaging ? '/staging' : '';
@@ -51,6 +101,11 @@ function getSourceUrl(isStaging) {
 
 function getCategoryConfigUrl(isStaging) {
   return buildApiUrl(CATEGORY_CONFIG_URL_PATH, isStaging);
+}
+
+function getZoneDetailUrl(isStaging, id) {
+  const base = buildApiUrl(ZONE_DETAIL_URL_PATH, isStaging);
+  return `${base}/${encodeURIComponent(id)}`;
 }
 
 function getProvinceInvestmentInfoUrl(isStaging, latitude, longitude) {
@@ -84,7 +139,37 @@ export {
   SHEET_STATS_TITLE,
   SHEET_INDUSTRIAL_ZONES_TITLE,
   SHEET_FOCUS_ACTION_LABEL,
+  SHEET_ZONE_TITLE,
+  SHEET_ZONE_LOADING_TEXT,
+  SHEET_ZONE_EMPTY_TEXT,
+  ZONE_MAIN_INFO_TITLE,
+  ZONE_LOCATION_TITLE,
+  ZONE_ADDRESS_LABEL,
+  ZONE_INTRO_TITLE,
+  ZONE_ATTRACTED_SECTORS_TITLE,
+  ZONE_RESTRICTED_SECTORS_TITLE,
+  ZONE_ADVANTAGES_TITLE,
+  ZONE_INVESTOR_TITLE,
+  ZONE_POLYGON_ID_PREFIX,
+  ZONE_HIGHLIGHT_FILL_COLOR,
+  ZONE_HIGHLIGHT_STROKE_COLOR,
+  ZONE_HIGHLIGHT_STROKE_WIDTH,
+  ZONE_HIGHLIGHT_Z_INDEX,
+  ZONE_PUBLISHED_TEXT,
+  ZONE_UNPUBLISHED_TEXT,
+  ZONE_CURRENCY_SUFFIX,
+  ZONE_PLACEHOLDER_BANNER_IMAGE,
+  ZONE_PLACEHOLDER_ATTRACTED_SECTORS,
+  ZONE_PLACEHOLDER_RESTRICTED_SECTORS,
+  ZONE_PLACEHOLDER_ADVANTAGES,
+  ZONE_ESTABLISHED_YEAR_LABEL,
+  ZONE_TOTAL_INVESTMENT_LABEL,
+  ZONE_STATUS_LABEL,
+  ZONE_TYPE_LABEL,
+  ZONE_INVESTMENT_PROJECTS_LABEL,
+  ZONE_ATTRACTED_PROJECTS_LABEL,
   getSourceUrl,
   getCategoryConfigUrl,
   getProvinceInvestmentInfoUrl,
+  getZoneDetailUrl,
 };

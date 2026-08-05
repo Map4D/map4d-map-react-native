@@ -437,8 +437,11 @@ public class RMFMapView extends MFMapView implements OnMapReadyCallback {
           else if (value instanceof Integer) {
             propertiesMap.putInt(key, (Integer) value);
           }
-          else if (value instanceof Double) {
-            propertiesMap.putDouble(key, (Double) value);
+          else if (value instanceof Number) {
+            propertiesMap.putDouble(key, ((Number) value).doubleValue());
+          }
+          else if (value != null) {
+            propertiesMap.putString(key, value.toString());
           }
         }
         feature.putMap("properties", propertiesMap);

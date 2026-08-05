@@ -24,6 +24,16 @@ import {
   SHEET_SWIPE_FLICK_VELOCITY,
   SHEET_TOP_PEEK,
   SHEET_TRANSLATE_Y,
+  ZONE_ADDRESS_LABEL,
+  ZONE_ADVANTAGES_TITLE,
+  ZONE_ATTRACTED_PROJECTS_LABEL,
+  ZONE_ATTRACTED_SECTORS_TITLE,
+  ZONE_INTRO_TITLE,
+  ZONE_INVESTMENT_PROJECTS_LABEL,
+  ZONE_INVESTOR_TITLE,
+  ZONE_LOCATION_TITLE,
+  ZONE_MAIN_INFO_TITLE,
+  ZONE_RESTRICTED_SECTORS_TITLE,
 } from './constants';
 import { styles } from './styles';
 
@@ -389,6 +399,198 @@ function InvestmentSheetBody({ info }) {
   );
 }
 
+function ZoneChipSection({ title, items, danger }) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return null;
+  }
+
+  return (
+    <View style={styles.sheetSection}>
+      <Text style={styles.sheetSectionTitle}>{title}</Text>
+      <View style={styles.sheetChipRow}>
+        {items.map((item, index) => (
+          <View
+            key={`${item}-${index}`}
+            style={[styles.sheetChip, danger && styles.zoneChipDanger]}
+          >
+            <Text
+              style={[
+                styles.sheetChipText,
+                danger && styles.zoneChipDangerText,
+              ]}
+            >
+              {item}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function ZoneSheetBody({ info }) {
+  const stats = Array.isArray(info.stats) ? info.stats : [];
+  const introParagraphs = Array.isArray(info.introParagraphs)
+    ? info.introParagraphs
+    : [];
+  const investors = Array.isArray(info.investors) ? info.investors : [];
+
+  return (
+    <React.Fragment>
+      <View style={styles.sheetHero}>
+        {info.bannerImage ? (
+          <Image
+            style={styles.sheetHeroImage}
+            source={{ uri: info.bannerImage }}
+            resizeMode="cover"
+          />
+        ) : null}
+        <View style={styles.sheetHeroScrim} />
+        <View style={styles.sheetHeroContent}>
+          {info.typeLabel ? (
+            <View style={styles.sheetHeroBadge}>
+              <Text style={styles.sheetHeroBadgeText}>{info.typeLabel}</Text>
+            </View>
+          ) : null}
+          <Text style={styles.sheetHeroTitle} numberOfLines={2}>
+            {info.name}
+          </Text>
+          {info.subtitle ? (
+            <Text style={styles.sheetHeroSubtitle} numberOfLines={2}>
+              {info.subtitle}
+            </Text>
+          ) : null}
+          {info.code ? (
+            <View style={styles.zoneHeroCode}>
+              <Text style={styles.zoneHeroCodeText}>{info.code}</Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      {info.status ? (
+        <View style={styles.zoneStatusRow}>
+          <View
+            style={[
+              styles.zoneStatusPill,
+              !info.isPublished && styles.zoneStatusPillMuted,
+            ]}
+          >
+            <Text
+              style={[
+                styles.zoneStatusText,
+                !info.isPublished && styles.zoneStatusTextMuted,
+              ]}
+            >
+              {info.status}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
+      {stats.length > 0 ? (
+        <View style={styles.sheetSection}>
+          <Text style={styles.sheetSectionTitle}>{ZONE_MAIN_INFO_TITLE}</Text>
+          <View style={styles.sheetStatGrid}>
+            {stats.map((stat, index) => (
+              <View key={`${stat.label}-${index}`} style={styles.sheetStatCard}>
+                <View style={styles.sheetStatCardInner}>
+                  <Text style={styles.sheetStatLabel} numberOfLines={2}>
+                    {stat.label}
+                  </Text>
+                  <Text style={styles.sheetStatValue} numberOfLines={2}>
+                    {stat.value}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {info.address ? (
+        <View style={styles.sheetSection}>
+          <Text style={styles.sheetSectionTitle}>{ZONE_LOCATION_TITLE}</Text>
+          <View style={styles.zoneLabeledBox}>
+            <Text style={styles.zoneLabeledBoxLabel}>{ZONE_ADDRESS_LABEL}</Text>
+            <Text style={styles.zoneLabeledBoxText}>{info.address}</Text>
+          </View>
+        </View>
+      ) : null}
+
+      {introParagraphs.length > 0 ? (
+        <View style={styles.sheetSection}>
+          <Text style={styles.sheetSectionTitle}>{ZONE_INTRO_TITLE}</Text>
+          {introParagraphs.map((paragraph, index) => (
+            <View
+              key={`${paragraph}-${index}`}
+              style={[
+                styles.sheetOverviewBox,
+                index > 0 && styles.zoneParagraphSpacing,
+              ]}
+            >
+              <Text style={styles.sheetOverviewText}>{paragraph}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      <ZoneChipSection
+        title={ZONE_ATTRACTED_SECTORS_TITLE}
+        items={info.attractedSectors}
+      />
+      <ZoneChipSection
+        title={ZONE_RESTRICTED_SECTORS_TITLE}
+        items={info.restrictedSectors}
+        danger
+      />
+      <ZoneChipSection title={ZONE_ADVANTAGES_TITLE} items={info.advantages} />
+
+      {investors.length > 0 ? (
+        <View style={styles.sheetSection}>
+          <Text style={styles.sheetSectionTitle}>{ZONE_INVESTOR_TITLE}</Text>
+          {investors.map((investor, index) => (
+            <View
+              key={`${investor.name}-${index}`}
+              style={[
+                styles.zoneInvestorCard,
+                index > 0 && styles.zoneParagraphSpacing,
+              ]}
+            >
+              <Text style={styles.zoneInvestorName} numberOfLines={2}>
+                {investor.name}
+              </Text>
+              {investor.year ? (
+                <Text style={styles.zoneInvestorYear}>{investor.year}</Text>
+              ) : null}
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      <View style={styles.zoneProjectButtonRow}>
+        <View style={styles.zoneProjectButton}>
+          <Text style={styles.zoneProjectButtonLabel}>
+            {ZONE_INVESTMENT_PROJECTS_LABEL}
+          </Text>
+        </View>
+        <View
+          style={[styles.zoneProjectButton, styles.zoneProjectButtonPrimary]}
+        >
+          <Text
+            style={[
+              styles.zoneProjectButtonLabel,
+              styles.zoneProjectButtonLabelPrimary,
+            ]}
+          >
+            {ZONE_ATTRACTED_PROJECTS_LABEL}
+          </Text>
+        </View>
+      </View>
+    </React.Fragment>
+  );
+}
+
 const SHEET_SNAP_FULL = 1;
 
 /**
@@ -432,9 +634,12 @@ function resolveSheetSnapTarget(releasedValue, velocity, startValue) {
   );
 }
 
+const SHEET_KIND_ZONE = 'zone';
+
 function InvestmentSheet({
   show,
   title,
+  kind,
   loading,
   statusText,
   info,
@@ -447,10 +652,7 @@ function InvestmentSheet({
 }) {
   const [containerHeight, setContainerHeight] = useState(0);
   const availableHeight = containerHeight || Dimensions.get('window').height;
-  const panelHeight = Math.max(
-    0,
-    Math.round(availableHeight - SHEET_TOP_PEEK)
-  );
+  const panelHeight = Math.max(0, Math.round(availableHeight - SHEET_TOP_PEEK));
 
   // How much map the sheet hides is only known here, where the map area is
   // measured, but the camera fit that has to work around it lives in MFBanDoSo.
@@ -599,7 +801,11 @@ function InvestmentSheet({
               contentContainerStyle={styles.sheetScrollContent}
               showsVerticalScrollIndicator={false}
             >
-              <InvestmentSheetBody info={info} />
+              {kind === SHEET_KIND_ZONE ? (
+                <ZoneSheetBody info={info} />
+              ) : (
+                <InvestmentSheetBody info={info} />
+              )}
               {scrollTailSpace > 0 ? (
                 <View style={{ height: scrollTailSpace }} />
               ) : null}
