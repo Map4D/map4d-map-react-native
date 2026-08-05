@@ -106,12 +106,21 @@ const ZONE_PROJECT_AREA_LABEL = 'Diện tích dự kiến';
 const ZONE_PROJECT_INVESTMENT_LABEL = 'Tổng mức đầu tư dự kiến';
 const ZONE_AREA_SUFFIX = ' m²';
 
+const SEARCH_PLACEHOLDER = 'Tìm tỉnh, khu công nghiệp, khu kinh tế...';
+const SEARCH_LOADING_TEXT = 'Đang tìm...';
+const SEARCH_EMPTY_TEXT = 'Không tìm thấy kết quả phù hợp.';
+// Keystrokes are cheap, requests are not: wait for a pause before asking.
+const SEARCH_DEBOUNCE_MS = 350;
+// One or two letters match nearly everything, so the list would be noise.
+const SEARCH_MIN_KEYWORD_LENGTH = 2;
+
 const API_HOST = 'https://cmcdtqg-gateway.dieuhanhso.vn';
 const SOURCE_URL_PATH = 'bds/api/tile/vector/{z}/{x}/{y}.pbf?p=1';
 const CATEGORY_CONFIG_URL_PATH = 'bds/api/BanDo/dau-tu/category-config';
 const PROVINCE_INVESTMENT_INFO_URL_PATH =
   'bds/api/portal/ProvinceInvestmentInfo/reverse';
 const ZONE_DETAIL_URL_PATH = 'bds/api/portal/kcnkkt';
+const SEARCH_URL_PATH = 'bds/api/portal/TimKiem/auto';
 
 function buildApiUrl(path, isStaging) {
   const stagingSegment = isStaging ? '/staging' : '';
@@ -138,6 +147,11 @@ function getZoneProjectsUrl(isStaging, id, kind) {
   }
 
   return `${getZoneDetailUrl(isStaging, id)}/${config.urlSuffix}`;
+}
+
+function getSearchUrl(isStaging, keyword) {
+  const base = buildApiUrl(SEARCH_URL_PATH, isStaging);
+  return `${base}?keyword=${encodeURIComponent(keyword)}`;
 }
 
 function getProvinceInvestmentInfoUrl(isStaging, latitude, longitude) {
@@ -209,6 +223,12 @@ export {
   ZONE_PROJECT_AREA_LABEL,
   ZONE_PROJECT_INVESTMENT_LABEL,
   ZONE_AREA_SUFFIX,
+  SEARCH_PLACEHOLDER,
+  SEARCH_LOADING_TEXT,
+  SEARCH_EMPTY_TEXT,
+  SEARCH_DEBOUNCE_MS,
+  SEARCH_MIN_KEYWORD_LENGTH,
+  getSearchUrl,
   getSourceUrl,
   getCategoryConfigUrl,
   getProvinceInvestmentInfoUrl,

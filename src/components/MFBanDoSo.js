@@ -3,6 +3,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Keyboard,
 } from 'react-native';
 import {
   LEGEND_TITLE,
@@ -22,6 +23,8 @@ import {
   SHEET_ZONE_EMPTY_TEXT,
   SHEET_ZONE_LOADING_TEXT,
   SHEET_ZONE_TITLE,
+  SEARCH_DEBOUNCE_MS,
+  SEARCH_MIN_KEYWORD_LENGTH,
   ZONE_PROJECT_KINDS,
   ZONE_PROJECTS_LOADING_TEXT,
   ZONE_HIGHLIGHT_FILL_COLOR,
@@ -31,6 +34,7 @@ import {
   ZONE_POLYGON_ID_PREFIX,
   getCategoryConfigUrl,
   getProvinceInvestmentInfoUrl,
+  getSearchUrl,
   getSourceUrl,
   getZoneDetailUrl,
   getZoneProjectsUrl,
@@ -68,8 +72,13 @@ import {
   LayerButton,
   LegendButton,
   LegendPanel,
+  SearchBox,
   SelectorDrawer,
 } from './MFBanDoSo/ui';
+import {
+  countSearchResults,
+  resolveSearchSections,
+} from './MFBanDoSo/searchHelpers';
 import {
   buildGeojsonStyle,
 } from './internal/GeojsonStyleUtils';
@@ -92,6 +101,8 @@ class MFBanDoSo extends MFMapView {
     this._featurePressAt = 0;
     this._zonePolygonIds = [];
     this._zoneProjectsRequestId = 0;
+    this._searchRequestId = 0;
+    this._searchDebounceTimer = null;
     this._selectorAnim = new Animated.Value(0);
     this._sheetAnim = new Animated.Value(0);
     this.state = {
@@ -113,6 +124,10 @@ class MFBanDoSo extends MFMapView {
       zoneProjects: [],
       zoneProjectsStatusText: ZONE_PROJECTS_LOADING_TEXT,
       isZoneProjectsLoading: false,
+      searchKeyword: '',
+      searchSections: [],
+      isSearchLoading: false,
+      isSearchOpen: false,
     };
 
     this._closeSheet = this._closeSheet.bind(this);
@@ -120,6 +135,10 @@ class MFBanDoSo extends MFMapView {
     this._onSheetPanelHeightChange = this._onSheetPanelHeightChange.bind(this);
     this._openZoneProjects = this._openZoneProjects.bind(this);
     this._closeZoneProjects = this._closeZoneProjects.bind(this);
+    this._onSearchKeywordChange = this._onSearchKeywordChange.bind(this);
+    this._onSearchFocus = this._onSearchFocus.bind(this);
+    this._clearSearch = this._clearSearch.bind(this);
+    this._onSelectSearchResult = this._onSelectSearchResult.bind(this);
     this._snapSheetTo = this._snapSheetTo.bind(this);
     this._toggleItem = this._toggleItem.bind(this);
     this._toggleGroupChecked = this._toggleGroupChecked.bind(this);
@@ -157,6 +176,138 @@ class MFBanDoSo extends MFMapView {
 
   componentWillUnmount() {
     this._isMounted = false;
+    this._cancelPendingSearch();
+  }
+
+  _cancelPendingSearch() {
+    if (this._searchDebounceTimer != null) {
+      clearTimeout(this._searchDebounceTimer);
+      this._searchDebounceTimer = null;
+    }
+  }
+
+  /**
+   * Typing schedules a search rather than firing one per keystroke, and every
+   * change invalidates whatever was already in flight, so a slow response for
+   * an earlier prefix cannot overwrite the results for what is typed now.
+   */
+  _onSearchKeywordChange(keyword) {
+    this._cancelPendingSearch();
+    this._searchRequestId += 1;
+
+    const trimmed = keyword.trim();
+    const canSearch = trimmed.length >= SEARCH_MIN_KEYWORD_LENGTH;
+
+    this.setState({
+      searchKeyword: keyword,
+      isSearchOpen: canSearch,
+      isSearchLoading: canSearch,
+      searchSections: canSearch ? this.state.searchSections : [],
+    });
+
+    if (!canSearch) {
+      return;
+    }
+
+    this._searchDebounceTimer = setTimeout(() => {
+      this._searchDebounceTimer = null;
+      this._loadSearchResults(trimmed);
+    }, SEARCH_DEBOUNCE_MS);
+  }
+
+  _onSearchFocus() {
+    if (countSearchResults(this.state.searchSections) > 0) {
+      this.setState({ isSearchOpen: true });
+    }
+  }
+
+  _clearSearch() {
+    this._cancelPendingSearch();
+    this._searchRequestId += 1;
+
+    this.setState({
+      searchKeyword: '',
+      searchSections: [],
+      isSearchLoading: false,
+      isSearchOpen: false,
+    });
+  }
+
+  _closeSearchResults() {
+    if (!this.state.isSearchOpen) {
+      return;
+    }
+
+    // The list is gone, so the keyboard has nothing left to type into and would
+    // just be sitting over the map.
+    Keyboard.dismiss();
+    this.setState({ isSearchOpen: false });
+  }
+
+  async _loadSearchResults(keyword) {
+    const requestId = this._searchRequestId + 1;
+    this._searchRequestId = requestId;
+
+    const isCurrentRequest = () =>
+      this._isMounted && requestId === this._searchRequestId;
+
+    try {
+      const response = await fetch(getSearchUrl(this.props.isStaging, keyword));
+      if (!response.ok) {
+        throw new Error(`Failed to search: ${response.status}`);
+      }
+
+      const json = await response.json();
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      this.setState({
+        searchSections: resolveSearchSections(json),
+        isSearchLoading: false,
+      });
+    } catch (error) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      console.warn('Cannot search', error);
+      this.setState({ searchSections: [], isSearchLoading: false });
+    }
+  }
+
+  /**
+   * A picked result is handled as a tap on its pin: same marker, same sheet,
+   * same province highlight. The highlight fits the camera itself, so no
+   * separate move is needed when there is a pin to reverse-geocode.
+   */
+  _onSelectSearchResult(item) {
+    this._closeSearchResults();
+
+    if (item?.pin) {
+      this._prepareSheetForTap(item.pin.latitude, item.pin.longitude);
+      this._loadProvinceInfo(item.pin.latitude, item.pin.longitude, {
+        highlightProvince: true,
+      });
+      return;
+    }
+
+    // No pin to look up, so the best that can be done is framing the result.
+    if (item?.bounds) {
+      this.fitBounds({
+        bounds: {
+          southWest: {
+            latitude: item.bounds.minLat,
+            longitude: item.bounds.minLng,
+          },
+          northEast: {
+            latitude: item.bounds.maxLat,
+            longitude: item.bounds.maxLng,
+          },
+        },
+        padding: this._makeRoomForCameraFit(),
+      });
+    }
   }
 
   async _loadCategoryItems() {
@@ -205,6 +356,13 @@ class MFBanDoSo extends MFMapView {
 
   _onPress(event) {
     super._onPress(event);
+
+    // While suggestions are up, a tap on the map is a dismissal — the same way
+    // it reads in any search UI — rather than a request for a new sheet.
+    if (this.state.isSearchOpen) {
+      this._closeSearchResults();
+      return;
+    }
 
     // A tap on a zone can reach the SDK's plain map-click listener as well as
     // its feature-click listener. The feature press is the more specific of the
@@ -353,7 +511,7 @@ class MFBanDoSo extends MFMapView {
     });
   }
 
-  async _loadProvinceInfo(latitude, longitude) {
+  async _loadProvinceInfo(latitude, longitude, options) {
     const isCurrentRequest = this._beginSheetRequest(
       SHEET_KIND_PROVINCE,
       SHEET_LOADING_TEXT
@@ -368,11 +526,13 @@ class MFBanDoSo extends MFMapView {
       }
 
       const json = await response.json();
-      this._resolveSheetResult(
-        isCurrentRequest,
-        resolveProvinceInvestmentInfo(json),
-        SHEET_EMPTY_TEXT
-      );
+      const info = resolveProvinceInvestmentInfo(json);
+
+      this._resolveSheetResult(isCurrentRequest, info, SHEET_EMPTY_TEXT);
+
+      if (options?.highlightProvince && info && isCurrentRequest()) {
+        this._focusProvince(info.focusProvince);
+      }
     } catch (error) {
       if (!isCurrentRequest()) {
         return;
@@ -567,7 +727,11 @@ class MFBanDoSo extends MFMapView {
   _getFocusPadding(snapValue) {
     const panelHeight =
       this._sheetPanelHeight || Dimensions.get('window').height;
-    const coveredHeight = Math.max(0, Math.round(panelHeight * snapValue));
+    // Nothing is covering the map when the sheet is not up, so a camera fit
+    // asked for from elsewhere — search, say — gets the plain margin.
+    const coveredHeight = this.state.isSheetMounted
+      ? Math.max(0, Math.round(panelHeight * snapValue))
+      : 0;
 
     return {
       top: SHEET_FOCUS_PADDING,
@@ -617,8 +781,12 @@ class MFBanDoSo extends MFMapView {
     });
   }
 
-  _focusProvinceFromSheet() {
-    const focusProvince = this.state.sheetInfo?.focusProvince;
+  /**
+   * Takes the province to draw as an argument rather than reading it off state,
+   * so it can also be called straight after a response lands — at that point
+   * the `setState` carrying it has not been applied yet.
+   */
+  _focusProvince(focusProvince) {
     if (!focusProvince || !this.areaFocusManager) {
       return;
     }
@@ -630,6 +798,10 @@ class MFBanDoSo extends MFMapView {
       display: focusProvince.highlight === true ? 'highlight' : 'normal',
       padding: this._makeRoomForCameraFit(),
     });
+  }
+
+  _focusProvinceFromSheet() {
+    this._focusProvince(this.state.sheetInfo?.focusProvince);
   }
 
   _toggleItem(targetKey, targetIndex) {
@@ -790,6 +962,16 @@ class MFBanDoSo extends MFMapView {
           show={showLegendButton}
           isActive={this.state.isLegendVisible}
           onPress={this._toggleLegendVisibility}
+        />
+        <SearchBox
+          keyword={this.state.searchKeyword}
+          sections={this.state.searchSections}
+          loading={this.state.isSearchLoading}
+          showResults={this.state.isSearchOpen}
+          onChangeKeyword={this._onSearchKeywordChange}
+          onClear={this._clearSearch}
+          onFocus={this._onSearchFocus}
+          onSelectResult={this._onSelectSearchResult}
         />
         <SelectorDrawer
           show={showSelector}

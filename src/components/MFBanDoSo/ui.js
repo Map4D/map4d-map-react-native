@@ -8,9 +8,13 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import {
+  SEARCH_EMPTY_TEXT,
+  SEARCH_LOADING_TEXT,
+  SEARCH_PLACEHOLDER,
   SELECTOR_DRAWER_TRANSLATE_X,
   SELECTOR_SWIPE_ACTIVATION_DISTANCE,
   SELECTOR_SWIPE_CLOSE_DISTANCE,
@@ -57,6 +61,118 @@ function LayerButton({ show, isActive, onPress }) {
       <View style={styles.layerIconBoxPrimary} />
       <View style={styles.layerIconBoxSecondary} />
     </Pressable>
+  );
+}
+
+const SEARCH_ZONE_KIND = 'kcnkkt';
+
+function SearchResultRow({ item, isFirst, onPress }) {
+  const isZone = item.kind === SEARCH_ZONE_KIND;
+
+  return (
+    <Pressable
+      style={[styles.searchRow, !isFirst && styles.searchRowDivider]}
+      onPress={() => onPress(item)}
+    >
+      <View style={[styles.searchRowIcon, isZone && styles.searchRowIconZone]}>
+        <View
+          style={isZone ? styles.searchRowIconSquare : styles.searchRowIconDot}
+        />
+      </View>
+      <View style={styles.searchRowBody}>
+        <Text style={styles.searchRowTitle} numberOfLines={1}>
+          {item.name}
+        </Text>
+        {item.typeLabel ? (
+          <Text style={styles.searchRowSubtitle} numberOfLines={1}>
+            {item.typeLabel}
+          </Text>
+        ) : null}
+      </View>
+    </Pressable>
+  );
+}
+
+function SearchBox({
+  keyword,
+  sections,
+  loading,
+  showResults,
+  onChangeKeyword,
+  onClear,
+  onFocus,
+  onSelectResult,
+}) {
+  const hasResults = sections.length > 0;
+
+  return (
+    <View style={styles.searchContainer} pointerEvents="box-none">
+      <View style={styles.searchBar}>
+        <View style={styles.searchIconBox}>
+          <View style={styles.searchIconGlass} />
+          <View style={styles.searchIconHandle} />
+        </View>
+        <TextInput
+          style={styles.searchInput}
+          value={keyword}
+          placeholder={SEARCH_PLACEHOLDER}
+          placeholderTextColor="#9ca3af"
+          returnKeyType="search"
+          autoCorrect={false}
+          onChangeText={onChangeKeyword}
+          onFocus={onFocus}
+        />
+        {keyword.length > 0 ? (
+          <Pressable style={styles.searchClearButton} onPress={onClear}>
+            <View style={styles.searchClearCircle}>
+              <View
+                style={[
+                  styles.searchClearBar,
+                  { transform: [{ rotate: '45deg' }] },
+                ]}
+              />
+              <View
+                style={[
+                  styles.searchClearBar,
+                  { transform: [{ rotate: '-45deg' }] },
+                ]}
+              />
+            </View>
+          </Pressable>
+        ) : null}
+      </View>
+
+      {showResults ? (
+        <View style={styles.searchResults}>
+          {loading || !hasResults ? (
+            <View style={styles.searchStatusRow}>
+              {loading ? <ActivityIndicator color="#b91c1c" /> : null}
+              <Text style={styles.searchStatusText}>
+                {loading ? SEARCH_LOADING_TEXT : SEARCH_EMPTY_TEXT}
+              </Text>
+            </View>
+          ) : (
+            <ScrollView keyboardShouldPersistTaps="handled">
+              {sections.map((group) => (
+                <View key={group.key}>
+                  {group.title ? (
+                    <Text style={styles.searchGroupTitle}>{group.title}</Text>
+                  ) : null}
+                  {group.items.map((item, index) => (
+                    <SearchResultRow
+                      key={item.key}
+                      item={item}
+                      isFirst={index === 0}
+                      onPress={onSelectResult}
+                    />
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+          )}
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -975,5 +1091,6 @@ export {
   LayerButton,
   LegendButton,
   LegendPanel,
+  SearchBox,
   SelectorDrawer,
 };
