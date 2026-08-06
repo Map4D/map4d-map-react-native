@@ -1,3 +1,9 @@
+## 0.1.7
+
+* Add investment bottom sheet
+* Add economy zone bottom sheet
+* Implement search bar
+
 ## 0.1.6
 
 * Fixed MFBanDoSo UI on new arch
