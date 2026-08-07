@@ -25,6 +25,21 @@ import {
   SHEET_ZONE_TITLE,
   SEARCH_DEBOUNCE_MS,
   SEARCH_MIN_KEYWORD_LENGTH,
+  DIRECTIONS_ACTIVE_OUTLINE_COLOR,
+  DIRECTIONS_ACTIVE_OUTLINE_WIDTH,
+  DIRECTIONS_ORIGIN_POI_COLOR,
+  DIRECTIONS_DESTINATION_POI_COLOR,
+  DIRECTIONS_ACTIVE_STROKE_COLOR,
+  DIRECTIONS_ACTIVE_STROKE_WIDTH,
+  DIRECTIONS_ACTION_LABEL,
+  DIRECTIONS_EMPTY_TEXT,
+  DIRECTIONS_LOADING_TEXT,
+  DIRECTIONS_MY_LOCATION_TEXT,
+  DIRECTIONS_PICKED_POINT_TEXT,
+  DIRECTIONS_PICK_DESTINATION_TEXT,
+  DIRECTIONS_PICK_ORIGIN_TEXT,
+  DIRECTIONS_ENDPOINT_ORIGIN,
+  DIRECTIONS_DESTINATION_LABEL,
   ZONE_PROJECT_KINDS,
   ZONE_PROJECTS_LOADING_TEXT,
   ZONE_HIGHLIGHT_FILL_COLOR,
@@ -34,6 +49,7 @@ import {
   ZONE_POLYGON_ID_PREFIX,
   getCategoryConfigUrl,
   getProvinceInvestmentInfoUrl,
+  getRouteUrl,
   getSearchUrl,
   getSourceUrl,
   getZoneDetailUrl,
@@ -72,6 +88,7 @@ import {
   LayerButton,
   LegendButton,
   LegendPanel,
+  PickOriginBanner,
   SearchBox,
   SelectorDrawer,
 } from './MFBanDoSo/ui';
@@ -79,6 +96,11 @@ import {
   countSearchResults,
   resolveSearchSections,
 } from './MFBanDoSo/searchHelpers';
+import { resolveRoute } from './MFBanDoSo/directionsHelpers';
+import {
+  DIRECTIONS_DESTINATION_ICON,
+  DIRECTIONS_ORIGIN_ICON,
+} from './MFBanDoSo/directionsIcons';
 import {
   buildGeojsonStyle,
 } from './internal/GeojsonStyleUtils';
@@ -103,6 +125,8 @@ class MFBanDoSo extends MFMapView {
     this._zoneProjectsRequestId = 0;
     this._searchRequestId = 0;
     this._searchDebounceTimer = null;
+    this._routeRequestId = 0;
+    this._sheetPin = null;
     this._selectorAnim = new Animated.Value(0);
     this._sheetAnim = new Animated.Value(0);
     this.state = {
@@ -128,6 +152,13 @@ class MFBanDoSo extends MFMapView {
       searchSections: [],
       isSearchLoading: false,
       isSearchOpen: false,
+      isDirectionsVisible: false,
+      isDirectionsLoading: false,
+      directionsRoute: null,
+      directionsStatusText: DIRECTIONS_LOADING_TEXT,
+      directionsOrigin: null,
+      directionsDestination: null,
+      pickingEndpoint: null,
     };
 
     this._closeSheet = this._closeSheet.bind(this);
@@ -139,6 +170,10 @@ class MFBanDoSo extends MFMapView {
     this._onSearchFocus = this._onSearchFocus.bind(this);
     this._clearSearch = this._clearSearch.bind(this);
     this._onSelectSearchResult = this._onSelectSearchResult.bind(this);
+    this._startDirections = this._startDirections.bind(this);
+    this._closeDirections = this._closeDirections.bind(this);
+    this._cancelPickOrigin = this._cancelPickOrigin.bind(this);
+    this._pickDirectionsEndpoint = this._pickDirectionsEndpoint.bind(this);
     this._snapSheetTo = this._snapSheetTo.bind(this);
     this._toggleItem = this._toggleItem.bind(this);
     this._toggleGroupChecked = this._toggleGroupChecked.bind(this);
@@ -379,6 +414,16 @@ class MFBanDoSo extends MFMapView {
       return;
     }
 
+    // While an end of the route is being picked, a tap supplies that point
+    // instead of opening a sheet for wherever was tapped.
+    if (this.state.pickingEndpoint) {
+      this._setDirectionsEndpoint(this.state.pickingEndpoint, {
+        latitude,
+        longitude,
+      });
+      return;
+    }
+
     this._prepareSheetForTap(latitude, longitude);
     this._loadProvinceInfo(latitude, longitude);
   }
@@ -391,6 +436,19 @@ class MFBanDoSo extends MFMapView {
     const location = feature?.location ?? event?.nativeEvent?.location;
     const latitude = location?.latitude;
     const longitude = location?.longitude;
+
+    // Picking an end of the route wins over opening anything: a tap that landed
+    // on a zone is still a tap on a place the route can run to or from.
+    if (this.state.pickingEndpoint) {
+      if (typeof latitude === 'number' && typeof longitude === 'number') {
+        this._featurePressAt = Date.now();
+        this._setDirectionsEndpoint(this.state.pickingEndpoint, {
+          latitude,
+          longitude,
+        });
+      }
+      return;
+    }
 
     if (zoneId != null) {
       this._featurePressAt = Date.now();
@@ -428,9 +486,10 @@ class MFBanDoSo extends MFMapView {
     this._clearZoneOverlays();
 
     if (typeof latitude === 'number' && typeof longitude === 'number') {
+      this._sheetPin = { latitude, longitude };
       this._addMarker({
         id: SHEET_MARKER_ID,
-        coordinate: { latitude, longitude },
+        coordinate: this._sheetPin,
       });
     }
 
@@ -483,9 +542,11 @@ class MFBanDoSo extends MFMapView {
   _beginSheetRequest(kind, loadingText) {
     const requestId = this._sheetRequestId + 1;
     this._sheetRequestId = requestId;
-    // Whatever the sheet was showing belonged to the previous target, the
-    // drilled-down project list included.
+    // Whatever the sheet was showing belonged to the previous target — the
+    // drilled-down project list and any drawn route included.
     this._zoneProjectsRequestId += 1;
+    this._routeRequestId += 1;
+    this._clearDirections();
 
     this.setState({
       sheetKind: kind,
@@ -494,6 +555,8 @@ class MFBanDoSo extends MFMapView {
       isSheetLoading: true,
       projectsKind: null,
       zoneProjects: [],
+      isDirectionsVisible: false,
+      directionsRoute: null,
     });
 
     return () => this._isMounted && requestId === this._sheetRequestId;
@@ -686,8 +749,11 @@ class MFBanDoSo extends MFMapView {
   _closeSheet() {
     this._sheetRequestId += 1;
     this._zoneProjectsRequestId += 1;
+    this._routeRequestId += 1;
+    this._sheetPin = null;
     this._removeMarker(SHEET_MARKER_ID);
     this._clearZoneOverlays();
+    this._clearDirections();
 
     this._animateSheetTo(
       0,
@@ -705,6 +771,11 @@ class MFBanDoSo extends MFMapView {
           sheetSnapValue: SHEET_INITIAL_SNAP_RATIO,
           projectsKind: null,
           zoneProjects: [],
+          isDirectionsVisible: false,
+          directionsRoute: null,
+          directionsOrigin: null,
+          directionsDestination: null,
+          pickingEndpoint: null,
         });
       }
     );
@@ -761,7 +832,10 @@ class MFBanDoSo extends MFMapView {
   }
 
   _fitCameraToZone(info) {
-    const bounds = getViewboxFromGeometry(info?.geometry);
+    this._fitCameraToBounds(getViewboxFromGeometry(info?.geometry));
+  }
+
+  _fitCameraToBounds(bounds) {
     if (!bounds) {
       return;
     }
@@ -779,6 +853,198 @@ class MFBanDoSo extends MFMapView {
       },
       padding: this._makeRoomForCameraFit(),
     });
+  }
+
+  /**
+   * The destination is the point the sheet was opened from — the tapped spot or
+   * a picked search result — since the province payload carries no coordinate
+   * of its own. It is kept outside state because it survives sheet reloads.
+   */
+  async _startDirections() {
+    if (!this._sheetPin) {
+      return;
+    }
+
+    const destination = {
+      coordinate: this._sheetPin,
+      label: this.state.sheetInfo?.name ?? DIRECTIONS_DESTINATION_LABEL,
+    };
+    const deviceCoordinate = await this._getDeviceCoordinate();
+    const origin = deviceCoordinate
+      ? { coordinate: deviceCoordinate, label: DIRECTIONS_MY_LOCATION_TEXT }
+      : null;
+
+    // The renderer marks both ends of the route itself, so the sheet's own
+    // marker would just sit on top of the destination POI.
+    this._removeMarker(SHEET_MARKER_ID);
+
+    // Without a fix there is nothing to route from yet, so the panel opens on
+    // the endpoints alone and the map supplies the missing one.
+    this.setState({
+      isDirectionsVisible: true,
+      directionsOrigin: origin,
+      directionsDestination: destination,
+      directionsRoute: null,
+      isDirectionsLoading: origin != null,
+      directionsStatusText: origin
+        ? DIRECTIONS_LOADING_TEXT
+        : DIRECTIONS_PICK_ORIGIN_TEXT,
+      pickingEndpoint: origin ? null : DIRECTIONS_ENDPOINT_ORIGIN,
+    });
+
+    if (origin) {
+      this._loadRoute(origin, destination);
+    }
+  }
+
+  _pickDirectionsEndpoint(endpoint) {
+    this.setState({ pickingEndpoint: endpoint });
+  }
+
+  /**
+   * Replaces one end of the route and keeps the other, then re-routes once both
+   * ends are known. Reading the next pair here rather than from state avoids
+   * routing against the value `setState` has not applied yet.
+   */
+  _setDirectionsEndpoint(endpoint, coordinate) {
+    const picked = { coordinate, label: DIRECTIONS_PICKED_POINT_TEXT };
+    const isOrigin = endpoint === DIRECTIONS_ENDPOINT_ORIGIN;
+    const origin = isOrigin ? picked : this.state.directionsOrigin;
+    const destination = isOrigin ? this.state.directionsDestination : picked;
+
+    this.setState({
+      directionsOrigin: origin,
+      directionsDestination: destination,
+      pickingEndpoint: null,
+    });
+
+    if (origin && destination) {
+      this._loadRoute(origin, destination);
+    }
+  }
+
+  async _getDeviceCoordinate() {
+    try {
+      const location = await this.getMyLocation();
+      const coordinate = location?.coordinate;
+
+      return typeof coordinate?.latitude === 'number' &&
+        typeof coordinate?.longitude === 'number'
+        ? coordinate
+        : null;
+    } catch (error) {
+      // Permission denied or my-location not enabled: not an error worth
+      // reporting, the caller falls back to picking a point.
+      return null;
+    }
+  }
+
+  _cancelPickOrigin() {
+    this.setState({ pickingEndpoint: null });
+  }
+
+  _closeDirections() {
+    this._routeRequestId += 1;
+    this._clearDirections();
+
+    // Back on the detail view the sheet owns the map again, so its marker comes
+    // back to the point the info belongs to.
+    if (this._sheetPin) {
+      this._addMarker({
+        id: SHEET_MARKER_ID,
+        coordinate: this._sheetPin,
+      });
+    }
+
+    this.setState({
+      isDirectionsVisible: false,
+      directionsRoute: null,
+      directionsOrigin: null,
+      directionsDestination: null,
+      pickingEndpoint: null,
+    });
+  }
+
+  async _loadRoute(origin, destination) {
+    const url = getRouteUrl(
+      this.props.isStaging,
+      origin?.coordinate,
+      destination?.coordinate
+    );
+    if (!url) {
+      return;
+    }
+
+    const requestId = this._routeRequestId + 1;
+    this._routeRequestId = requestId;
+
+    this.setState({
+      pickingEndpoint: null,
+      isDirectionsVisible: true,
+      isDirectionsLoading: true,
+      directionsRoute: null,
+      directionsStatusText: DIRECTIONS_LOADING_TEXT,
+    });
+
+    const isCurrentRequest = () =>
+      this._isMounted && requestId === this._routeRequestId;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch route: ${response.status}`);
+      }
+
+      // The renderer decodes the payload natively, so the untouched response
+      // text is what gets handed to it — no polyline decoding in JS.
+      const text = await response.text();
+      const route = resolveRoute(JSON.parse(text));
+
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      if (route) {
+        this._setDirections(text, {
+          activeStrokeColor: DIRECTIONS_ACTIVE_STROKE_COLOR,
+          activeStrokeWidth: DIRECTIONS_ACTIVE_STROKE_WIDTH,
+          activeOutlineColor: DIRECTIONS_ACTIVE_OUTLINE_COLOR,
+          activeOutlineWidth: DIRECTIONS_ACTIVE_OUTLINE_WIDTH,
+          originPOIOptions: {
+            coordinate: origin.coordinate,
+            icon: { uri: DIRECTIONS_ORIGIN_ICON },
+            title: origin.label,
+            titleColor: DIRECTIONS_ORIGIN_POI_COLOR,
+            visible: true,
+          },
+          destinationPOIOptions: {
+            coordinate: destination.coordinate,
+            icon: { uri: DIRECTIONS_DESTINATION_ICON },
+            title: destination.label,
+            titleColor: DIRECTIONS_DESTINATION_POI_COLOR,
+            visible: true,
+          },
+        });
+        this._fitCameraToBounds(route.bounds);
+      }
+
+      this.setState({
+        directionsRoute: route,
+        directionsStatusText: DIRECTIONS_EMPTY_TEXT,
+        isDirectionsLoading: false,
+      });
+    } catch (error) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      console.warn('Cannot load route', error);
+      this.setState({
+        directionsRoute: null,
+        directionsStatusText: DIRECTIONS_EMPTY_TEXT,
+        isDirectionsLoading: false,
+      });
+    }
   }
 
   /**
@@ -932,7 +1198,17 @@ class MFBanDoSo extends MFMapView {
     const projectsConfig = ZONE_PROJECT_KINDS[this.state.projectsKind];
     const showProjects = isZoneSheet && projectsConfig != null;
     const zoneTitle = showProjects ? projectsConfig.title : SHEET_ZONE_TITLE;
-    const sheetTitle = isZoneSheet ? zoneTitle : SHEET_TITLE;
+    const showDirections = this.state.isDirectionsVisible;
+    const detailTitle = isZoneSheet ? zoneTitle : SHEET_TITLE;
+    const sheetTitle = showDirections ? DIRECTIONS_ACTION_LABEL : detailTitle;
+    // Only one drill-down is open at a time, so one back handler covers both.
+    const projectsBack = showProjects ? this._closeZoneProjects : null;
+    const backHandler = showDirections ? this._closeDirections : projectsBack;
+    const pickingEndpoint = this.state.pickingEndpoint;
+    const pickHintText =
+      pickingEndpoint === DIRECTIONS_ENDPOINT_ORIGIN
+        ? DIRECTIONS_PICK_ORIGIN_TEXT
+        : DIRECTIONS_PICK_DESTINATION_TEXT;
     const backdropAnimatedStyle = {
       opacity: this._selectorAnim.interpolate({
         inputRange: [0, 1],
@@ -963,7 +1239,10 @@ class MFBanDoSo extends MFMapView {
           isActive={this.state.isLegendVisible}
           onPress={this._toggleLegendVisibility}
         />
+        {/* Searching for somewhere else is not what the directions view is
+            for, and its pick-a-point banner takes the slot anyway. */}
         <SearchBox
+          show={!showDirections}
           keyword={this.state.searchKeyword}
           sections={this.state.searchSections}
           loading={this.state.isSearchLoading}
@@ -1004,14 +1283,28 @@ class MFBanDoSo extends MFMapView {
           projects={this.state.zoneProjects}
           projectsLoading={this.state.isZoneProjectsLoading}
           projectsStatusText={this.state.zoneProjectsStatusText}
+          showDirections={showDirections}
+          directionsRoute={this.state.directionsRoute}
+          directionsLoading={this.state.isDirectionsLoading}
+          directionsStatusText={this.state.directionsStatusText}
+          directionsOriginText={this.state.directionsOrigin?.label}
+          directionsDestinationText={this.state.directionsDestination?.label}
+          pickingEndpoint={pickingEndpoint}
           dragAnim={this._sheetAnim}
           snapValue={this.state.sheetSnapValue}
           onClose={this._closeSheet}
-          onBack={showProjects ? this._closeZoneProjects : null}
+          onBack={backHandler}
           onSnapTo={this._snapSheetTo}
           onPanelHeightChange={this._onSheetPanelHeightChange}
           onFocusProvince={this._focusProvinceFromSheet}
           onPressProjects={this._openZoneProjects}
+          onPressDirections={this._startDirections}
+          onPickEndpoint={this._pickDirectionsEndpoint}
+        />
+        <PickOriginBanner
+          show={pickingEndpoint != null}
+          text={pickHintText}
+          onCancel={this._cancelPickOrigin}
         />
       </React.Fragment>
     );

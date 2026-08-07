@@ -1,0 +1,23 @@
+// Origin and destination markers for the route, embedded as data URIs.
+//
+// Data URIs rather than bundled image files so the library ships no binary
+// assets: react-native-builder-bob copies src/ verbatim, and a PNG in there
+// would need bundler wiring in every consuming app. Both platforms accept the
+// "data:" scheme for POI icons — see RMFDirectionsRenderer.setStartIcon on
+// Android, which lists it alongside http/file/asset.
+//
+// Anti-aliased PNGs: a blue ringed dot for the origin at 72x72, and a red pin
+// for the destination at 79x79. The pin is drawn 10% larger on purpose — part
+// of its height goes on the tail, which carries no visual weight, so at equal
+// sizes it reads smaller than the dot. There is no width/height option on POI
+// icons, so the bitmap's own size is what sets the on-screen size.
+//
+// To change them, redraw at the same sizes and paste the new base64 in —
+// nothing else in the codebase reads these.
+const DIRECTIONS_ORIGIN_ICON =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAACOUlEQVR42u1cO07EMBDdg3ivgZRLhCoXoKJNwQEoOQPiAqkoOAJyR5+CBq1AQkgUFDQURoO8EkLJ7tgz/iS8J7nZGHvzmHkztse72QAAAAAAEIBtO3bbduy37Tj45mba/jn17dZMiPEvaQ+QwW3Wj2XWQEyjRMohshoQsxaivCsNGYmZ0ixTs/DuCpKzb7vqBL2w1cxaUy0uZSsk57c2mZLkRLvU+dWzu759d3f3H+7l7cv9BX1Gz6gP9RW6nFkEOacXTz8vHQv6WxqjepJC3YosYMpKYkFjRViVrU6QT84e3cP46VKBxqY5qhFuH8rZVpMLgdbUFdcdEtbcoDmL6hHXtSQiLAXNXcTV/NqqSssRWFKTNWrl1BwlTbLZrIciSWwUurx5nXwh+oyexUZBZnRrslhP6EtQ/5CEj/rGzJHcinzkUnUtybIh0VxGQlB/bAJuhkz9ApO6WXcOmZMxZp/Mvcj0lTWBTRIXDFe2EoJUch7halzkbpzcKNmyQlEsoxpXuJMsP47pD/c/GLk9wY5uShbcqy8tOFlzSusJsSJGdj2oE8TRH0r0UhNEcyjo0KAu0JxQm0KcY1ydE+7VCVISR5Wm8V1AEAgCQcsiCCKNMI9EUUoQlhpYrArPyrDdgQ0z8YYZtlyxaS88hsaxDw4OcfScvKAKxQsof0EBVZaCTpTgoYgTZcAoJF96tf2/uIqAyyy4DoULdbiSWfndVVzqrYSoZRIz43r4YYFAQcdPUwAAAABAUnwDvbb9rsb3Hu4AAAAASUVORK5CYII=';
+
+const DIRECTIONS_DESTINATION_ICON =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAE8AAABPCAYAAACqNJiGAAADo0lEQVR42u2cO27cQAxAdZC5hgtdwp3u4FZH8AV0AB9Brast0whIYSBlihQBBjDSpUzJgIYUbOT5iUPNUBIJTGPvB3riX+Q2jYqKigpNAKAFgA4ABgAYPQf/3yksAAMAPQBMQJNpBt1eCVoOMJ9Y/NyzQ7Owr5wL4uzLNmnar9fXT4cAsTuDtgXl99sb/Hx5gW9PT3AzJnq+Pj7C9+fnj/clyHjUYDCGrgqBIYgUYL7z5eHhA+Sf9/eYFpojgbMhaHjROdBcJwLRio/KIXBoZntAW2tixD92hwOH2rYntPVB/3koE/ZF1NRAsIcWesxYFsA50xcDLgHgKAVcKxFcAsBeArxPfg4jnwRwCT7Q1ATXu6oDSeCWg0FLlPm6tG7vdCTneMy3FaF10szVVdqJ0L611uFdlQxuOZ6a2FSNsBxah5qBvsllXuhLc2vhgPb1JeGNnL4uoaxiLfMcN2eqZrI5ETaQhwUlJ49EK6liui6TpV4IFdwiVDP2mG5XAl7HZbKJDU2v5ASpKlHX5e8Y7/5moXZsHD62PDyqv8vVulztc1Uch4HHKRTf56p3S8DLrmW5TDYnYB0WXqDLofAU3o4JMqY2V4XHEjBykmOOPNNVZRSHhykHY3Nys1C/35Hn2Sp9PGppVitN8eSZRZLkjusCPAX6poEgxvJsKNVVYevlESag/lUW1JraE+27UvAmDr9DBYivz+npub6v6vOL3C4vvj9W76K2cXSsqz7HmOdSdplHWebv7gcbOcbRIn627ACQazZF8mPHQH5pm9Li6ihLfeAd0bo6Yxcu7ZMyo5KYV9qmlri0LyeFqPC8tu6wj6stn5u6cB9PKmSb2uKbCJXi/wLtLxkzyr4ZvdoAA+BkLbq4at6aAANVi8zdDN/uBQYRriQ3JaoGKhXZSy2h5ZW9p+IjuxjH2AbyDXhz1qdr3xbpTB9rjcrnA+8h5tSsiatTcNgtyDmNmVJ6c+jgEQZq0bpKQcDL3/F1ic8/7CkWmQvt2pbvCpeUH8NgOZ+auQLSYTYct8rNmHaJilyDPvg5+HlzPX3eVfkZ4HDv9Bc/lgrz3j+uGhBTc3a5GWNuxthY6rE+CZ2aa/zKBZoXc4I8NFcSNDMmcKjF5mrwWiZ4fXNFuQ8exDM1V5ZY8Igcc3V4nQaJssHDKrX/c78t8PRn4IjBY1Ja9OBhlBQteGiQiAAcNUjwB49W6dAaB6NSoQcPDRLExkGvNIi5n1JQUVFhlL8qtVs84d2juAAAAABJRU5ErkJggg==';
+
+export { DIRECTIONS_ORIGIN_ICON, DIRECTIONS_DESTINATION_ICON };

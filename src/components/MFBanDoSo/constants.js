@@ -114,6 +114,32 @@ const SEARCH_DEBOUNCE_MS = 350;
 // One or two letters match nearly everything, so the list would be noise.
 const SEARCH_MIN_KEYWORD_LENGTH = 2;
 
+const DIRECTIONS_ACTION_LABEL = 'Chỉ đường';
+const DIRECTIONS_LOADING_TEXT = 'Đang tìm đường...';
+const DIRECTIONS_EMPTY_TEXT = 'Không tìm được đường đi giữa hai điểm này.';
+const DIRECTIONS_PICK_ORIGIN_TEXT = 'Chạm vào bản đồ để chọn điểm bắt đầu';
+const DIRECTIONS_PICK_DESTINATION_TEXT = 'Chạm vào bản đồ để chọn điểm đến';
+const DIRECTIONS_PICK_ORIGIN_CANCEL = 'Huỷ';
+const DIRECTIONS_ORIGIN_LABEL = 'Điểm đi';
+const DIRECTIONS_DESTINATION_LABEL = 'Điểm đến';
+const DIRECTIONS_MY_LOCATION_TEXT = 'Vị trí của bạn';
+const DIRECTIONS_PICKED_POINT_TEXT = 'Điểm bạn đã chọn';
+const DIRECTIONS_CHANGE_HINT = 'Chạm để đổi';
+const DIRECTIONS_ENDPOINT_ORIGIN = 'origin';
+const DIRECTIONS_ENDPOINT_DESTINATION = 'destination';
+const DIRECTIONS_STEPS_TITLE = 'Chỉ dẫn từng chặng';
+// Route drawing. The renderer takes the /sdk/route payload as-is and decodes
+// the polyline natively, so these are only about how it is painted.
+const DIRECTIONS_ACTIVE_STROKE_COLOR = '#1D4ED8';
+const DIRECTIONS_ACTIVE_STROKE_WIDTH = 6;
+const DIRECTIONS_ACTIVE_OUTLINE_COLOR = '#FFFFFF';
+const DIRECTIONS_ACTIVE_OUTLINE_WIDTH = 2;
+// Labels drawn on the map at each end of the route.
+const DIRECTIONS_ORIGIN_POI_COLOR = '#1D4ED8';
+const DIRECTIONS_DESTINATION_POI_COLOR = '#B91C1C';
+const ROUTE_MODE = 'car';
+const ROUTE_LANGUAGE = 'vi';
+
 const API_HOST = 'https://cmcdtqg-gateway.dieuhanhso.vn';
 const SOURCE_URL_PATH = 'bds/api/tile/vector/{z}/{x}/{y}.pbf?p=1';
 const CATEGORY_CONFIG_URL_PATH = 'bds/api/BanDo/dau-tu/category-config';
@@ -121,6 +147,8 @@ const PROVINCE_INVESTMENT_INFO_URL_PATH =
   'bds/api/portal/ProvinceInvestmentInfo/reverse';
 const ZONE_DETAIL_URL_PATH = 'bds/api/portal/kcnkkt';
 const SEARCH_URL_PATH = 'bds/api/portal/TimKiem/auto';
+const ROUTE_URL_PATH = 'bds-sdk/sdk/route';
+const ROUTE_API_KEY = '5c643df61c0356baecdc81a4b4aca826';
 
 function buildApiUrl(path, isStaging) {
   const stagingSegment = isStaging ? '/staging' : '';
@@ -152,6 +180,24 @@ function getZoneProjectsUrl(isStaging, id, kind) {
 function getSearchUrl(isStaging, keyword) {
   const base = buildApiUrl(SEARCH_URL_PATH, isStaging);
   return `${base}?keyword=${encodeURIComponent(keyword)}`;
+}
+
+function getRouteUrl(isStaging, origin, destination) {
+  if (!origin || !destination) {
+    return null;
+  }
+
+  const from = `${origin.latitude},${origin.longitude}`;
+  const to = `${destination.latitude},${destination.longitude}`;
+  const query = [
+    `origin=${encodeURIComponent(from)}`,
+    `destination=${encodeURIComponent(to)}`,
+    `language=${ROUTE_LANGUAGE}`,
+    `mode=${ROUTE_MODE}`,
+    `key=${ROUTE_API_KEY}`,
+  ].join('&');
+
+  return `${buildApiUrl(ROUTE_URL_PATH, isStaging)}?${query}`;
 }
 
 function getProvinceInvestmentInfoUrl(isStaging, latitude, longitude) {
@@ -223,6 +269,27 @@ export {
   ZONE_PROJECT_AREA_LABEL,
   ZONE_PROJECT_INVESTMENT_LABEL,
   ZONE_AREA_SUFFIX,
+  DIRECTIONS_ACTION_LABEL,
+  DIRECTIONS_LOADING_TEXT,
+  DIRECTIONS_EMPTY_TEXT,
+  DIRECTIONS_PICK_ORIGIN_TEXT,
+  DIRECTIONS_PICK_DESTINATION_TEXT,
+  DIRECTIONS_PICK_ORIGIN_CANCEL,
+  DIRECTIONS_ORIGIN_LABEL,
+  DIRECTIONS_DESTINATION_LABEL,
+  DIRECTIONS_MY_LOCATION_TEXT,
+  DIRECTIONS_PICKED_POINT_TEXT,
+  DIRECTIONS_CHANGE_HINT,
+  DIRECTIONS_ENDPOINT_ORIGIN,
+  DIRECTIONS_ENDPOINT_DESTINATION,
+  DIRECTIONS_STEPS_TITLE,
+  DIRECTIONS_ACTIVE_STROKE_COLOR,
+  DIRECTIONS_ACTIVE_STROKE_WIDTH,
+  DIRECTIONS_ACTIVE_OUTLINE_COLOR,
+  DIRECTIONS_ACTIVE_OUTLINE_WIDTH,
+  DIRECTIONS_ORIGIN_POI_COLOR,
+  DIRECTIONS_DESTINATION_POI_COLOR,
+  getRouteUrl,
   SEARCH_PLACEHOLDER,
   SEARCH_LOADING_TEXT,
   SEARCH_EMPTY_TEXT,

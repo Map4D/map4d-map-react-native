@@ -12,6 +12,16 @@ import {
   View,
 } from 'react-native';
 import {
+  DIRECTIONS_ACTION_LABEL,
+  DIRECTIONS_CHANGE_HINT,
+  DIRECTIONS_DESTINATION_LABEL,
+  DIRECTIONS_ENDPOINT_DESTINATION,
+  DIRECTIONS_ENDPOINT_ORIGIN,
+  DIRECTIONS_ORIGIN_LABEL,
+  DIRECTIONS_PICK_DESTINATION_TEXT,
+  DIRECTIONS_PICK_ORIGIN_CANCEL,
+  DIRECTIONS_PICK_ORIGIN_TEXT,
+  DIRECTIONS_STEPS_TITLE,
   SEARCH_EMPTY_TEXT,
   SEARCH_LOADING_TEXT,
   SEARCH_PLACEHOLDER,
@@ -66,6 +76,256 @@ function LayerButton({ show, isActive, onPress }) {
 
 const SEARCH_ZONE_KIND = 'kcnkkt';
 
+function PickOriginBanner({ show, text, onCancel }) {
+  if (!show) {
+    return null;
+  }
+
+  return (
+    <View style={styles.searchContainer} pointerEvents="box-none">
+      <View style={styles.pickOriginBanner}>
+        <Text style={styles.pickOriginText}>{text}</Text>
+        <Pressable style={styles.pickOriginCancel} onPress={onCancel}>
+          <Text style={styles.pickOriginCancelText}>
+            {DIRECTIONS_PICK_ORIGIN_CANCEL}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+// Which arrow each maneuver gets. Values seen in real payloads: straight,
+// keep-left, keep-right, turn-left, turn-right, turn-sharp-left, finish; the
+// rest are listed so a route through them still draws something sensible.
+// Every left-hand turn reuses its right-hand shape mirrored.
+const MANEUVER_ARROWS = {
+  'straight': { shape: 'straight' },
+  'depart': { shape: 'straight' },
+  'start': { shape: 'straight' },
+  'finish': { shape: 'finish' },
+  'turn-right': { shape: 'turn' },
+  'roundabout-right': { shape: 'turn' },
+  'turn-left': { shape: 'turn', mirrored: true },
+  'roundabout-left': { shape: 'turn', mirrored: true },
+  'keep-right': { shape: 'slight' },
+  'fork-right': { shape: 'slight' },
+  'turn-slight-right': { shape: 'slight' },
+  'merge': { shape: 'slight' },
+  'keep-left': { shape: 'slight', mirrored: true },
+  'fork-left': { shape: 'slight', mirrored: true },
+  'turn-slight-left': { shape: 'slight', mirrored: true },
+  'turn-sharp-right': { shape: 'sharp' },
+  'turn-sharp-left': { shape: 'sharp', mirrored: true },
+  'uturn-right': { shape: 'uturn' },
+  'uturn-left': { shape: 'uturn', mirrored: true },
+};
+
+function DirectionsArrowShape({ shape }) {
+  if (shape === 'turn') {
+    return (
+      <React.Fragment>
+        <View style={styles.arrowTurnStem} />
+        <View style={styles.arrowTurnArm} />
+        <View style={styles.arrowTurnHead} />
+      </React.Fragment>
+    );
+  }
+
+  if (shape === 'slight') {
+    return (
+      <React.Fragment>
+        <View style={styles.arrowSlightStem} />
+        <View style={styles.arrowSlightArm} />
+        <View style={styles.arrowSlightHead} />
+      </React.Fragment>
+    );
+  }
+
+  if (shape === 'sharp') {
+    return (
+      <React.Fragment>
+        <View style={styles.arrowSharpStem} />
+        <View style={styles.arrowSharpArm} />
+        <View style={styles.arrowSharpHead} />
+      </React.Fragment>
+    );
+  }
+
+  if (shape === 'uturn') {
+    return (
+      <React.Fragment>
+        <View style={styles.arrowTurnStem} />
+        <View style={styles.arrowTurnArm} />
+        <View style={styles.arrowUturnDrop} />
+        <View style={styles.arrowUturnHead} />
+      </React.Fragment>
+    );
+  }
+
+  return (
+    <React.Fragment>
+      <View style={styles.arrowStraightStem} />
+      <View style={styles.arrowStraightHead} />
+    </React.Fragment>
+  );
+}
+
+function DirectionsStepIcon({ maneuver }) {
+  const arrow = MANEUVER_ARROWS[maneuver] || MANEUVER_ARROWS.straight;
+
+  if (arrow.shape === 'finish') {
+    return (
+      <View style={styles.directionsStepIcon}>
+        <View style={styles.directionsFinishMark} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.directionsStepIcon}>
+      <View
+        style={[
+          styles.directionsArrow,
+          arrow.mirrored && styles.directionsArrowMirrored,
+        ]}
+      >
+        <DirectionsArrowShape shape={arrow.shape} />
+      </View>
+    </View>
+  );
+}
+
+function DirectionsEndpointRow({
+  label,
+  text,
+  placeholder,
+  markerStyle,
+  isPicking,
+  onPress,
+}) {
+  return (
+    <Pressable
+      style={[
+        styles.directionsEndpointRow,
+        isPicking && styles.directionsEndpointRowPicking,
+      ]}
+      onPress={onPress}
+    >
+      <View style={markerStyle} />
+      <View style={styles.directionsEndpointBody}>
+        <Text style={styles.directionsEndpointLabel}>{label}</Text>
+        <Text
+          style={[
+            styles.directionsEndpointText,
+            !text && styles.directionsEndpointPlaceholder,
+          ]}
+          numberOfLines={2}
+        >
+          {text || placeholder}
+        </Text>
+      </View>
+      {/* Nothing to change yet when the row is still asking for a point. */}
+      {text ? (
+        <Text style={styles.directionsEndpointHint}>
+          {DIRECTIONS_CHANGE_HINT}
+        </Text>
+      ) : null}
+    </Pressable>
+  );
+}
+
+function DirectionsBody({
+  loading,
+  statusText,
+  route,
+  originText,
+  destinationText,
+  pickingEndpoint,
+  onPickEndpoint,
+}) {
+  const steps = route && Array.isArray(route.steps) ? route.steps : [];
+
+  return (
+    <React.Fragment>
+      {/* Always drawn, even with no route yet: these rows are what a missing
+          endpoint gets picked from. */}
+      <View style={styles.directionsEndpoints}>
+        <DirectionsEndpointRow
+          label={DIRECTIONS_ORIGIN_LABEL}
+          text={originText}
+          placeholder={DIRECTIONS_PICK_ORIGIN_TEXT}
+          markerStyle={styles.directionsEndpointDot}
+          isPicking={pickingEndpoint === DIRECTIONS_ENDPOINT_ORIGIN}
+          onPress={() => onPickEndpoint(DIRECTIONS_ENDPOINT_ORIGIN)}
+        />
+        <View style={styles.directionsEndpointLine} />
+        <DirectionsEndpointRow
+          label={DIRECTIONS_DESTINATION_LABEL}
+          text={destinationText}
+          placeholder={DIRECTIONS_PICK_DESTINATION_TEXT}
+          markerStyle={styles.directionsEndpointSquare}
+          isPicking={pickingEndpoint === DIRECTIONS_ENDPOINT_DESTINATION}
+          onPress={() => onPickEndpoint(DIRECTIONS_ENDPOINT_DESTINATION)}
+        />
+      </View>
+
+      {loading || !route ? (
+        <View style={styles.sheetStatusBox}>
+          {loading ? <ActivityIndicator color="#b91c1c" /> : null}
+          <Text style={styles.sheetStatusText}>{statusText}</Text>
+        </View>
+      ) : null}
+
+      {route ? (
+        <View style={styles.directionsSummary}>
+          <View style={styles.directionsSummaryRow}>
+            {route.durationText ? (
+              <Text style={styles.directionsDuration}>
+                {route.durationText}
+              </Text>
+            ) : null}
+            {route.distanceText ? (
+              <Text style={styles.directionsDistance}>
+                {route.distanceText}
+              </Text>
+            ) : null}
+          </View>
+          {route.summary ? (
+            <Text style={styles.directionsSummaryVia} numberOfLines={1}>
+              {`Qua ${route.summary}`}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
+      {steps.length > 0 ? (
+        <View style={styles.sheetSection}>
+          <Text style={styles.sheetSectionTitle}>{DIRECTIONS_STEPS_TITLE}</Text>
+        </View>
+      ) : null}
+
+      {steps.map((step) => (
+        <View key={step.key} style={styles.directionsStepRow}>
+          <DirectionsStepIcon maneuver={step.maneuver} />
+          <View style={styles.directionsStepBody}>
+            <Text style={styles.directionsStepInstruction}>
+              {step.instruction}
+            </Text>
+            {step.distanceText ? (
+              <Text style={styles.directionsStepMeta}>
+                {step.streetName
+                  ? `${step.distanceText} · ${step.streetName}`
+                  : step.distanceText}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+      ))}
+    </React.Fragment>
+  );
+}
+
 function SearchResultRow({ item, isFirst, onPress }) {
   const isZone = item.kind === SEARCH_ZONE_KIND;
 
@@ -94,6 +354,7 @@ function SearchResultRow({ item, isFirst, onPress }) {
 }
 
 function SearchBox({
+  show,
   keyword,
   sections,
   loading,
@@ -103,6 +364,10 @@ function SearchBox({
   onFocus,
   onSelectResult,
 }) {
+  if (!show) {
+    return null;
+  }
+
   const hasResults = sections.length > 0;
 
   return (
@@ -870,6 +1135,13 @@ function InvestmentSheet({
   projects,
   projectsLoading,
   projectsStatusText,
+  showDirections,
+  directionsRoute,
+  directionsLoading,
+  directionsStatusText,
+  directionsOriginText,
+  directionsDestinationText,
+  pickingEndpoint,
   dragAnim,
   snapValue,
   onClose,
@@ -878,6 +1150,8 @@ function InvestmentSheet({
   onPanelHeightChange,
   onFocusProvince,
   onPressProjects,
+  onPressDirections,
+  onPickEndpoint,
 }) {
   const [containerHeight, setContainerHeight] = useState(0);
   const availableHeight = containerHeight || Dimensions.get('window').height;
@@ -1023,7 +1297,27 @@ function InvestmentSheet({
           </Pressable>
         </View>
 
-        {showProjects ? (
+        {showDirections ? (
+          <ScrollView
+            key="directions"
+            style={styles.sheetScroll}
+            contentContainerStyle={styles.sheetScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <DirectionsBody
+              loading={directionsLoading}
+              statusText={directionsStatusText}
+              route={directionsRoute}
+              originText={directionsOriginText}
+              destinationText={directionsDestinationText}
+              pickingEndpoint={pickingEndpoint}
+              onPickEndpoint={onPickEndpoint}
+            />
+            {scrollTailSpace > 0 ? (
+              <View style={{ height: scrollTailSpace }} />
+            ) : null}
+          </ScrollView>
+        ) : showProjects ? (
           // Keyed apart from the detail scroller so switching views starts at
           // the top instead of keeping the detail's scroll offset.
           <ScrollView
@@ -1069,6 +1363,26 @@ function InvestmentSheet({
                 style={[styles.sheetActionBar, footerAnimatedStyle]}
               >
                 <Pressable
+                  style={[
+                    styles.sheetActionButton,
+                    styles.sheetActionButtonGhost,
+                  ]}
+                  onPress={onPressDirections}
+                >
+                  <View style={styles.directionsIcon}>
+                    <View style={styles.directionsIconShaft} />
+                    <View style={styles.directionsIconHead} />
+                  </View>
+                  <Text
+                    style={[
+                      styles.sheetActionLabel,
+                      styles.sheetActionLabelGhost,
+                    ]}
+                  >
+                    {DIRECTIONS_ACTION_LABEL}
+                  </Text>
+                </Pressable>
+                <Pressable
                   style={styles.sheetActionButton}
                   onPress={onFocusProvince}
                 >
@@ -1091,6 +1405,7 @@ export {
   LayerButton,
   LegendButton,
   LegendPanel,
+  PickOriginBanner,
   SearchBox,
   SelectorDrawer,
 };

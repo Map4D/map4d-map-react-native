@@ -3,6 +3,7 @@ import React from 'react';
 import {ViewPropTypes, ColorPropType} from 'deprecated-react-native-prop-types';
 import {AreaFocusManager} from './extends/AreaFocusManager';
 import {AreaFocuser} from './extends/AreaFocuser';
+import {MFDirectionsRenderer} from './MFDirectionsRenderer';
 import {MFMarker} from './MFMarker';
 import {MFPolygon} from './MFPolygon';
 import {getMap4dMapNativeModule} from '../native/Map4dMapNativeModule';
@@ -160,6 +161,7 @@ class MFMapView extends React.Component {
       isReady: Platform.OS === 'ios',
       managedPolygons: {},
       managedMarkers: {},
+      managedDirections: null,
     };
 
     this._onMapReady = this._onMapReady.bind(this);
@@ -267,6 +269,34 @@ class MFMapView extends React.Component {
       return {
         managedMarkers,
       };
+    });
+  }
+
+  /**
+   * A route the component draws itself, in the same spirit as the managed
+   * polygons and markers above. `directions` is the raw `/sdk/route` response
+   * string, which the native renderer decodes on its own.
+   */
+  _setDirections(directions, options) {
+    if (typeof directions !== 'string' || directions.trim().length === 0) {
+      return;
+    }
+
+    this.setState({
+      managedDirections: {
+        directions,
+        options: options && typeof options === 'object' ? options : {},
+      },
+    });
+  }
+
+  _clearDirections() {
+    if (this.state.managedDirections == null) {
+      return;
+    }
+
+    this.setState({
+      managedDirections: null,
     });
   }
 
@@ -506,6 +536,12 @@ class MFMapView extends React.Component {
                 zIndex={polygon.zIndex}
               />
             ))}
+            {this.state.managedDirections ? (
+              <MFDirectionsRenderer
+                directions={this.state.managedDirections.directions}
+                {...this.state.managedDirections.options}
+              />
+            ) : null}
             {managedMarkers.map((marker) => (
               <MFMarker
                 key={marker.id}
