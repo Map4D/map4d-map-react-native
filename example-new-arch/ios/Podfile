@@ -23,8 +23,6 @@ target 'Map4dMapExample' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
   
-  pod 'react-native-map4d-map', :path => '../..'
-
   post_install do |installer|
     react_native_post_install(
       installer,
