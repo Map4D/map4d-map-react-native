@@ -1,9 +1,19 @@
 import {MFMapView, MFBuilding} from 'react-native-map4d-map-dtqg'
-import React from 'react'
-import {SafeAreaView, StyleSheet, View, Text} from 'react-native'
+import React, {useRef} from 'react'
+import {StyleSheet, View, Text, Button, Alert, Platform, ToastAndroid} from 'react-native'
+import {SafeAreaView} from 'react-native-safe-area-context'
 
 function BasicMapScreen() {
+  const mapRef = useRef(null)
   const camera = {latitude: 16.088377222167768, longitude: 108.22961691829235}
+
+  const showMessage = (message) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.SHORT)
+      return
+    }
+    Alert.alert('Camera', message)
+  }
 
   const onDataSourceFeaturePress = async (e) => {
     console.log('Press Data Source Feature:', e.nativeEvent)
@@ -13,10 +23,37 @@ function BasicMapScreen() {
     console.log('Press Building:', e.nativeEvent)
   }
 
+  const onGetCamera = async () => {
+    const mapView = mapRef.current
+    if (!mapView || typeof mapView.getCamera !== 'function') {
+      showMessage('Map chua san sang')
+      return
+    }
+
+    try {
+      const camera = await mapView.getCamera()
+      const center = camera?.center || camera?.target || {}
+      const lat = Number(center.latitude || 0).toFixed(6)
+      const lng = Number(center.longitude || 0).toFixed(6)
+      const zoom = Number(camera?.zoom || 0).toFixed(2)
+      const tilt = Number(camera?.tilt || 0).toFixed(2)
+      const bearing = Number(camera?.bearing || 0).toFixed(2)
+      showMessage(`Lat: ${lat}, Lng: ${lng}, Zoom: ${zoom}, Tilt: ${tilt}, Bearing: ${bearing}`)
+    } catch (error) {
+      console.warn('getCamera failed:', error)
+      showMessage('getCamera failed')
+    }
+  }
+
   return (
-    <SafeAreaView style={styles.safeView}>
+    <SafeAreaView style={styles.safeView} edges={['left', 'right', 'bottom']}>
+      <View style={styles.topActions}>
+        <Button title="Get Camera" onPress={onGetCamera} />
+      </View>
+
       <MFMapView
         style={styles.container}
+        ref={mapRef}
         camera={{
           center: camera,
           zoom: 15,
@@ -37,11 +74,6 @@ function BasicMapScreen() {
           name="Building test"
         />
       </MFMapView>
-
-      <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>Basic Map</Text>
-        <Text style={styles.infoText}>Pinch, pan va xoay de kiem tra tuong tac co ban.</Text>
-      </View>
     </SafeAreaView>
   )
 }
@@ -54,29 +86,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  infoCard: {
+  topActions: {
     position: 'absolute',
+    top: 12,
     left: 12,
     right: 12,
-    bottom: 16,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#dbe2ea',
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  infoTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#0f172a',
-    marginBottom: 4,
-  },
-  infoText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#475569',
-    lineHeight: 18,
+    zIndex: 3,
+    elevation: 3,
   },
 })
 

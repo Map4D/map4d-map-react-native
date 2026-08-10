@@ -158,7 +158,7 @@ class MFMapView extends React.Component {
     this.areaFocusManager = new AreaFocusManager(this);
     this.areaFocuser = new AreaFocuser(this.areaFocusManager);
     this.state = {
-      isReady: Platform.OS === 'ios',
+      isReady: false,
       managedPolygons: {},
       managedMarkers: {},
       managedDirections: null,

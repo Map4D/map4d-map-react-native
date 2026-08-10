@@ -1,6 +1,7 @@
-import {TurboModuleRegistry} from 'react-native';
+import type { TurboModule } from 'react-native';
+import { TurboModuleRegistry } from 'react-native';
 
-export interface Spec {
+export interface Spec extends TurboModule {
   getCamera(reactTag: number): Promise<Object>;
   getBounds(reactTag: number): Promise<Object>;
   getMyLocation(reactTag: number): Promise<Object>;
@@ -9,4 +10,5 @@ export interface Spec {
   cameraForBounds(reactTag: number, boundsData: Object): Promise<Object>;
 }
 
-export default TurboModuleRegistry.get<Spec>('Map4dMap');
+// prettier-ignore
+export default TurboModuleRegistry.getEnforcing<Spec>('Map4dMap');
