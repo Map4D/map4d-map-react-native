@@ -1,6 +1,5 @@
 import React from 'react'
 import {
-  SafeAreaView,
   StyleSheet,
   FlatList,
   Pressable,
@@ -9,6 +8,7 @@ import {
 } from 'react-native'
 import {NavigationContainer} from '@react-navigation/native'
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context'
 import BasicMapScreen from './screens/BasicMapScreen'
 import FocusAreaScreen from './screens/FocusAreaScreen'
 import BanDoSoScreen from './screens/BanDoSoDemoScreen'
@@ -78,28 +78,30 @@ function MenuScreen({navigation}) {
 
 function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Menu"
-        screenOptions={{
-          headerTitleAlign: 'center',
-          headerStyle: {
-            backgroundColor: '#ffffff',
-          },
-          headerTintColor: '#0f172a',
-          headerShadowVisible: false,
-          headerTitleStyle: {
-            fontSize: 17,
-            fontWeight: '700',
-          },
-        }}
-      >
-        <Stack.Screen name="Menu" component={MenuScreen} options={{headerShown: false}} />
-        <Stack.Screen name="BasicMapScreen" component={BasicMapScreen} options={{title: 'Basic Map'}} />
-        <Stack.Screen name="FocusAreaScreen" component={FocusAreaScreen} options={{title: 'Focus area'}} />
-        <Stack.Screen name="BanDoSoScreen" component={BanDoSoScreen} options={{title: 'MFBanDoSo'}} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Menu"
+          screenOptions={{
+            headerTitleAlign: 'center',
+            headerStyle: {
+              backgroundColor: '#ffffff',
+            },
+            headerTintColor: '#0f172a',
+            headerShadowVisible: false,
+            headerTitleStyle: {
+              fontSize: 17,
+              fontWeight: '700',
+            },
+          }}
+        >
+          <Stack.Screen name="Menu" component={MenuScreen} options={{headerShown: false}} />
+          <Stack.Screen name="BasicMapScreen" component={BasicMapScreen} options={{title: 'Basic Map'}} />
+          <Stack.Screen name="FocusAreaScreen" component={FocusAreaScreen} options={{title: 'Focus area'}} />
+          <Stack.Screen name="BanDoSoScreen" component={BanDoSoScreen} options={{title: 'MFBanDoSo'}} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   )
 }
 

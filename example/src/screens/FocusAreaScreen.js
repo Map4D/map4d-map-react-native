@@ -1,5 +1,6 @@
 import React, {useRef} from 'react'
-import {SafeAreaView, StyleSheet, Button} from 'react-native'
+import {StyleSheet, Button} from 'react-native'
+import {SafeAreaView} from 'react-native-safe-area-context'
 import {MFMapView} from 'react-native-map4d-map-dtqg'
 
 function FocusAreaScreen() {
@@ -26,7 +27,7 @@ function FocusAreaScreen() {
       return
     }
 
-    mapView.clearFocusedArea()
+    await mapView.clearFocusedArea()
   }
 
   const onFocusIndustrialZone = async (highlight) => {
@@ -115,7 +116,7 @@ function FocusAreaScreen() {
   ]
 
   return (
-    <SafeAreaView style={styles.safeView}>
+    <SafeAreaView style={styles.safeView} edges={['left', 'right', 'bottom']}>
       {actions.map((action) => (
         <Button key={action.key} title={action.title} onPress={action.onPress} />
       ))}

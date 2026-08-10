@@ -1427,7 +1427,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-map4d-map (0.1.4):
+  - react-native-map4d-map (0.1.7):
     - hermes-engine
     - Map4dMapDTQG (~> 0.1)
     - RCTRequired
@@ -2211,7 +2211,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   FBLazyVector: b3e7ad108f0d882e30445c5527d774e3fd432f3d
-  hermes-engine: c7c647197753920abc40c2f9c7a77d8558ab85ef
+  hermes-engine: 841ac1f9be730b36f5d063802c2168dade02ce21
   Map4dMapDTQG: 05201f3056459a86d339ad4dd4b1064c92bfac58
   RCTDeprecation: 2a74a2c57675e64419bd89078efde81f7c1de90b
   RCTRequired: 30451112e6fef4e6f31b4e7eee0845156e35e4b0
@@ -2250,7 +2250,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: ce449ccdf3b80384415b925606be8a4bdcfc65d3
   React-microtasksnativemodule: 2eb3f49d0d8e77b5343455eccd057010b8d38b6b
   React-mutationobservernativemodule: f0a0d5ae9b51caf7becbeabf836d716cfedb6bf2
-  react-native-map4d-map: 132fd5e5a12f0edd976f19ad92708e999c2e222a
+  react-native-map4d-map: 93c75ddf769b89df45d5ddf0ec960d8a1f854f3c
   react-native-safe-area-context: fb5c8ee9f6dd62ef710611b3d370c501f42a4ac0
   React-NativeModulesApple: a092d89b58f635ebfab88048b0eda9fb516819fd
   React-networking: 968bbbe73590149feb1e72b2af4f6a68e4796ece
@@ -2290,6 +2290,6 @@ SPEC CHECKSUMS:
   RNScreens: 991cc417cd396602a6cf59a42139e5a9d91462a9
   Yoga: fe50ab299e578f397fef753cf309c6703a4db29b
 
-PODFILE CHECKSUM: aa4de750732187492251688eba4457dc5f1e8715
+PODFILE CHECKSUM: 9a1e939b4a0a9cd13c99660b1a843ec8e146e9ad
 
 COCOAPODS: 1.17.0
