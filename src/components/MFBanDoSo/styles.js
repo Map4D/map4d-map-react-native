@@ -763,28 +763,38 @@ const styles = StyleSheet.create({
   sheetActionLabelGhost: {
     color: '#374151',
   },
-  // Arrow head + shaft, drawn rather than typed so it lines up with the label.
+  // The wayfinding sign — a diamond with an arrow inside — rather than a bare
+  // arrow, which reads as "go" instead of "directions". The two pieces are
+  // absolutely positioned siblings, not nested, so the diamond's rotation does
+  // not tilt the arrow with it.
   directionsIcon: {
-    width: 12,
-    height: 12,
+    width: 20,
+    height: 20,
     marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  directionsIconHead: {
-    width: 8,
-    height: 8,
-    borderTopWidth: 2,
-    borderRightWidth: 2,
+  directionsIconDiamond: {
+    position: 'absolute',
+    left: 3,
+    top: 3,
+    width: 14,
+    height: 14,
+    borderWidth: 2,
+    borderRadius: 3,
     borderColor: '#374151',
     transform: [{ rotate: '45deg' }],
   },
-  directionsIconShaft: {
+  directionsIconArrow: {
     position: 'absolute',
-    width: 12,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: '#374151',
+    left: 8,
+    top: 6.5,
+    width: 0,
+    height: 0,
+    borderTopWidth: 3.5,
+    borderBottomWidth: 3.5,
+    borderLeftWidth: 5,
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
+    borderLeftColor: '#374151',
   },
   // Sits where the search bar would be: the two never show at once.
   pickOriginBanner: {

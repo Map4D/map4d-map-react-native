@@ -1372,8 +1372,8 @@ function InvestmentSheet({
             onPress={onPressDirections}
           >
             <View style={styles.directionsIcon}>
-              <View style={styles.directionsIconShaft} />
-              <View style={styles.directionsIconHead} />
+              <View style={styles.directionsIconDiamond} />
+              <View style={styles.directionsIconArrow} />
             </View>
             <Text
               style={[styles.sheetActionLabel, styles.sheetActionLabelGhost]}
