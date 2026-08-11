@@ -18,6 +18,9 @@ function BanDoSoScreen() {
     console.log('Press Data Source Feature:', e.nativeEvent);
   };
 
+  // No 'top' edge: this screen is shown with a native-stack header, which
+  // already accounts for the status bar. Adding it here would inset the map a
+  // second time and leave a strip of background above it.
   return (
     <SafeAreaView style={styles.safeView} edges={['left', 'right', 'bottom']}>
       <MFBanDoSo

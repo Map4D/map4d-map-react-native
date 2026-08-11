@@ -4,6 +4,7 @@ import {
   Dimensions,
   Easing,
   Keyboard,
+  View,
 } from 'react-native';
 import {
   LEGEND_TITLE,
@@ -104,6 +105,7 @@ import {
 import {
   buildGeojsonStyle,
 } from './internal/GeojsonStyleUtils';
+import { styles } from './MFBanDoSo/styles';
 
 const SHEET_KIND_PROVINCE = 'province';
 const SHEET_KIND_ZONE = 'zone';
@@ -894,11 +896,23 @@ class MFBanDoSo extends MFMapView {
 
     if (origin) {
       this._loadRoute(origin, destination);
+      return;
     }
+
+    // Same reason as _pickDirectionsEndpoint: the map has to be reachable for
+    // the tap that supplies the missing point.
+    this._snapSheetTo(SHEET_HALF_SNAP_RATIO);
   }
 
+  /**
+   * Collapsing is not cosmetic here: a fully open sheet covers the whole map,
+   * leaving nowhere to tap for the point being picked — and the prompt banner
+   * would sit over the sheet's own header, so there would be no way back
+   * either.
+   */
   _pickDirectionsEndpoint(endpoint) {
     this.setState({ pickingEndpoint: endpoint });
+    this._snapSheetTo(SHEET_HALF_SNAP_RATIO);
   }
 
   /**
@@ -1204,6 +1218,19 @@ class MFBanDoSo extends MFMapView {
     // Only one drill-down is open at a time, so one back handler covers both.
     const projectsBack = showProjects ? this._closeZoneProjects : null;
     const backHandler = showDirections ? this._closeDirections : projectsBack;
+    // Pinning the overlays to the map's own frame keeps them aligned with it
+    // even when the parent pads the map inward — a SafeAreaView with default
+    // edges, for one, which otherwise left the sheet short of the map's bottom.
+    const mapFrame = this.state.mapFrame;
+    const overlayRootStyle = mapFrame
+      ? {
+          position: 'absolute',
+          left: mapFrame.x,
+          top: mapFrame.y,
+          width: mapFrame.width,
+          height: mapFrame.height,
+        }
+      : styles.mapOverlayRoot;
     const pickingEndpoint = this.state.pickingEndpoint;
     const pickHintText =
       pickingEndpoint === DIRECTIONS_ENDPOINT_ORIGIN
@@ -1229,83 +1256,85 @@ class MFBanDoSo extends MFMapView {
     return (
       <React.Fragment>
         {super.render()}
-        <LayerButton
-          show={showLayerButton}
-          isActive={this.state.isSelectorVisible}
-          onPress={this._toggleSelectorVisibility}
-        />
-        <LegendButton
-          show={showLegendButton}
-          isActive={this.state.isLegendVisible}
-          onPress={this._toggleLegendVisibility}
-        />
-        {/* Searching for somewhere else is not what the directions view is
-            for, and its pick-a-point banner takes the slot anyway. */}
-        <SearchBox
-          show={!showDirections}
-          keyword={this.state.searchKeyword}
-          sections={this.state.searchSections}
-          loading={this.state.isSearchLoading}
-          showResults={this.state.isSearchOpen}
-          onChangeKeyword={this._onSearchKeywordChange}
-          onClear={this._clearSearch}
-          onFocus={this._onSearchFocus}
-          onSelectResult={this._onSelectSearchResult}
-        />
-        <SelectorDrawer
-          show={showSelector}
-          title={selectorTitle}
-          groupSections={groupSections}
-          expandedGroupKeys={this.state.expandedGroupKeys}
-          dragAnim={this._selectorAnim}
-          backdropAnimatedStyle={backdropAnimatedStyle}
-          panelAnimatedStyle={panelAnimatedStyle}
-          onClose={this._toggleSelectorVisibility}
-          onDragCancel={this._snapSelectorOpen}
-          onToggleGroup={this._toggleGroup}
-          onToggleGroupChecked={this._toggleGroupChecked}
-          onToggleItem={this._toggleItem}
-        />
-        <LegendPanel
-          show={showLegend}
-          title={legendTitle}
-          items={items}
-          getItemColor={(item) => resolveCategoryItemColor(item)}
-        />
-        <InvestmentSheet
-          show={this.state.isSheetMounted}
-          title={sheetTitle}
-          kind={this.state.sheetKind}
-          loading={this.state.isSheetLoading}
-          statusText={this.state.sheetStatusText}
-          info={this.state.sheetInfo}
-          showProjects={showProjects}
-          projects={this.state.zoneProjects}
-          projectsLoading={this.state.isZoneProjectsLoading}
-          projectsStatusText={this.state.zoneProjectsStatusText}
-          showDirections={showDirections}
-          directionsRoute={this.state.directionsRoute}
-          directionsLoading={this.state.isDirectionsLoading}
-          directionsStatusText={this.state.directionsStatusText}
-          directionsOriginText={this.state.directionsOrigin?.label}
-          directionsDestinationText={this.state.directionsDestination?.label}
-          pickingEndpoint={pickingEndpoint}
-          dragAnim={this._sheetAnim}
-          snapValue={this.state.sheetSnapValue}
-          onClose={this._closeSheet}
-          onBack={backHandler}
-          onSnapTo={this._snapSheetTo}
-          onPanelHeightChange={this._onSheetPanelHeightChange}
-          onFocusProvince={this._focusProvinceFromSheet}
-          onPressProjects={this._openZoneProjects}
-          onPressDirections={this._startDirections}
-          onPickEndpoint={this._pickDirectionsEndpoint}
-        />
-        <PickOriginBanner
-          show={pickingEndpoint != null}
-          text={pickHintText}
-          onCancel={this._cancelPickOrigin}
-        />
+        <View style={overlayRootStyle} pointerEvents="box-none">
+          <LayerButton
+            show={showLayerButton}
+            isActive={this.state.isSelectorVisible}
+            onPress={this._toggleSelectorVisibility}
+          />
+          <LegendButton
+            show={showLegendButton}
+            isActive={this.state.isLegendVisible}
+            onPress={this._toggleLegendVisibility}
+          />
+          {/* Searching for somewhere else is not what the directions view is
+              for, and its pick-a-point banner takes the slot anyway. */}
+          <SearchBox
+            show={!showDirections}
+            keyword={this.state.searchKeyword}
+            sections={this.state.searchSections}
+            loading={this.state.isSearchLoading}
+            showResults={this.state.isSearchOpen}
+            onChangeKeyword={this._onSearchKeywordChange}
+            onClear={this._clearSearch}
+            onFocus={this._onSearchFocus}
+            onSelectResult={this._onSelectSearchResult}
+          />
+          <SelectorDrawer
+            show={showSelector}
+            title={selectorTitle}
+            groupSections={groupSections}
+            expandedGroupKeys={this.state.expandedGroupKeys}
+            dragAnim={this._selectorAnim}
+            backdropAnimatedStyle={backdropAnimatedStyle}
+            panelAnimatedStyle={panelAnimatedStyle}
+            onClose={this._toggleSelectorVisibility}
+            onDragCancel={this._snapSelectorOpen}
+            onToggleGroup={this._toggleGroup}
+            onToggleGroupChecked={this._toggleGroupChecked}
+            onToggleItem={this._toggleItem}
+          />
+          <LegendPanel
+            show={showLegend}
+            title={legendTitle}
+            items={items}
+            getItemColor={(item) => resolveCategoryItemColor(item)}
+          />
+          <InvestmentSheet
+            show={this.state.isSheetMounted}
+            title={sheetTitle}
+            kind={this.state.sheetKind}
+            loading={this.state.isSheetLoading}
+            statusText={this.state.sheetStatusText}
+            info={this.state.sheetInfo}
+            showProjects={showProjects}
+            projects={this.state.zoneProjects}
+            projectsLoading={this.state.isZoneProjectsLoading}
+            projectsStatusText={this.state.zoneProjectsStatusText}
+            showDirections={showDirections}
+            directionsRoute={this.state.directionsRoute}
+            directionsLoading={this.state.isDirectionsLoading}
+            directionsStatusText={this.state.directionsStatusText}
+            directionsOriginText={this.state.directionsOrigin?.label}
+            directionsDestinationText={this.state.directionsDestination?.label}
+            pickingEndpoint={pickingEndpoint}
+            dragAnim={this._sheetAnim}
+            snapValue={this.state.sheetSnapValue}
+            onClose={this._closeSheet}
+            onBack={backHandler}
+            onSnapTo={this._snapSheetTo}
+            onPanelHeightChange={this._onSheetPanelHeightChange}
+            onFocusProvince={this._focusProvinceFromSheet}
+            onPressProjects={this._openZoneProjects}
+            onPressDirections={this._startDirections}
+            onPickEndpoint={this._pickDirectionsEndpoint}
+          />
+          <PickOriginBanner
+            show={pickingEndpoint != null}
+            text={pickHintText}
+            onCancel={this._cancelPickOrigin}
+          />
+        </View>
       </React.Fragment>
     );
   }

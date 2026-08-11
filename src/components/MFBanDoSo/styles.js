@@ -14,6 +14,13 @@ const fullFill = {
 };
 
 const styles = StyleSheet.create({
+  // Every overlay lives inside this one box, which is pinned to the map's
+  // measured frame so the two always line up. Before the first measurement it
+  // falls back to filling the parent, which is right whenever the parent has no
+  // padding of its own.
+  mapOverlayRoot: {
+    ...fullFill,
+  },
   hiddenButton: {
     display: 'none',
   },
@@ -717,9 +724,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#374151',
   },
-  // Counter-translated over the scroll area at the smaller anchors, so it needs
-  // to paint above it on both platforms.
+  // Pinned to the bottom of the screen from outside the panel rather than from
+  // inside it. It used to live in the panel and be counter-translated into
+  // place, which looked right but left its layout position off-screen at the
+  // smaller anchors — Android hit-tests against that position, so taps fell
+  // straight through to the map. Layout and visual position now agree at every
+  // anchor. Elevation must beat the panel's own (12) to paint above it.
   sheetActionBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
@@ -728,8 +743,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
     backgroundColor: '#ffffff',
-    zIndex: 2,
-    elevation: 4,
+    zIndex: 3,
+    elevation: 16,
   },
   sheetActionButton: {
     flexDirection: 'row',

@@ -1154,6 +1154,7 @@ function InvestmentSheet({
   onPickEndpoint,
 }) {
   const [containerHeight, setContainerHeight] = useState(0);
+  const [footerHeight, setFooterHeight] = useState(0);
   const availableHeight = containerHeight || Dimensions.get('window').height;
   const panelHeight = Math.max(0, Math.round(availableHeight - SHEET_TOP_PEEK));
 
@@ -1225,11 +1226,9 @@ function InvestmentSheet({
     ],
   };
 
-  // The action bar cancels out however far the panel was pushed down, so it
-  // stays glued to the bottom of the screen at every anchor instead of riding
-  // off-screen with the rest of the panel. It only fades once the sheet is
-  // nearly closed, otherwise it would still be sitting there after the panel
-  // has slid away.
+  // The action bar sits outside the panel, so it needs no transform to stay at
+  // the bottom of the screen. It only fades once the sheet is nearly closed;
+  // without that it would still be sitting there after the panel slid away.
   const footerFadeAt = Math.max(
     0.01,
     Math.min(SHEET_FOOTER_FADE_RATIO, SHEET_HALF_SNAP_RATIO / 2)
@@ -1239,37 +1238,40 @@ function InvestmentSheet({
       inputRange: [0, footerFadeAt, 1],
       outputRange: [0, 1, 1],
     }),
-    transform: [
-      {
-        translateY: dragAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [-travel, 0],
-        }),
-      },
-    ],
   };
 
   // At the smaller anchors the bottom of the scroll viewport sits off-screen,
   // so the tail of the content could never be scrolled into view. Padding it by
-  // exactly the hidden slice makes the last row reachable at every anchor. The
-  // action bar needs no allowance on top of that: its flow slot already sits
-  // below the scroll area, so counter-translating it only moves it up into the
-  // slice this padding compensates for.
+  // the hidden slice makes the last row reachable at every anchor, plus the
+  // action bar's own height: it no longer takes a slot in the panel's flow, so
+  // it now covers the bottom of the scroll area rather than sitting below it.
   const scrollTailSpace = Math.max(
     0,
-    Math.round(panelHeight * (1 - clampSnapValue(snapValue)))
+    Math.round(panelHeight * (1 - clampSnapValue(snapValue))) + footerHeight
   );
 
-  const onContainerLayout = (event) => {
+  const measure = (event, setter) => {
     const nextHeight = event?.nativeEvent?.layout?.height;
     if (typeof nextHeight !== 'number' || nextHeight <= 0) {
       return;
     }
 
-    setContainerHeight((prevHeight) =>
+    setter((prevHeight) =>
       Math.abs(prevHeight - nextHeight) < 1 ? prevHeight : nextHeight
     );
   };
+
+  const onContainerLayout = (event) => measure(event, setContainerHeight);
+  const onFooterLayout = (event) => measure(event, setFooterHeight);
+
+  // Only the province detail carries these actions — not the zone sheet, and
+  // not the drilled-down project or directions views.
+  const showActionBar =
+    !showDirections &&
+    !showProjects &&
+    !loading &&
+    info != null &&
+    info.focusProvince != null;
 
   return (
     // box-none so only the panel itself takes touches: the map underneath stays
@@ -1342,60 +1344,51 @@ function InvestmentSheet({
             <Text style={styles.sheetStatusText}>{statusText}</Text>
           </View>
         ) : (
-          <React.Fragment>
-            <ScrollView
-              key="detail"
-              style={styles.sheetScroll}
-              contentContainerStyle={styles.sheetScrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {kind === SHEET_KIND_ZONE ? (
-                <ZoneSheetBody info={info} onPressProjects={onPressProjects} />
-              ) : (
-                <InvestmentSheetBody info={info} />
-              )}
-              {scrollTailSpace > 0 ? (
-                <View style={{ height: scrollTailSpace }} />
-              ) : null}
-            </ScrollView>
-            {info.focusProvince ? (
-              <Animated.View
-                style={[styles.sheetActionBar, footerAnimatedStyle]}
-              >
-                <Pressable
-                  style={[
-                    styles.sheetActionButton,
-                    styles.sheetActionButtonGhost,
-                  ]}
-                  onPress={onPressDirections}
-                >
-                  <View style={styles.directionsIcon}>
-                    <View style={styles.directionsIconShaft} />
-                    <View style={styles.directionsIconHead} />
-                  </View>
-                  <Text
-                    style={[
-                      styles.sheetActionLabel,
-                      styles.sheetActionLabelGhost,
-                    ]}
-                  >
-                    {DIRECTIONS_ACTION_LABEL}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={styles.sheetActionButton}
-                  onPress={onFocusProvince}
-                >
-                  <View style={styles.sheetActionIcon} />
-                  <Text style={styles.sheetActionLabel}>
-                    {SHEET_FOCUS_ACTION_LABEL}
-                  </Text>
-                </Pressable>
-              </Animated.View>
+          <ScrollView
+            key="detail"
+            style={styles.sheetScroll}
+            contentContainerStyle={styles.sheetScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {kind === SHEET_KIND_ZONE ? (
+              <ZoneSheetBody info={info} onPressProjects={onPressProjects} />
+            ) : (
+              <InvestmentSheetBody info={info} />
+            )}
+            {scrollTailSpace > 0 ? (
+              <View style={{ height: scrollTailSpace }} />
             ) : null}
-          </React.Fragment>
+          </ScrollView>
         )}
       </Animated.View>
+
+      {showActionBar ? (
+        <Animated.View
+          style={[styles.sheetActionBar, footerAnimatedStyle]}
+          onLayout={onFooterLayout}
+        >
+          <Pressable
+            style={[styles.sheetActionButton, styles.sheetActionButtonGhost]}
+            onPress={onPressDirections}
+          >
+            <View style={styles.directionsIcon}>
+              <View style={styles.directionsIconShaft} />
+              <View style={styles.directionsIconHead} />
+            </View>
+            <Text
+              style={[styles.sheetActionLabel, styles.sheetActionLabelGhost]}
+            >
+              {DIRECTIONS_ACTION_LABEL}
+            </Text>
+          </Pressable>
+          <Pressable style={styles.sheetActionButton} onPress={onFocusProvince}>
+            <View style={styles.sheetActionIcon} />
+            <Text style={styles.sheetActionLabel}>
+              {SHEET_FOCUS_ACTION_LABEL}
+            </Text>
+          </Pressable>
+        </Animated.View>
+      ) : null}
     </View>
   );
 }

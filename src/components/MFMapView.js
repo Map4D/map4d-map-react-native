@@ -162,9 +162,11 @@ class MFMapView extends React.Component {
       managedPolygons: {},
       managedMarkers: {},
       managedDirections: null,
+      mapFrame: null,
     };
 
     this._onMapReady = this._onMapReady.bind(this);
+    this._onMapLayout = this._onMapLayout.bind(this);
     this._onPress = this._onPress.bind(this);
     this._onDataSourceFeaturePress = this._onDataSourceFeaturePress.bind(this);
     this._ref = this._ref.bind(this);
@@ -306,6 +308,43 @@ class MFMapView extends React.Component {
       if (onMapReady) {
         onMapReady();
       }
+    });
+  }
+
+  /**
+   * The map's own frame within its parent. Subclasses draw overlays as siblings
+   * of the map, and a sibling cannot infer that frame from the parent: padding
+   * on the parent (a SafeAreaView with default edges, say) shifts the two apart.
+   * Measuring the map itself is the only account that always matches.
+   */
+  _onMapLayout(event) {
+    const { onLayout } = this.props;
+    if (onLayout) {
+      onLayout(event);
+    }
+
+    const layout = event?.nativeEvent?.layout;
+    if (!layout) {
+      return;
+    }
+
+    const next = {
+      x: layout.x,
+      y: layout.y,
+      width: layout.width,
+      height: layout.height,
+    };
+
+    this.setState((prevState) => {
+      const frame = prevState.mapFrame;
+      const unchanged =
+        frame != null &&
+        Math.abs(frame.x - next.x) < 1 &&
+        Math.abs(frame.y - next.y) < 1 &&
+        Math.abs(frame.width - next.width) < 1 &&
+        Math.abs(frame.height - next.height) < 1;
+
+      return unchanged ? null : { mapFrame: next };
     });
   }
 
@@ -520,6 +559,7 @@ class MFMapView extends React.Component {
         style: this.props.style,
         onMapReady: this._onMapReady,
         ...restProps,
+        onLayout: this._onMapLayout,
         onPress: this._onPress,
         onDataSourceFeaturePress: this._onDataSourceFeaturePress,
         children: (
