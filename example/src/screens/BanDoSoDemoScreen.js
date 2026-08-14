@@ -22,7 +22,7 @@ function BanDoSoScreen() {
   // already accounts for the status bar. Adding it here would inset the map a
   // second time and leave a strip of background above it.
   return (
-    <SafeAreaView style={styles.safeView}>
+    <SafeAreaView style={styles.safeView} edges={['left', 'right', 'bottom']}>
       <MFBanDoSo
         style={styles.container}
         camera={INITIAL_CAMERA}
