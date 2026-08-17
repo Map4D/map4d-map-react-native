@@ -1,10 +1,4 @@
-function firstNonEmptyString(values) {
-  const found = (Array.isArray(values) ? values : []).find(
-    (value) => typeof value === 'string' && value.trim().length > 0
-  );
-
-  return found ? found.trim() : null;
-}
+import { firstNonEmptyString } from '../shared/text';
 
 function normalizeStats(stats) {
   return (Array.isArray(stats) ? stats : [])
