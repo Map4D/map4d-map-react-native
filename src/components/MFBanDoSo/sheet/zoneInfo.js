@@ -1,3 +1,4 @@
+import { firstNonEmptyString } from '../shared/text';
 import {
   ZONE_AREA_SUFFIX,
   ZONE_CURRENCY_SUFFIX,
@@ -19,14 +20,6 @@ import {
  * tells a tap on a zone apart from a tap on any other styled layer.
  */
 const ZONE_SOURCE_LAYER_PREFIX = 'v.kcnkkt';
-
-function firstNonEmptyString(values) {
-  const found = (Array.isArray(values) ? values : []).find(
-    (value) => typeof value === 'string' && value.trim().length > 0
-  );
-
-  return found ? found.trim() : null;
-}
 
 function toNumericId(value) {
   if (typeof value === 'number' && Number.isFinite(value)) {

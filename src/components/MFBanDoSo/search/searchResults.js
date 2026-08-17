@@ -1,15 +1,4 @@
-function firstNonEmptyString(values) {
-  const found = (Array.isArray(values) ? values : []).find(
-    (value) => typeof value === 'string' && value.trim().length > 0
-  );
-
-  return found ? found.trim() : null;
-}
-
-function toFiniteNumber(value) {
-  const number = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(number) ? number : null;
-}
+import { firstNonEmptyString, toFiniteNumber } from '../shared/text';
 
 /**
  * `bbox` arrives as the GeoJSON ordering [minLng, minLat, maxLng, maxLat],

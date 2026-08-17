@@ -1,22 +1,67 @@
 import React from 'react';
+import { Animated, Dimensions, Easing, Keyboard, View } from 'react-native';
 import {
-  Animated,
-  Dimensions,
-  Easing,
-  Keyboard,
-  View,
-} from 'react-native';
+  DIRECTIONS_ACTION_LABEL,
+  DIRECTIONS_ACTIVE_OUTLINE_COLOR,
+  DIRECTIONS_ACTIVE_OUTLINE_WIDTH,
+  DIRECTIONS_ACTIVE_STROKE_COLOR,
+  DIRECTIONS_ACTIVE_STROKE_WIDTH,
+  DIRECTIONS_DESTINATION_ICON,
+  DIRECTIONS_DESTINATION_LABEL,
+  DIRECTIONS_DESTINATION_POI_COLOR,
+  DIRECTIONS_EMPTY_TEXT,
+  DIRECTIONS_ENDPOINT_ORIGIN,
+  DIRECTIONS_LOADING_TEXT,
+  DIRECTIONS_MY_LOCATION_TEXT,
+  DIRECTIONS_ORIGIN_ICON,
+  DIRECTIONS_ORIGIN_POI_COLOR,
+  DIRECTIONS_PICKED_POINT_TEXT,
+  DIRECTIONS_PICK_DESTINATION_TEXT,
+  DIRECTIONS_PICK_ORIGIN_TEXT,
+  PickOriginBanner,
+  getRouteUrl,
+  resolveRoute,
+} from './MFBanDoSo/directions';
 import {
-  LEGEND_TITLE,
-  SELECTOR_CLOSE_DURATION_MS,
-  SELECTOR_DRAWER_TRANSLATE_X,
-  SELECTOR_OPEN_DURATION_MS,
+  LayerButton,
   SELECTOR_TITLE,
+  SelectorDrawer,
+  createCategoryGroupSections,
+  createSelectedCategoryItemsSignature,
+  getCategoryConfigUrl,
+  getSelectedCategoryItems,
+  getSourceUrl,
+  normalizeCategoryItems,
+  reconcileExpandedGroupKeys,
+  resolveCategoryGroupMetadataFromResponse,
+  resolveItemsFromCategoryResponse,
+  toggleCategoryGroupChecked,
+  toggleCategoryItemChecked,
+} from './MFBanDoSo/layers';
+import { LEGEND_TITLE, LegendButton, LegendDrawer } from './MFBanDoSo/legend';
+import { banDoSoPropTypes } from './MFBanDoSo/propTypes';
+import {
+  SEARCH_DEBOUNCE_MS,
+  SEARCH_MIN_KEYWORD_LENGTH,
+  SearchBox,
+  countSearchResults,
+  getSearchUrl,
+  resolveSearchSections,
+} from './MFBanDoSo/search';
+import {
+  DRAWER_CLOSE_DURATION_MS,
+  DRAWER_OPEN_DURATION_MS,
+  DRAWER_TRANSLATE_X,
+} from './MFBanDoSo/shared/constants';
+import { sharedStyles } from './MFBanDoSo/shared/styles';
+import {
+  InvestmentSheet,
   SHEET_CLOSE_DURATION_MS,
   SHEET_EMPTY_TEXT,
   SHEET_FOCUS_PADDING,
   SHEET_HALF_SNAP_RATIO,
   SHEET_INITIAL_SNAP_RATIO,
+  SHEET_KIND_ZONE,
   SHEET_LOADING_TEXT,
   SHEET_MARKER_ID,
   SHEET_OPEN_DURATION_MS,
@@ -24,90 +69,29 @@ import {
   SHEET_ZONE_EMPTY_TEXT,
   SHEET_ZONE_LOADING_TEXT,
   SHEET_ZONE_TITLE,
-  SEARCH_DEBOUNCE_MS,
-  SEARCH_MIN_KEYWORD_LENGTH,
-  DIRECTIONS_ACTIVE_OUTLINE_COLOR,
-  DIRECTIONS_ACTIVE_OUTLINE_WIDTH,
-  DIRECTIONS_ORIGIN_POI_COLOR,
-  DIRECTIONS_DESTINATION_POI_COLOR,
-  DIRECTIONS_ACTIVE_STROKE_COLOR,
-  DIRECTIONS_ACTIVE_STROKE_WIDTH,
-  DIRECTIONS_ACTION_LABEL,
-  DIRECTIONS_EMPTY_TEXT,
-  DIRECTIONS_LOADING_TEXT,
-  DIRECTIONS_MY_LOCATION_TEXT,
-  DIRECTIONS_PICKED_POINT_TEXT,
-  DIRECTIONS_PICK_DESTINATION_TEXT,
-  DIRECTIONS_PICK_ORIGIN_TEXT,
-  DIRECTIONS_ENDPOINT_ORIGIN,
-  DIRECTIONS_DESTINATION_LABEL,
-  ZONE_PROJECT_KINDS,
-  ZONE_PROJECTS_LOADING_TEXT,
   ZONE_HIGHLIGHT_FILL_COLOR,
   ZONE_HIGHLIGHT_STROKE_COLOR,
   ZONE_HIGHLIGHT_STROKE_WIDTH,
   ZONE_HIGHLIGHT_Z_INDEX,
   ZONE_POLYGON_ID_PREFIX,
-  getCategoryConfigUrl,
+  ZONE_PROJECTS_LOADING_TEXT,
+  ZONE_PROJECT_KINDS,
   getProvinceInvestmentInfoUrl,
-  getRouteUrl,
-  getSearchUrl,
-  getSourceUrl,
   getZoneDetailUrl,
   getZoneProjectsUrl,
-} from './MFBanDoSo/constants';
-import {
-  createCategoryGroupSections,
-  createSelectedCategoryItemsSignature,
-  getSelectedCategoryItems,
-  normalizeCategoryItems,
-  reconcileExpandedGroupKeys,
-  resolveCategoryGroupMetadataFromResponse,
-  resolveItemsFromCategoryResponse,
-  toggleCategoryGroupChecked,
-  toggleCategoryItemChecked,
-} from './MFBanDoSo/helpers';
-import {
-  banDoSoPropTypes,
-} from './MFBanDoSo/propTypes';
-import {
   resolveProvinceInvestmentInfo,
-} from './MFBanDoSo/investmentInfoHelpers';
-import {
   resolveZoneDetailInfo,
   resolveZoneFeatureId,
   resolveZoneProjects,
-} from './MFBanDoSo/zoneInfoHelpers';
+} from './MFBanDoSo/sheet';
 import {
   areaGeometryToPolygonPaths,
   getViewboxFromGeometry,
 } from './extends/area/AreaFocusGeometryUtils';
+import { buildGeojsonStyle } from './internal/GeojsonStyleUtils';
 import { MFMapView } from './MFMapView';
-import {
-  InvestmentSheet,
-  LayerButton,
-  LegendButton,
-  LegendDrawer,
-  PickOriginBanner,
-  SearchBox,
-  SelectorDrawer,
-} from './MFBanDoSo/ui';
-import {
-  countSearchResults,
-  resolveSearchSections,
-} from './MFBanDoSo/searchHelpers';
-import { resolveRoute } from './MFBanDoSo/directionsHelpers';
-import {
-  DIRECTIONS_DESTINATION_ICON,
-  DIRECTIONS_ORIGIN_ICON,
-} from './MFBanDoSo/directionsIcons';
-import {
-  buildGeojsonStyle,
-} from './internal/GeojsonStyleUtils';
-import { styles } from './MFBanDoSo/styles';
 
 const SHEET_KIND_PROVINCE = 'province';
-const SHEET_KIND_ZONE = 'zone';
 // A tap that hit a data source feature suppresses the plain map press that may
 // follow it for the same tap.
 const SHEET_FEATURE_PRESS_CLAIM_MS = 400;
@@ -209,7 +193,12 @@ class MFBanDoSo extends MFMapView {
       createSelectedCategoryItemsSignature(prevState.categoryItems) !==
       createSelectedCategoryItemsSignature(this.state.categoryItems);
 
-    if (mapReadyChanged || mapStyleChanged || isStagingChanged || itemsChanged) {
+    if (
+      mapReadyChanged ||
+      mapStyleChanged ||
+      isStagingChanged ||
+      itemsChanged
+    ) {
       this._syncGeojsonStyle();
     }
   }
@@ -721,16 +710,19 @@ class MFBanDoSo extends MFMapView {
   }
 
   _openSheet() {
-    this.setState({
-      isSheetMounted: true,
-      sheetSnapValue: SHEET_INITIAL_SNAP_RATIO,
-    }, () => {
-      this._animateSheetTo(
-        SHEET_INITIAL_SNAP_RATIO,
-        SHEET_OPEN_DURATION_MS,
-        Easing.out(Easing.cubic)
-      );
-    });
+    this.setState(
+      {
+        isSheetMounted: true,
+        sheetSnapValue: SHEET_INITIAL_SNAP_RATIO,
+      },
+      () => {
+        this._animateSheetTo(
+          SHEET_INITIAL_SNAP_RATIO,
+          SHEET_OPEN_DURATION_MS,
+          Easing.out(Easing.cubic)
+        );
+      }
+    );
   }
 
   /**
@@ -1147,7 +1139,7 @@ class MFBanDoSo extends MFMapView {
       () => {
         Animated.timing(this._legendAnim, {
           toValue: 1,
-          duration: SELECTOR_OPEN_DURATION_MS,
+          duration: DRAWER_OPEN_DURATION_MS,
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }).start();
@@ -1158,7 +1150,7 @@ class MFBanDoSo extends MFMapView {
   _closeLegend() {
     Animated.timing(this._legendAnim, {
       toValue: 0,
-      duration: SELECTOR_CLOSE_DURATION_MS,
+      duration: DRAWER_CLOSE_DURATION_MS,
       easing: Easing.in(Easing.cubic),
       useNativeDriver: true,
     }).start(() => {
@@ -1176,30 +1168,33 @@ class MFBanDoSo extends MFMapView {
   _snapLegendOpen() {
     Animated.timing(this._legendAnim, {
       toValue: 1,
-      duration: SELECTOR_OPEN_DURATION_MS,
+      duration: DRAWER_OPEN_DURATION_MS,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
   }
 
   _openSelector() {
-    this.setState({
-      isSelectorMounted: true,
-      isSelectorVisible: true,
-    }, () => {
-      Animated.timing(this._selectorAnim, {
-        toValue: 1,
-        duration: SELECTOR_OPEN_DURATION_MS,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }).start();
-    });
+    this.setState(
+      {
+        isSelectorMounted: true,
+        isSelectorVisible: true,
+      },
+      () => {
+        Animated.timing(this._selectorAnim, {
+          toValue: 1,
+          duration: DRAWER_OPEN_DURATION_MS,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }).start();
+      }
+    );
   }
 
   _closeSelector() {
     Animated.timing(this._selectorAnim, {
       toValue: 0,
-      duration: SELECTOR_CLOSE_DURATION_MS,
+      duration: DRAWER_CLOSE_DURATION_MS,
       easing: Easing.in(Easing.cubic),
       useNativeDriver: true,
     }).start(() => {
@@ -1217,7 +1212,7 @@ class MFBanDoSo extends MFMapView {
   _snapSelectorOpen() {
     Animated.timing(this._selectorAnim, {
       toValue: 1,
-      duration: SELECTOR_OPEN_DURATION_MS,
+      duration: DRAWER_OPEN_DURATION_MS,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
@@ -1280,7 +1275,7 @@ class MFBanDoSo extends MFMapView {
           width: mapFrame.width,
           height: mapFrame.height,
         }
-      : styles.mapOverlayRoot;
+      : sharedStyles.mapOverlayRoot;
     const pickingEndpoint = this.state.pickingEndpoint;
     const pickHintText =
       pickingEndpoint === DIRECTIONS_ENDPOINT_ORIGIN
@@ -1297,7 +1292,7 @@ class MFBanDoSo extends MFMapView {
         {
           translateX: this._selectorAnim.interpolate({
             inputRange: [0, 1],
-            outputRange: [SELECTOR_DRAWER_TRANSLATE_X, 0],
+            outputRange: [DRAWER_TRANSLATE_X, 0],
           }),
         },
       ],
@@ -1314,7 +1309,7 @@ class MFBanDoSo extends MFMapView {
         {
           translateX: this._legendAnim.interpolate({
             inputRange: [0, 1],
-            outputRange: [SELECTOR_DRAWER_TRANSLATE_X, 0],
+            outputRange: [DRAWER_TRANSLATE_X, 0],
           }),
         },
       ],

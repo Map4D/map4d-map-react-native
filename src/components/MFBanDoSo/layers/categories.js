@@ -1,26 +1,11 @@
-import { createCategoryItemsSignature } from '../internal/GeojsonStyleUtils';
-import {
-  SPRITE_ICONS_COLUMNS,
-  SPRITE_ICONS_GLYPH_CENTER_Y,
-  SPRITE_ICONS_GLYPH_SIZE,
-  SPRITE_ICONS_HEIGHT,
-  SPRITE_ICONS_NAME,
-  SPRITE_ICONS_ROWS,
-  SPRITE_ICONS_WIDTH,
-} from './constants';
+import { createCategoryItemsSignature } from '../../internal/GeojsonStyleUtils';
 
-function normalizeColorValue(color) {
-  if (typeof color === 'string' && color.trim().length > 0) {
-    return color.trim();
-  }
-
-  if (Array.isArray(color) && typeof color[0] === 'string' && color[0].trim().length > 0) {
-    return color[0].trim();
-  }
-
-  return null;
-}
-
+/**
+ * Reads the `BanDo/dau-tu/category-config` payload and keeps the checked state
+ * the layer drawer edits. The payload nests differently between environments —
+ * items may sit under `data`, `data.items` or `items`, and groups likewise — so
+ * every shape seen in the wild is accepted rather than assumed.
+ */
 function resolveItemsFromCategoryResponse(json) {
   const data = json?.data ?? json;
 
@@ -44,8 +29,8 @@ function resolveCategoryGroupMetadataFromResponse(json) {
   const groups = Array.isArray(data?.groups)
     ? data.groups
     : Array.isArray(json?.groups)
-      ? json.groups
-      : [];
+    ? json.groups
+    : [];
 
   const titleByKey = {};
   const orderKeys = [];
@@ -55,8 +40,9 @@ function resolveCategoryGroupMetadataFromResponse(json) {
       return;
     }
 
-    const rawKeyValue = [group.key, group.code, group.group, group.id]
-      .find((value) => value != null && `${value}`.trim().length > 0);
+    const rawKeyValue = [group.key, group.code, group.group, group.id].find(
+      (value) => value != null && `${value}`.trim().length > 0
+    );
 
     if (rawKeyValue == null) {
       return;
@@ -125,10 +111,12 @@ function createCategoryGroupSections(items, titleByKey = {}, orderedKeys = []) {
   list.forEach((item, index) => {
     const groupKey = resolveCategoryGroupKey(item);
     const mappedTitle =
-      typeof titleByKey[groupKey] === 'string' && titleByKey[groupKey].trim().length > 0
+      typeof titleByKey[groupKey] === 'string' &&
+      titleByKey[groupKey].trim().length > 0
         ? titleByKey[groupKey].trim()
         : null;
-    const groupTitle = mappedTitle || (groupKey === '__ungrouped__' ? 'Khac' : groupKey);
+    const groupTitle =
+      mappedTitle || (groupKey === '__ungrouped__' ? 'Khac' : groupKey);
 
     if (!groupedMap.has(groupKey)) {
       groupedMap.set(groupKey, {
@@ -171,6 +159,10 @@ function createCategoryGroupSections(items, titleByKey = {}, orderedKeys = []) {
   });
 }
 
+/**
+ * Keeps the open/closed state of the drawer's groups across a config reload:
+ * groups still present keep whatever the user set, new ones start open.
+ */
 function reconcileExpandedGroupKeys(groupSections, previousExpandedGroupKeys) {
   const prev =
     previousExpandedGroupKeys && typeof previousExpandedGroupKeys === 'object'
@@ -231,104 +223,8 @@ function toggleCategoryGroupChecked(items, targetGroupKey, checkedValue) {
   });
 }
 
-function firstStyleName(entries, index) {
-  const entry = Array.isArray(entries) ? entries[index] : null;
-  const name = entry?.name;
-  return typeof name === 'string' && name.trim().length > 0
-    ? name.trim()
-    : null;
-}
-
-/**
- * What a symbol rule takes from the sprite sheet, or null when it does not use
- * the sheet at all. A marker is always the sheet's pin in the rule's colour;
- * `glyphBox` is the crop, in sprite pixels, of the drawing laid over its head,
- * and is null for cell 0, which is the bare pin.
- *
- * The glyphs sit in a fixed box above their cell's middle rather than filling
- * it, and cropping to that box is what stops them rendering half the size they
- * should.
- */
-function resolveSpriteIcon(symbolDraw) {
-  if (normalizeColorValue(symbolDraw?.icon_image) !== SPRITE_ICONS_NAME) {
-    return null;
-  }
-
-  const index = symbolDraw?.icon_index;
-  const cells = SPRITE_ICONS_COLUMNS * SPRITE_ICONS_ROWS;
-  if (!Number.isInteger(index) || index <= 0 || index >= cells) {
-    return { glyphBox: null };
-  }
-
-  const cellWidth = SPRITE_ICONS_WIDTH / SPRITE_ICONS_COLUMNS;
-  const cellHeight = SPRITE_ICONS_HEIGHT / SPRITE_ICONS_ROWS;
-  const size = SPRITE_ICONS_GLYPH_SIZE;
-
-  return {
-    glyphBox: {
-      left: (index % SPRITE_ICONS_COLUMNS) * cellWidth + (cellWidth - size) / 2,
-      top:
-        Math.floor(index / SPRITE_ICONS_COLUMNS) * cellHeight +
-        SPRITE_ICONS_GLYPH_CENTER_Y -
-        size / 2,
-      width: size,
-      height: size,
-    },
-  };
-}
-
-/**
- * One legend row per style rule of a category item, which is the level the
- * legend is drawn at: an item like "Khu Cong Nghiep" paints five different
- * fills, each with its own name, colour and pin, and the legend lists all five.
- *
- * The fill, line and symbol arrays describe the same rules in the same order,
- * so they are paired by index. A rule may appear in only some of them: the
- * connectivity layers carry symbols but no fill.
- */
-function createLegendRows(item) {
-  const fills = Array.isArray(item?.style?.fill) ? item.style.fill : [];
-  const lines = Array.isArray(item?.style?.line) ? item.style.line : [];
-  const symbols = Array.isArray(item?.style?.symbol) ? item.style.symbol : [];
-  const count = Math.max(fills.length, lines.length, symbols.length);
-  const rows = [];
-
-  for (let index = 0; index < count; index += 1) {
-    const name =
-      firstStyleName(symbols, index) ||
-      firstStyleName(fills, index) ||
-      firstStyleName(lines, index);
-
-    if (name == null) {
-      continue;
-    }
-
-    const symbolDraw = symbols[index]?.draw;
-    // A rule either points at an image of its own or at a cell of the shared
-    // sprite sheet, never both.
-    const iconUri =
-      symbolDraw?.use_direct_icon_url === true
-        ? normalizeColorValue(symbolDraw?.icon_image)
-        : null;
-
-    rows.push({
-      key: `${index}-${name}`,
-      name,
-      color:
-        normalizeColorValue(fills[index]?.draw?.color) ??
-        normalizeColorValue(lines[index]?.draw?.color),
-      iconUri,
-      sprite: iconUri ? null : resolveSpriteIcon(symbolDraw),
-      iconColor: normalizeColorValue(symbolDraw?.icon_color),
-    });
-  }
-
-  return rows;
-}
-
 export {
   createCategoryGroupSections,
-  createLegendRows,
   createSelectedCategoryItemsSignature,
   getSelectedCategoryItems,
   normalizeCategoryItems,

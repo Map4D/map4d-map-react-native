@@ -1,10 +1,4 @@
-function firstNonEmptyString(values) {
-  const found = (Array.isArray(values) ? values : []).find(
-    (value) => typeof value === 'string' && value.trim().length > 0
-  );
-
-  return found ? found.trim() : null;
-}
+import { firstNonEmptyString } from '../shared/text';
 
 /**
  * Distances and durations arrive pre-formatted as `{text, value}`, so the text
@@ -37,11 +31,6 @@ function normalizeSteps(steps) {
     .filter((step) => step != null);
 }
 
-/**
- * Maps the `/sdk/route` payload to what the directions panel shows. The raw
- * response string is handed to MFDirectionsRenderer untouched — it decodes the
- * polyline natively — so nothing here needs to touch the geometry.
- */
 function toCoordinate(location) {
   const latitude = location?.lat;
   const longitude = location?.lng;
@@ -73,6 +62,11 @@ function resolveRouteBounds(leg) {
   };
 }
 
+/**
+ * Maps the `/sdk/route` payload to what the directions panel shows. The raw
+ * response string is handed to MFDirectionsRenderer untouched — it decodes the
+ * polyline natively — so nothing here needs to touch the geometry.
+ */
 function resolveRoute(json) {
   const route = json?.result?.routes?.[0];
   if (!route || typeof route !== 'object') {
