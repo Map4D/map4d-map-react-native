@@ -44,6 +44,7 @@ import { banDoSoPropTypes } from './MFBanDoSo/propTypes';
 import {
   SEARCH_DEBOUNCE_MS,
   SEARCH_MIN_KEYWORD_LENGTH,
+  SEARCH_ZONE_KIND,
   SearchBox,
   countSearchResults,
   getSearchUrl,
@@ -309,12 +310,21 @@ class MFBanDoSo extends MFMapView {
   }
 
   /**
-   * A picked result is handled as a tap on its pin: same marker, same sheet,
-   * same province highlight. The highlight fits the camera itself, so no
-   * separate move is needed when there is a pin to reverse-geocode.
+   * A picked result is handled as a tap on the thing it names: a zone opens its
+   * own detail by id, exactly as tapping that zone on the map would, and
+   * anything else is reverse-geocoded from its pin into the province sheet.
+   *
+   * A zone needs no pin of its own to be worth opening — its detail carries the
+   * pin and the geometry both — so the id alone is enough.
    */
   _onSelectSearchResult(item) {
     this._closeSearchResults();
+
+    if (item?.kind === SEARCH_ZONE_KIND && item?.id != null) {
+      this._prepareSheetForTap(item.pin?.latitude, item.pin?.longitude);
+      this._loadZoneInfo(item.id);
+      return;
+    }
 
     if (item?.pin) {
       this._prepareSheetForTap(item.pin.latitude, item.pin.longitude);
@@ -488,6 +498,12 @@ class MFBanDoSo extends MFMapView {
         id: SHEET_MARKER_ID,
         coordinate: this._sheetPin,
       });
+    } else {
+      // Nothing to point at yet — a zone picked from search, whose pin only
+      // arrives with its detail. The previous target has to go all the same, or
+      // the marker and the directions destination would still belong to it.
+      this._sheetPin = null;
+      this._removeMarker(SHEET_MARKER_ID);
     }
 
     this._openSheet();

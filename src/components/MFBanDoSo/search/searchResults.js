@@ -58,6 +58,10 @@ function resolveSearchSections(json) {
 
           return {
             key: `${groupIndex}-${index}-${name}`,
+            // The id a zone result's detail endpoint is addressed with. It is
+            // the same id the vector tiles carry, so a result and a tap on the
+            // zone itself open the very same sheet.
+            id: toFiniteNumber(item?.id),
             name,
             kind: firstNonEmptyString([item?.loai]),
             typeLabel: firstNonEmptyString([item?.tenLoai]) || title,
