@@ -3,10 +3,7 @@ import {
   ZONE_AREA_SUFFIX,
   ZONE_CURRENCY_SUFFIX,
   ZONE_ESTABLISHED_YEAR_LABEL,
-  ZONE_PLACEHOLDER_ADVANTAGES,
-  ZONE_PLACEHOLDER_ATTRACTED_SECTORS,
-  ZONE_PLACEHOLDER_BANNER_IMAGE,
-  ZONE_PLACEHOLDER_RESTRICTED_SECTORS,
+  ZONE_MEDIA_BASE_URL,
   ZONE_PUBLISHED_TEXT,
   ZONE_STATUS_LABEL,
   ZONE_TOTAL_INVESTMENT_LABEL,
@@ -144,6 +141,52 @@ function normalizeGeometry(geometry) {
     : null;
 }
 
+/**
+ * Everything the sheet shows below the main figures lives in one optional
+ * `gioiThieu` block, and most zones have none at all — the sections it feeds
+ * simply do not appear for those.
+ */
+function resolveMediaUrl(url) {
+  const path = firstNonEmptyString([url]);
+  if (!path) {
+    return null;
+  }
+
+  return /^https?:\/\//i.test(path)
+    ? path
+    : `${ZONE_MEDIA_BASE_URL}${path.replace(/^\/+/, '')}`;
+}
+
+/** The banner is the first still image of the block; video is skipped. */
+function resolveBannerImage(intro) {
+  const media = Array.isArray(intro?.hinhAnhVideo) ? intro.hinhAnhVideo : [];
+  const image = media.find((entry) => entry?.type === 'image');
+
+  return resolveMediaUrl(image?.url);
+}
+
+function normalizeParagraphs(values) {
+  return (Array.isArray(values) ? values : [])
+    .map((value) => firstNonEmptyString([value]))
+    .filter((paragraph) => paragraph != null);
+}
+
+/**
+ * The sector and advantage lists arrive as one string of comma-joined entries
+ * rather than one entry per element, so they are split back apart to become a
+ * chip each.
+ *
+ * What those entries hold is codes, not names — "CNHT" on some records, "1" on
+ * others — and the payload carries no dictionary to read them through. They are
+ * shown as they arrive, by decision, until the endpoint serves names.
+ */
+function normalizeTagList(values) {
+  return (Array.isArray(values) ? values : [])
+    .flatMap((value) => `${value ?? ''}`.split(','))
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
 function resolvePublishStatus(isCongBo) {
   if (isCongBo === true) {
     return ZONE_PUBLISHED_TEXT;
@@ -172,7 +215,7 @@ function resolveZoneDetailInfo(json) {
     return null;
   }
 
-  const intro = firstNonEmptyString([data.gioiThieu]);
+  const intro = data.gioiThieu;
 
   return {
     id: toNumericId(data.id),
@@ -184,15 +227,14 @@ function resolveZoneDetailInfo(json) {
     isPublished: data.isCongBo === true,
     stats: buildMainInfoStats(data),
     address: firstNonEmptyString([data.diaChi]),
-    introParagraphs: intro ? [intro] : [],
+    introParagraphs: normalizeParagraphs(intro?.gioiThieu),
     investors: normalizeInvestors(data.dsChuDauTu),
     pin: normalizePin(data.pin),
     geometry: normalizeGeometry(data.geometry),
-    // Not in the payload yet — see the placeholder constants.
-    bannerImage: ZONE_PLACEHOLDER_BANNER_IMAGE,
-    attractedSectors: ZONE_PLACEHOLDER_ATTRACTED_SECTORS,
-    restrictedSectors: ZONE_PLACEHOLDER_RESTRICTED_SECTORS,
-    advantages: ZONE_PLACEHOLDER_ADVANTAGES,
+    bannerImage: resolveBannerImage(intro),
+    attractedSectors: normalizeTagList(intro?.nganhNgheThuHutDauTu),
+    restrictedSectors: normalizeTagList(intro?.nganhNgheHanCheDauTu),
+    advantages: normalizeTagList(intro?.loiTheDauTu),
   };
 }
 

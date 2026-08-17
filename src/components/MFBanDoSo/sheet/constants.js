@@ -51,26 +51,9 @@ const ZONE_PUBLISHED_TEXT = 'Đã công bố';
 const ZONE_UNPUBLISHED_TEXT = 'Chưa công bố';
 const ZONE_CURRENCY_SUFFIX = ' đ';
 
-// Placeholders. The `portal/kcnkkt/{id}` payload carries no banner image and no
-// sector/advantage lists, so these sections of the design are filled from here
-// until the API serves them. Swap these for real fields in `zoneInfo.js` once
-// it does — nothing else has to change.
-const ZONE_PLACEHOLDER_BANNER_IMAGE =
-  'https://minio.zamiga.vn/cmc-dtqg/public/gioithieu/muong_hoa_-_lao_cai_24072026_070844.webp';
-const ZONE_PLACEHOLDER_ATTRACTED_SECTORS = [
-  'Công nghiệp chế biến, chế tạo',
-  'Điện tử và công nghệ thông tin',
-  'Logistics và kho vận',
-];
-const ZONE_PLACEHOLDER_RESTRICTED_SECTORS = [
-  'Sản xuất gây ô nhiễm môi trường',
-  'Chế biến khoáng sản',
-];
-const ZONE_PLACEHOLDER_ADVANTAGES = [
-  'Ưu đãi thuế theo quy định hiện hành',
-  'Hạ tầng kỹ thuật đồng bộ',
-  'Hỗ trợ thủ tục đầu tư một cửa',
-];
+// Images and video for a zone live on the shared object store, and the detail
+// payload names them by path alone.
+const ZONE_MEDIA_BASE_URL = 'https://minio.zamiga.vn/';
 const ZONE_ESTABLISHED_YEAR_LABEL = 'Năm thành lập';
 const ZONE_TOTAL_INVESTMENT_LABEL = 'Tổng vốn đầu tư';
 const ZONE_STATUS_LABEL = 'Tình trạng';
@@ -140,10 +123,7 @@ export {
   ZONE_INVESTOR_TITLE,
   ZONE_LOCATION_TITLE,
   ZONE_MAIN_INFO_TITLE,
-  ZONE_PLACEHOLDER_ADVANTAGES,
-  ZONE_PLACEHOLDER_ATTRACTED_SECTORS,
-  ZONE_PLACEHOLDER_BANNER_IMAGE,
-  ZONE_PLACEHOLDER_RESTRICTED_SECTORS,
+  ZONE_MEDIA_BASE_URL,
   ZONE_POLYGON_ID_PREFIX,
   ZONE_PROJECTS_COUNT_SUFFIX,
   ZONE_PROJECTS_LOADING_TEXT,

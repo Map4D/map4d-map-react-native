@@ -16,15 +16,22 @@ function SheetHero({
   footer,
 }) {
   return (
-    <View style={sheetStyles.sheetHero}>
+    <View
+      style={[
+        sheetStyles.sheetHero,
+        !bannerImage && sheetStyles.sheetHeroPlain,
+      ]}
+    >
       {bannerImage ? (
-        <Image
-          style={sheetStyles.sheetHeroImage}
-          source={{ uri: bannerImage }}
-          resizeMode="cover"
-        />
+        <React.Fragment>
+          <Image
+            style={sheetStyles.sheetHeroImage}
+            source={{ uri: bannerImage }}
+            resizeMode="cover"
+          />
+          <View style={sheetStyles.sheetHeroScrim} />
+        </React.Fragment>
       ) : null}
-      <View style={sheetStyles.sheetHeroScrim} />
       <View style={sheetStyles.sheetHeroContent}>
         {badge ? (
           <View style={sheetStyles.sheetHeroBadge}>

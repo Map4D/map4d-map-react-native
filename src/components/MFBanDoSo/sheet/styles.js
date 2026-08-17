@@ -76,6 +76,12 @@ const sheetStyles = StyleSheet.create({
     backgroundColor: '#1f2937',
     justifyContent: 'flex-end',
   },
+  // Stands in for the banner when a zone has no image. It needs no scrim: the
+  // colour is already dark enough to read white text off, and the scrim's blue
+  // would only muddy it.
+  sheetHeroPlain: {
+    backgroundColor: '#5c1230',
+  },
   sheetHeroImage: {
     ...fullFill,
   },
