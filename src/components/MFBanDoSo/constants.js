@@ -7,6 +7,22 @@ const SELECTOR_SWIPE_CLOSE_VELOCITY = 0.5;
 const SELECTOR_TITLE = 'Chọn lớp dữ liệu trên bản đồ';
 const LEGEND_TITLE = 'Chú giải';
 
+// The sheet the map styles name as `icon_image: 'pois'`. It is a 15x4 grid of
+// white glyphs on transparency, so a rule's `icon_index` picks a cell and the
+// glyph takes the rule's colour through `tintColor`.
+const SPRITE_ICONS_URL =
+  'https://cmcdtqg-test.dieuhanhso.vn/ban-do-so/spriteIcons.png';
+const SPRITE_ICONS_NAME = 'pois';
+const SPRITE_ICONS_WIDTH = 1198;
+const SPRITE_ICONS_HEIGHT = 390;
+const SPRITE_ICONS_COLUMNS = 15;
+const SPRITE_ICONS_ROWS = 4;
+// Cell 0 is a map pin drawn edge to edge; every other cell holds its glyph in a
+// 50x50 box sitting above the cell's middle, so cropping to that box keeps the
+// glyphs from shrinking into the empty half below them.
+const SPRITE_ICONS_GLYPH_SIZE = 50;
+const SPRITE_ICONS_GLYPH_CENTER_Y = 37.5;
+
 // Strip of map left uncovered above the sheet, so the backdrop stays tappable
 // and the sheet still reads as an overlay rather than a full screen.
 const SHEET_TOP_PEEK = 0;
@@ -214,6 +230,14 @@ export {
   SELECTOR_SWIPE_CLOSE_VELOCITY,
   SELECTOR_TITLE,
   LEGEND_TITLE,
+  SPRITE_ICONS_URL,
+  SPRITE_ICONS_NAME,
+  SPRITE_ICONS_WIDTH,
+  SPRITE_ICONS_HEIGHT,
+  SPRITE_ICONS_COLUMNS,
+  SPRITE_ICONS_ROWS,
+  SPRITE_ICONS_GLYPH_SIZE,
+  SPRITE_ICONS_GLYPH_CENTER_Y,
   SHEET_TOP_PEEK,
   SHEET_OPEN_DURATION_MS,
   SHEET_CLOSE_DURATION_MS,

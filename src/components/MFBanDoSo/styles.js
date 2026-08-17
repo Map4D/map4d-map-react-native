@@ -423,68 +423,73 @@ const styles = StyleSheet.create({
     borderRadius: 1,
     backgroundColor: '#2563eb',
   },
-  legendContainer: {
-    ...fullFill,
-  },
-  legendPanel: {
-    position: 'absolute',
-    right: 12,
-    bottom: 20,
-    width: 160,
-    maxHeight: 240,
-    backgroundColor: '#FFFFFFF5',
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    shadowColor: '#000000',
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-  },
-  legendTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#9ca3af',
-    marginBottom: 6,
-  },
-  legendDivider: {
-    height: 1,
-    backgroundColor: '#e5e7eb',
-    marginBottom: 6,
-  },
   legendList: {
-    maxHeight: 188,
-    marginLeft: -10,
-    marginRight: -8,
+    paddingBottom: 12,
   },
-  legendListInner: {
-    paddingBottom: 2,
-    paddingHorizontal: 10,
+  legendGroup: {
+    marginBottom: 14,
+  },
+  legendGroupTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#b91c1c',
+    marginBottom: 8,
+  },
+  legendItem: {
+    marginBottom: 10,
+  },
+  legendItemTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 6,
   },
   legendRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 24,
-    marginBottom: 3,
-    paddingRight: 2,
+    minHeight: 28,
+    marginBottom: 4,
+    paddingRight: 6,
+  },
+  // The painted colour of the area, shown only for rules that fill one. The
+  // connectivity layers draw pins alone, and their rows leave this out.
+  legendSwatch: {
+    width: 20,
+    height: 13,
+    borderRadius: 3,
+    marginRight: 8,
+  },
+  legendIconBox: {
+    width: 20,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  legendIconImage: {
+    width: 18,
+    height: 18,
+  },
+  legendPin: {
+    width: '100%',
+    height: '100%',
+  },
+  // Shows one cell of the sprite sheet over the pin's head: the window is the
+  // cell, the sheet behind it is offset so that cell lands inside. Sizes and
+  // offsets depend on which cell is drawn, so they are set inline.
+  legendSpriteWindow: {
+    position: 'absolute',
+    overflow: 'hidden',
+  },
+  legendSpriteSheet: {
+    position: 'absolute',
   },
   legendLabel: {
     flex: 1,
-    fontSize: 13,
-    color: '#6b7280',
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#374151',
     fontWeight: '500',
-  },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-    marginRight: 8,
-    backgroundColor: '#9ca3af',
-    borderColor: '#9ca3af',
   },
   legendDotUnchecked: {
     backgroundColor: '#ffffff',

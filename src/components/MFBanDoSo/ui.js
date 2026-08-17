@@ -38,6 +38,9 @@ import {
   SHEET_SWIPE_FLICK_VELOCITY,
   SHEET_TOP_PEEK,
   SHEET_TRANSLATE_Y,
+  SPRITE_ICONS_HEIGHT,
+  SPRITE_ICONS_URL,
+  SPRITE_ICONS_WIDTH,
   ZONE_ADDRESS_LABEL,
   ZONE_ADVANTAGES_TITLE,
   ZONE_ATTRACTED_PROJECTS_LABEL,
@@ -55,6 +58,14 @@ import {
   ZONE_PROJECT_INVESTMENT_LABEL,
   ZONE_RESTRICTED_SECTORS_TITLE,
 } from './constants';
+import { createLegendRows } from './helpers';
+import {
+  SPRITE_ICONS_PIN_DATA_URI,
+  SPRITE_ICONS_PIN_HEAD_CENTER_X,
+  SPRITE_ICONS_PIN_HEAD_CENTER_Y,
+  SPRITE_ICONS_PIN_HEIGHT,
+  SPRITE_ICONS_PIN_WIDTH,
+} from './spritePin';
 import { styles } from './styles';
 
 function LayerButton({ show, isActive, onPress }) {
@@ -75,6 +86,11 @@ function LayerButton({ show, isActive, onPress }) {
 }
 
 const SEARCH_ZONE_KIND = 'kcnkkt';
+
+// Height of a legend marker in dp, and the side of the square its glyph is
+// drawn into, in the pin's own pixels.
+const LEGEND_PIN_HEIGHT = 24;
+const LEGEND_PIN_GLYPH_SIZE = 44;
 
 function PickOriginBanner({ show, text, onCancel }) {
   if (!show) {
@@ -465,20 +481,26 @@ function LegendButton({ show, isActive, onPress }) {
   );
 }
 
-function SelectorDrawer({
+/**
+ * The sliding panel both drawers are built from: backdrop, left-hand panel,
+ * header and a scrolling body. Only the content differs between them, so the
+ * swipe-to-close gesture lives here once instead of being copied per drawer.
+ */
+function DrawerShell({
   show,
   title,
-  groupSections,
-  expandedGroupKeys,
   dragAnim,
   backdropAnimatedStyle,
   panelAnimatedStyle,
   onClose,
   onDragCancel,
-  onToggleGroup,
-  onToggleGroupChecked,
-  onToggleItem,
+  children,
 }) {
+  // The gesture is built once, so it reads the handlers through a ref rather
+  // than capturing the first render's copies.
+  const handlersRef = useRef({ onClose, onDragCancel });
+  handlersRef.current = { onClose, onDragCancel };
+
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) =>
@@ -495,13 +517,13 @@ function SelectorDrawer({
           gestureState.vx < -SELECTOR_SWIPE_CLOSE_VELOCITY;
 
         if (shouldClose) {
-          onClose();
+          handlersRef.current.onClose();
         } else {
-          onDragCancel();
+          handlersRef.current.onDragCancel();
         }
       },
       onPanResponderTerminate: () => {
-        onDragCancel();
+        handlersRef.current.onDragCancel();
       },
     })
   ).current;
@@ -513,10 +535,7 @@ function SelectorDrawer({
   return (
     <View style={styles.selectorContainer}>
       <Animated.View style={[styles.selectorBackdrop, backdropAnimatedStyle]}>
-        <Pressable
-          style={styles.selectorBackdropPressable}
-          onPress={onClose}
-        />
+        <Pressable style={styles.selectorBackdropPressable} onPress={onClose} />
       </Animated.View>
       <Animated.View
         style={[styles.selectorPanel, panelAnimatedStyle]}
@@ -525,145 +544,272 @@ function SelectorDrawer({
         <View style={styles.selectorHeader}>
           <Text style={styles.selectorTitle}>{title}</Text>
         </View>
-        <ScrollView style={styles.selectorList} showsVerticalScrollIndicator={false}>
-          <View style={styles.selectorGrid}>
-            {groupSections.map((group) => {
-              const groupKey = group?.key || '__group__';
-              const groupTitle = group?.title || 'Khac';
-              const groupItems = Array.isArray(group?.items) ? group.items : [];
-              const isExpanded = expandedGroupKeys[groupKey] !== false;
-              const checkedCount = groupItems.reduce(
-                (acc, wrapped) => acc + (wrapped?.item?.checked !== false ? 1 : 0),
-                0
-              );
-              const isGroupChecked = groupItems.length > 0 && checkedCount === groupItems.length;
-              const isGroupIndeterminate =
-                checkedCount > 0 && checkedCount < groupItems.length;
-
-              return (
-                <View key={groupKey} style={styles.selectorGroupSection}>
-                  <View style={styles.selectorGroupHeader}>
-                    <Pressable
-                      style={styles.selectorGroupCheckAction}
-                      onPress={() => onToggleGroupChecked(groupKey, !isGroupChecked)}
-                    >
-                      <View
-                        style={[
-                          styles.groupCheckOuter,
-                          isGroupChecked && styles.groupCheckOuterChecked,
-                          isGroupIndeterminate && styles.groupCheckOuterIndeterminate,
-                        ]}
-                      >
-                        {isGroupChecked ? (
-                          <Text style={styles.groupCheckMark}>✓</Text>
-                        ) : isGroupIndeterminate ? (
-                          <View style={styles.groupCheckIndeterminateMark} />
-                        ) : null}
-                      </View>
-                    </Pressable>
-                    <Pressable
-                      style={styles.selectorGroupToggleAction}
-                      onPress={() => onToggleGroup(groupKey)}
-                    >
-                      <View
-                        style={[
-                          styles.selectorGroupChevronTriangle,
-                          isExpanded
-                            ? styles.selectorGroupChevronExpanded
-                            : styles.selectorGroupChevronCollapsed,
-                        ]}
-                      />
-                      <Text style={styles.selectorGroupTitle} numberOfLines={1}>
-                        {groupTitle}
-                      </Text>
-                    </Pressable>
-                  </View>
-
-                  {isExpanded ? (
-                    <View style={styles.selectorGroupBody}>
-                      {groupItems.map(({ item, index }) => {
-                        const itemKey = item?.key ?? `index-${index}`;
-                        const checked = item?.checked !== false;
-                        const itemTitle = item?.title || item?.key || `Item ${index + 1}`;
-
-                        return (
-                          <Pressable
-                            key={`${itemKey}-${index}`}
-                            style={styles.selectorRow}
-                            onPress={() => onToggleItem(itemKey, index)}
-                          >
-                            <View
-                              style={[
-                                styles.checkboxOuter,
-                                checked && styles.checkboxOuterChecked,
-                              ]}
-                            >
-                              {checked ? (
-                                <Text style={styles.checkboxMark}>✓</Text>
-                              ) : null}
-                            </View>
-                            <Text style={styles.selectorLabel}>
-                              {itemTitle}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  ) : null}
-                </View>
-              );
-            })}
-          </View>
+        <ScrollView
+          style={styles.selectorList}
+          showsVerticalScrollIndicator={false}
+        >
+          {children}
         </ScrollView>
       </Animated.View>
     </View>
   );
 }
 
-function LegendPanel({ show, title, items, getItemColor }) {
-  if (!show) {
-    return null;
-  }
-
+function SelectorDrawer({
+  show,
+  title,
+  groupSections,
+  expandedGroupKeys,
+  dragAnim,
+  backdropAnimatedStyle,
+  panelAnimatedStyle,
+  onClose,
+  onDragCancel,
+  onToggleGroup,
+  onToggleGroupChecked,
+  onToggleItem,
+}) {
   return (
-    <View style={styles.legendContainer} pointerEvents="box-none">
-      <View style={styles.legendPanel}>
-        <Text style={styles.legendTitle}>{title}</Text>
-        <View style={styles.legendDivider} />
-        <ScrollView style={styles.legendList} showsVerticalScrollIndicator={true}>
-          <View style={styles.legendListInner}>
-            {items.map((item, index) => {
-              const checked = item?.checked !== false;
-              const itemTitle =
-                item?.title || item?.label || item?.name || item?.key || '';
-              const dotColor = getItemColor(item, index);
-              const hasDotColor =
-                typeof dotColor === 'string' && dotColor.trim().length > 0;
+    <DrawerShell
+      show={show}
+      title={title}
+      dragAnim={dragAnim}
+      backdropAnimatedStyle={backdropAnimatedStyle}
+      panelAnimatedStyle={panelAnimatedStyle}
+      onClose={onClose}
+      onDragCancel={onDragCancel}
+    >
+      <View style={styles.selectorGrid}>
+        {groupSections.map((group) => {
+          const groupKey = group?.key || '__group__';
+          const groupTitle = group?.title || 'Khac';
+          const groupItems = Array.isArray(group?.items) ? group.items : [];
+          const isExpanded = expandedGroupKeys[groupKey] !== false;
+          const checkedCount = groupItems.reduce(
+            (acc, wrapped) => acc + (wrapped?.item?.checked !== false ? 1 : 0),
+            0
+          );
+          const isGroupChecked = groupItems.length > 0 && checkedCount === groupItems.length;
+          const isGroupIndeterminate =
+            checkedCount > 0 && checkedCount < groupItems.length;
 
-              return (
-                <View
-                  key={`${item?.key ?? `index-${index}`}-${index}`}
-                  style={styles.legendRow}
+          return (
+            <View key={groupKey} style={styles.selectorGroupSection}>
+              <View style={styles.selectorGroupHeader}>
+                <Pressable
+                  style={styles.selectorGroupCheckAction}
+                  onPress={() => onToggleGroupChecked(groupKey, !isGroupChecked)}
                 >
                   <View
                     style={[
-                      styles.legendDot,
-                      hasDotColor
-                        ? { backgroundColor: dotColor, borderColor: dotColor }
-                        : null,
-                      !checked && !hasDotColor ? styles.legendDotUnchecked : null,
+                      styles.groupCheckOuter,
+                      isGroupChecked && styles.groupCheckOuterChecked,
+                      isGroupIndeterminate && styles.groupCheckOuterIndeterminate,
+                    ]}
+                  >
+                    {isGroupChecked ? (
+                      <Text style={styles.groupCheckMark}>✓</Text>
+                    ) : isGroupIndeterminate ? (
+                      <View style={styles.groupCheckIndeterminateMark} />
+                    ) : null}
+                  </View>
+                </Pressable>
+                <Pressable
+                  style={styles.selectorGroupToggleAction}
+                  onPress={() => onToggleGroup(groupKey)}
+                >
+                  <View
+                    style={[
+                      styles.selectorGroupChevronTriangle,
+                      isExpanded
+                        ? styles.selectorGroupChevronExpanded
+                        : styles.selectorGroupChevronCollapsed,
                     ]}
                   />
-                  <Text style={styles.legendLabel} numberOfLines={1}>
-                    {itemTitle}
+                  <Text style={styles.selectorGroupTitle} numberOfLines={1}>
+                    {groupTitle}
                   </Text>
+                </Pressable>
+              </View>
+
+              {isExpanded ? (
+                <View style={styles.selectorGroupBody}>
+                  {groupItems.map(({ item, index }) => {
+                    const itemKey = item?.key ?? `index-${index}`;
+                    const checked = item?.checked !== false;
+                    const itemTitle = item?.title || item?.key || `Item ${index + 1}`;
+
+                    return (
+                      <Pressable
+                        key={`${itemKey}-${index}`}
+                        style={styles.selectorRow}
+                        onPress={() => onToggleItem(itemKey, index)}
+                      >
+                        <View
+                          style={[
+                            styles.checkboxOuter,
+                            checked && styles.checkboxOuterChecked,
+                          ]}
+                        >
+                          {checked ? (
+                            <Text style={styles.checkboxMark}>✓</Text>
+                          ) : null}
+                        </View>
+                        <Text style={styles.selectorLabel}>
+                          {itemTitle}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ) : null}
+            </View>
+          );
+        })}
+      </View>
+    </DrawerShell>
+  );
+}
+
+/**
+ * A marker as the map draws it: the sprite sheet's pin in the rule's colour,
+ * with the rule's glyph laid white over the pin's head.
+ *
+ * The glyph is one cell of the sheet, and React Native has no way to crop an
+ * image, so the whole sheet is scaled up and slid under a window the size of
+ * that cell.
+ */
+function LegendSpritePin({ glyphBox, color }) {
+  const pinScale = LEGEND_PIN_HEIGHT / SPRITE_ICONS_PIN_HEIGHT;
+  const pinWidth = SPRITE_ICONS_PIN_WIDTH * pinScale;
+  // The glyph is sized against the pin, not against itself, so every row's
+  // glyph sits in the head the same way however wide its own drawing is.
+  const glyphSize = LEGEND_PIN_GLYPH_SIZE * pinScale;
+  const glyphScale = glyphBox ? glyphSize / glyphBox.height : 0;
+
+  return (
+    <View style={styles.legendIconBox}>
+      <View style={{ width: pinWidth, height: LEGEND_PIN_HEIGHT }}>
+        <Image
+          style={[styles.legendPin, { tintColor: color ?? undefined }]}
+          source={{ uri: SPRITE_ICONS_PIN_DATA_URI }}
+          resizeMode="stretch"
+        />
+        {glyphBox ? (
+          <View
+            style={[
+              styles.legendSpriteWindow,
+              {
+                width: glyphSize,
+                height: glyphSize,
+                left: SPRITE_ICONS_PIN_HEAD_CENTER_X * pinScale - glyphSize / 2,
+                top: SPRITE_ICONS_PIN_HEAD_CENTER_Y * pinScale - glyphSize / 2,
+              },
+            ]}
+          >
+            <Image
+              style={[
+                styles.legendSpriteSheet,
+                {
+                  width: SPRITE_ICONS_WIDTH * glyphScale,
+                  height: SPRITE_ICONS_HEIGHT * glyphScale,
+                  left: -glyphBox.left * glyphScale,
+                  top: -glyphBox.top * glyphScale,
+                },
+              ]}
+              source={{ uri: SPRITE_ICONS_URL }}
+              resizeMode="stretch"
+            />
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+function LegendRowIcon({ uri, sprite, color }) {
+  if (uri) {
+    return (
+      <View style={styles.legendIconBox}>
+        <Image
+          style={styles.legendIconImage}
+          source={{ uri }}
+          resizeMode="contain"
+        />
+      </View>
+    );
+  }
+
+  if (sprite) {
+    return <LegendSpritePin glyphBox={sprite.glyphBox} color={color} />;
+  }
+
+  return null;
+}
+
+/**
+ * Mirrors how the map is styled: a group holds category items, and each item
+ * paints several named rules. The legend lists one row per rule, since that is
+ * what a reader sees on the map, not the item it happens to belong to.
+ */
+function LegendDrawer({
+  show,
+  title,
+  groupSections,
+  dragAnim,
+  backdropAnimatedStyle,
+  panelAnimatedStyle,
+  onClose,
+  onDragCancel,
+}) {
+  return (
+    <DrawerShell
+      show={show}
+      title={title}
+      dragAnim={dragAnim}
+      backdropAnimatedStyle={backdropAnimatedStyle}
+      panelAnimatedStyle={panelAnimatedStyle}
+      onClose={onClose}
+      onDragCancel={onDragCancel}
+    >
+      <View style={styles.legendList}>
+        {groupSections.map((group) => (
+          <View key={group.key} style={styles.legendGroup}>
+            <Text style={styles.legendGroupTitle}>{group.title}</Text>
+            {group.items.map(({ item, index }) => {
+              const rows = createLegendRows(item);
+              if (rows.length === 0) {
+                return null;
+              }
+
+              return (
+                <View key={`${item?.key ?? index}`} style={styles.legendItem}>
+                  <Text style={styles.legendItemTitle}>{item?.title}</Text>
+                  {rows.map((row) => (
+                    <View key={row.key} style={styles.legendRow}>
+                      {row.color ? (
+                        <View
+                          style={[
+                            styles.legendSwatch,
+                            { backgroundColor: row.color },
+                          ]}
+                        />
+                      ) : null}
+                      <LegendRowIcon
+                        uri={row.iconUri}
+                        sprite={row.sprite}
+                        color={row.iconColor}
+                      />
+                      <Text style={styles.legendLabel}>{row.name}</Text>
+                    </View>
+                  ))}
                 </View>
               );
             })}
           </View>
-        </ScrollView>
+        ))}
       </View>
-    </View>
+    </DrawerShell>
   );
 }
 
@@ -1397,7 +1543,7 @@ export {
   InvestmentSheet,
   LayerButton,
   LegendButton,
-  LegendPanel,
+  LegendDrawer,
   PickOriginBanner,
   SearchBox,
   SelectorDrawer,
