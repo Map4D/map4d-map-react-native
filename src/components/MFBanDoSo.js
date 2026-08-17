@@ -502,6 +502,10 @@ class MFBanDoSo extends MFMapView {
     }
 
     if (info.pin) {
+      // The zone's own pin replaces the point the user hit as what the sheet is
+      // about, so routing to it aims at the zone rather than at wherever inside
+      // it the tap happened to land.
+      this._sheetPin = info.pin;
       this._addMarker({
         id: SHEET_MARKER_ID,
         coordinate: info.pin,
@@ -853,9 +857,11 @@ class MFBanDoSo extends MFMapView {
   }
 
   /**
-   * The destination is the point the sheet was opened from — the tapped spot or
-   * a picked search result — since the province payload carries no coordinate
-   * of its own. It is kept outside state because it survives sheet reloads.
+   * The destination is whatever the sheet's marker sits on: the point it was
+   * opened from — the tapped spot or a picked search result, since the province
+   * payload carries no coordinate of its own — or, once a zone's detail has
+   * arrived, that zone's own pin. It is kept outside state because it survives
+   * sheet reloads.
    */
   async _startDirections() {
     if (!this._sheetPin) {

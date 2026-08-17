@@ -67,6 +67,7 @@ function SheetScroll({ viewKey, tailSpace, children }) {
 
 function SheetActionBar({
   animatedStyle,
+  showFocusProvince,
   onLayout,
   onPressDirections,
   onFocusProvince,
@@ -93,15 +94,19 @@ function SheetActionBar({
           {DIRECTIONS_ACTION_LABEL}
         </Text>
       </Pressable>
-      <Pressable
-        style={sheetStyles.sheetActionButton}
-        onPress={onFocusProvince}
-      >
-        <View style={sheetStyles.sheetActionIcon} />
-        <Text style={sheetStyles.sheetActionLabel}>
-          {SHEET_FOCUS_ACTION_LABEL}
-        </Text>
-      </Pressable>
+      {/* Only a province can be framed on the map; a zone draws its own
+          geometry the moment its sheet opens, so it has nothing to focus. */}
+      {showFocusProvince ? (
+        <Pressable
+          style={sheetStyles.sheetActionButton}
+          onPress={onFocusProvince}
+        >
+          <View style={sheetStyles.sheetActionIcon} />
+          <Text style={sheetStyles.sheetActionLabel}>
+            {SHEET_FOCUS_ACTION_LABEL}
+          </Text>
+        </Pressable>
+      ) : null}
     </Animated.View>
   );
 }
@@ -248,14 +253,10 @@ function InvestmentSheet({
     Math.round(panelHeight * (1 - clampSnapValue(snapValue))) + footerHeight
   );
 
-  // Only the province detail carries these actions — not the zone sheet, and
-  // not the drilled-down project or directions views.
+  // Both details can be routed to, so both carry the bar — but not the
+  // drilled-down project list or the directions view, which are reached from it.
   const showActionBar =
-    !showDirections &&
-    !showProjects &&
-    !loading &&
-    info != null &&
-    info.focusProvince != null;
+    !showDirections && !showProjects && !loading && info != null;
 
   return (
     // box-none so only the panel itself takes touches: the map underneath stays
@@ -320,6 +321,7 @@ function InvestmentSheet({
       {showActionBar ? (
         <SheetActionBar
           animatedStyle={footerAnimatedStyle}
+          showFocusProvince={info.focusProvince != null}
           onLayout={(event) => measureHeight(event, setFooterHeight)}
           onPressDirections={onPressDirections}
           onFocusProvince={onFocusProvince}
