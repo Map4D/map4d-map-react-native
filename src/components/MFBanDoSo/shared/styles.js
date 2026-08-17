@@ -33,6 +33,8 @@ const sharedStyles = StyleSheet.create({
   topSlot: {
     ...fullFill,
   },
+  // The round white button every map control is built from. It sits first in
+  // the top-right stack; the ones below it override `top`.
   mapButton: {
     position: 'absolute',
     top: 70,

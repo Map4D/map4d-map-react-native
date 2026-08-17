@@ -169,6 +169,7 @@ class MFMapView extends React.Component {
     this._onMapLayout = this._onMapLayout.bind(this);
     this._onPress = this._onPress.bind(this);
     this._onDataSourceFeaturePress = this._onDataSourceFeaturePress.bind(this);
+    this._onCameraMove = this._onCameraMove.bind(this);
     this._ref = this._ref.bind(this);
   }
 
@@ -359,6 +360,18 @@ class MFMapView extends React.Component {
     const { onDataSourceFeaturePress } = this.props;
     if (onDataSourceFeaturePress) {
       onDataSourceFeaturePress(event);
+    }
+  }
+
+  /**
+   * Carries the camera the map moved to: `{center, zoom, bearing, tilt}`.
+   * Routed through here rather than straight from the props so a subclass can
+   * follow the camera without taking the callback away from its own user.
+   */
+  _onCameraMove(event) {
+    const { onCameraMove } = this.props;
+    if (onCameraMove) {
+      onCameraMove(event);
     }
   }
 
@@ -562,6 +575,7 @@ class MFMapView extends React.Component {
         onLayout: this._onMapLayout,
         onPress: this._onPress,
         onDataSourceFeaturePress: this._onDataSourceFeaturePress,
+        onCameraMove: this._onCameraMove,
         children: (
           <React.Fragment>
             {children}

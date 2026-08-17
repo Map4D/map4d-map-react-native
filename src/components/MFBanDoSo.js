@@ -22,6 +22,7 @@ import {
   getRouteUrl,
   resolveRoute,
 } from './MFBanDoSo/directions';
+import { CompassButton } from './MFBanDoSo/controls';
 import {
   LayerButton,
   SELECTOR_TITLE,
@@ -146,6 +147,7 @@ class MFBanDoSo extends MFMapView {
       directionsOrigin: null,
       directionsDestination: null,
       pickingEndpoint: null,
+      mapBearing: 0,
     };
 
     this._closeSheet = this._closeSheet.bind(this);
@@ -172,6 +174,7 @@ class MFBanDoSo extends MFMapView {
     this._snapSelectorOpen = this._snapSelectorOpen.bind(this);
     this._closeLegend = this._closeLegend.bind(this);
     this._snapLegendOpen = this._snapLegendOpen.bind(this);
+    this._resetBearing = this._resetBearing.bind(this);
   }
 
   componentDidMount() {
@@ -954,6 +957,32 @@ class MFBanDoSo extends MFMapView {
     }
   }
 
+  /**
+   * Turns the map back to north. Tilt is left alone — the needle only speaks
+   * for the bearing, and a 3D view the user set up is not ours to flatten.
+   */
+  _resetBearing() {
+    this.animateCamera({ bearing: 0 });
+  }
+
+  /**
+   * Follows the camera so the compass needle can hold north. Panning and
+   * zooming leave the bearing alone, so this settles into no work at all
+   * outside an actual rotation.
+   */
+  _onCameraMove(event) {
+    super._onCameraMove(event);
+
+    const bearing = event?.nativeEvent?.bearing;
+    if (typeof bearing !== 'number' || !Number.isFinite(bearing)) {
+      return;
+    }
+
+    if (Math.abs(bearing - this.state.mapBearing) >= 0.5) {
+      this.setState({ mapBearing: bearing });
+    }
+  }
+
   _cancelPickOrigin() {
     this.setState({ pickingEndpoint: null });
   }
@@ -1334,6 +1363,10 @@ class MFBanDoSo extends MFMapView {
             show={showLegendButton}
             isActive={this.state.isLegendVisible}
             onPress={this._toggleLegendVisibility}
+          />
+          <CompassButton
+            bearing={this.state.mapBearing}
+            onPress={this._resetBearing}
           />
           {/* Searching for somewhere else is not what the directions view is
               for, and its pick-a-point banner takes the slot anyway. */}
