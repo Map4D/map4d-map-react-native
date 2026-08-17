@@ -5,6 +5,12 @@ import { fullFill } from '../shared/styles';
 const sheetStyles = StyleSheet.create({
   sheetContainer: {
     ...fullFill,
+    // The panel is as tall as the whole map area and is slid down to sit at an
+    // anchor, so at anything below the top anchor its lower part hangs past the
+    // bottom of this box. Views do not clip their children by default, so
+    // without this the hidden part of the list still paints — over whatever is
+    // below the map, the system navigation bar included.
+    overflow: 'hidden',
   },
   // height is applied at runtime in pixels (see InvestmentSheet), measured from
   // the map area. It is fixed rather than content-driven so the panel geometry
