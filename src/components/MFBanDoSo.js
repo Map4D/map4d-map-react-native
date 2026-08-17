@@ -63,7 +63,6 @@ import {
   normalizeCategoryItems,
   reconcileExpandedGroupKeys,
   resolveCategoryGroupMetadataFromResponse,
-  resolveCategoryItemColor,
   resolveItemsFromCategoryResponse,
   toggleCategoryGroupChecked,
   toggleCategoryItemChecked,
@@ -88,7 +87,7 @@ import {
   InvestmentSheet,
   LayerButton,
   LegendButton,
-  LegendPanel,
+  LegendDrawer,
   PickOriginBanner,
   SearchBox,
   SelectorDrawer,
@@ -130,6 +129,7 @@ class MFBanDoSo extends MFMapView {
     this._routeRequestId = 0;
     this._sheetPin = null;
     this._selectorAnim = new Animated.Value(0);
+    this._legendAnim = new Animated.Value(0);
     this._sheetAnim = new Animated.Value(0);
     this.state = {
       ...this.state,
@@ -138,6 +138,7 @@ class MFBanDoSo extends MFMapView {
       groupTitleByKey: {},
       groupOrderedKeys: [],
       isLegendVisible: false,
+      isLegendMounted: false,
       isSelectorVisible: false,
       isSelectorMounted: false,
       sheetInfo: null,
@@ -185,6 +186,8 @@ class MFBanDoSo extends MFMapView {
     this._openSelector = this._openSelector.bind(this);
     this._closeSelector = this._closeSelector.bind(this);
     this._snapSelectorOpen = this._snapSelectorOpen.bind(this);
+    this._closeLegend = this._closeLegend.bind(this);
+    this._snapLegendOpen = this._snapLegendOpen.bind(this);
   }
 
   componentDidMount() {
@@ -1127,9 +1130,56 @@ class MFBanDoSo extends MFMapView {
   }
 
   _toggleLegendVisibility() {
-    this.setState((prevState) => ({
-      isLegendVisible: !prevState.isLegendVisible,
-    }));
+    if (this.state.isLegendVisible) {
+      this._closeLegend();
+      return;
+    }
+
+    this._openLegend();
+  }
+
+  _openLegend() {
+    this.setState(
+      {
+        isLegendMounted: true,
+        isLegendVisible: true,
+      },
+      () => {
+        Animated.timing(this._legendAnim, {
+          toValue: 1,
+          duration: SELECTOR_OPEN_DURATION_MS,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }).start();
+      }
+    );
+  }
+
+  _closeLegend() {
+    Animated.timing(this._legendAnim, {
+      toValue: 0,
+      duration: SELECTOR_CLOSE_DURATION_MS,
+      easing: Easing.in(Easing.cubic),
+      useNativeDriver: true,
+    }).start(() => {
+      if (!this._isMounted) {
+        return;
+      }
+
+      this.setState({
+        isLegendVisible: false,
+        isLegendMounted: false,
+      });
+    });
+  }
+
+  _snapLegendOpen() {
+    Animated.timing(this._legendAnim, {
+      toValue: 1,
+      duration: SELECTOR_OPEN_DURATION_MS,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
   }
 
   _openSelector() {
@@ -1205,7 +1255,7 @@ class MFBanDoSo extends MFMapView {
     const showLayerButton = hasItems;
     const showSelector = this.state.isSelectorMounted && hasItems;
     const showLegendButton = hasItems;
-    const showLegend = this.state.isLegendVisible && hasItems;
+    const showLegend = this.state.isLegendMounted && hasItems;
     const selectorTitle = SELECTOR_TITLE;
     const legendTitle = LEGEND_TITLE;
     const isZoneSheet = this.state.sheetKind === SHEET_KIND_ZONE;
@@ -1246,6 +1296,23 @@ class MFBanDoSo extends MFMapView {
       transform: [
         {
           translateX: this._selectorAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [SELECTOR_DRAWER_TRANSLATE_X, 0],
+          }),
+        },
+      ],
+    };
+    // The legend rides its own value so the two drawers animate independently.
+    const legendBackdropAnimatedStyle = {
+      opacity: this._legendAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 1],
+      }),
+    };
+    const legendPanelAnimatedStyle = {
+      transform: [
+        {
+          translateX: this._legendAnim.interpolate({
             inputRange: [0, 1],
             outputRange: [SELECTOR_DRAWER_TRANSLATE_X, 0],
           }),
@@ -1294,11 +1361,15 @@ class MFBanDoSo extends MFMapView {
             onToggleGroupChecked={this._toggleGroupChecked}
             onToggleItem={this._toggleItem}
           />
-          <LegendPanel
+          <LegendDrawer
             show={showLegend}
             title={legendTitle}
-            items={items}
-            getItemColor={(item) => resolveCategoryItemColor(item)}
+            groupSections={groupSections}
+            dragAnim={this._legendAnim}
+            backdropAnimatedStyle={legendBackdropAnimatedStyle}
+            panelAnimatedStyle={legendPanelAnimatedStyle}
+            onClose={this._closeLegend}
+            onDragCancel={this._snapLegendOpen}
           />
           <InvestmentSheet
             show={this.state.isSheetMounted}

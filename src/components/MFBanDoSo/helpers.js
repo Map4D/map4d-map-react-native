@@ -1,4 +1,13 @@
 import { createCategoryItemsSignature } from '../internal/GeojsonStyleUtils';
+import {
+  SPRITE_ICONS_COLUMNS,
+  SPRITE_ICONS_GLYPH_CENTER_Y,
+  SPRITE_ICONS_GLYPH_SIZE,
+  SPRITE_ICONS_HEIGHT,
+  SPRITE_ICONS_NAME,
+  SPRITE_ICONS_ROWS,
+  SPRITE_ICONS_WIDTH,
+} from './constants';
 
 function normalizeColorValue(color) {
   if (typeof color === 'string' && color.trim().length > 0) {
@@ -222,51 +231,109 @@ function toggleCategoryGroupChecked(items, targetGroupKey, checkedValue) {
   });
 }
 
-function extractColorFromItemStyle(item) {
-  if (!item || typeof item !== 'object') {
+function firstStyleName(entries, index) {
+  const entry = Array.isArray(entries) ? entries[index] : null;
+  const name = entry?.name;
+  return typeof name === 'string' && name.trim().length > 0
+    ? name.trim()
+    : null;
+}
+
+/**
+ * What a symbol rule takes from the sprite sheet, or null when it does not use
+ * the sheet at all. A marker is always the sheet's pin in the rule's colour;
+ * `glyphBox` is the crop, in sprite pixels, of the drawing laid over its head,
+ * and is null for cell 0, which is the bare pin.
+ *
+ * The glyphs sit in a fixed box above their cell's middle rather than filling
+ * it, and cropping to that box is what stops them rendering half the size they
+ * should.
+ */
+function resolveSpriteIcon(symbolDraw) {
+  if (normalizeColorValue(symbolDraw?.icon_image) !== SPRITE_ICONS_NAME) {
     return null;
   }
 
-  const lineColor = normalizeColorValue(item?.style?.line?.[0]?.draw?.color);
-  if (lineColor) {
-    return lineColor;
+  const index = symbolDraw?.icon_index;
+  const cells = SPRITE_ICONS_COLUMNS * SPRITE_ICONS_ROWS;
+  if (!Number.isInteger(index) || index <= 0 || index >= cells) {
+    return { glyphBox: null };
   }
 
-  const fillColor = normalizeColorValue(item?.style?.fill?.[0]?.draw?.color);
-  if (fillColor) {
-    return fillColor;
-  }
+  const cellWidth = SPRITE_ICONS_WIDTH / SPRITE_ICONS_COLUMNS;
+  const cellHeight = SPRITE_ICONS_HEIGHT / SPRITE_ICONS_ROWS;
+  const size = SPRITE_ICONS_GLYPH_SIZE;
 
-  const symbolColor = normalizeColorValue(item?.style?.symbol?.[0]?.draw?.icon_color);
-  if (symbolColor) {
-    return symbolColor;
-  }
-
-  return null;
+  return {
+    glyphBox: {
+      left: (index % SPRITE_ICONS_COLUMNS) * cellWidth + (cellWidth - size) / 2,
+      top:
+        Math.floor(index / SPRITE_ICONS_COLUMNS) * cellHeight +
+        SPRITE_ICONS_GLYPH_CENTER_Y -
+        size / 2,
+      width: size,
+      height: size,
+    },
+  };
 }
 
-function resolveCategoryItemColor(item) {
-  const customColor = normalizeColorValue(item?.color);
-  if (customColor) {
-    return customColor;
+/**
+ * One legend row per style rule of a category item, which is the level the
+ * legend is drawn at: an item like "Khu Cong Nghiep" paints five different
+ * fills, each with its own name, colour and pin, and the legend lists all five.
+ *
+ * The fill, line and symbol arrays describe the same rules in the same order,
+ * so they are paired by index. A rule may appear in only some of them: the
+ * connectivity layers carry symbols but no fill.
+ */
+function createLegendRows(item) {
+  const fills = Array.isArray(item?.style?.fill) ? item.style.fill : [];
+  const lines = Array.isArray(item?.style?.line) ? item.style.line : [];
+  const symbols = Array.isArray(item?.style?.symbol) ? item.style.symbol : [];
+  const count = Math.max(fills.length, lines.length, symbols.length);
+  const rows = [];
+
+  for (let index = 0; index < count; index += 1) {
+    const name =
+      firstStyleName(symbols, index) ||
+      firstStyleName(fills, index) ||
+      firstStyleName(lines, index);
+
+    if (name == null) {
+      continue;
+    }
+
+    const symbolDraw = symbols[index]?.draw;
+    // A rule either points at an image of its own or at a cell of the shared
+    // sprite sheet, never both.
+    const iconUri =
+      symbolDraw?.use_direct_icon_url === true
+        ? normalizeColorValue(symbolDraw?.icon_image)
+        : null;
+
+    rows.push({
+      key: `${index}-${name}`,
+      name,
+      color:
+        normalizeColorValue(fills[index]?.draw?.color) ??
+        normalizeColorValue(lines[index]?.draw?.color),
+      iconUri,
+      sprite: iconUri ? null : resolveSpriteIcon(symbolDraw),
+      iconColor: normalizeColorValue(symbolDraw?.icon_color),
+    });
   }
 
-  const styleColor = extractColorFromItemStyle(item);
-  if (styleColor) {
-    return styleColor;
-  }
-
-  return null;
+  return rows;
 }
 
 export {
   createCategoryGroupSections,
+  createLegendRows,
   createSelectedCategoryItemsSignature,
   getSelectedCategoryItems,
   normalizeCategoryItems,
   reconcileExpandedGroupKeys,
   resolveCategoryGroupMetadataFromResponse,
-  resolveCategoryItemColor,
   resolveItemsFromCategoryResponse,
   toggleCategoryGroupChecked,
   toggleCategoryItemChecked,
