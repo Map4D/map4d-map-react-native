@@ -4,6 +4,9 @@ import { ZONE_PROJECT_KINDS } from './constants';
 const PROVINCE_INVESTMENT_INFO_URL_PATH =
   'bds/api/portal/ProvinceInvestmentInfo/reverse';
 const ZONE_DETAIL_URL_PATH = 'bds/api/portal/kcnkkt';
+// Connectivity features are served from the bds service directly rather than
+// its portal cut, but the endpoint is public all the same.
+const INFRA_DETAIL_URL_PATH = 'bds/api/HaTangKetNoiDT';
 
 function getProvinceInvestmentInfoUrl(isStaging, latitude, longitude) {
   const query = `latitude=${encodeURIComponent(
@@ -29,4 +32,14 @@ function getZoneProjectsUrl(isStaging, id, kind) {
   return `${getZoneDetailUrl(isStaging, id)}/${config.urlSuffix}`;
 }
 
-export { getProvinceInvestmentInfoUrl, getZoneDetailUrl, getZoneProjectsUrl };
+function getInfraDetailUrl(isStaging, id) {
+  const base = buildApiUrl(INFRA_DETAIL_URL_PATH, isStaging);
+  return `${base}/${encodeURIComponent(id)}`;
+}
+
+export {
+  getInfraDetailUrl,
+  getProvinceInvestmentInfoUrl,
+  getZoneDetailUrl,
+  getZoneProjectsUrl,
+};

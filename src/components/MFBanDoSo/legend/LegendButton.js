@@ -10,6 +10,7 @@ function LegendButton({ show, isActive, onPress }) {
     <Pressable
       style={[
         sharedStyles.mapButton,
+        sharedStyles.mapButtonTopRight,
         legendStyles.legendButton,
         isActive && sharedStyles.mapButtonActive,
         !show && sharedStyles.hiddenButton,

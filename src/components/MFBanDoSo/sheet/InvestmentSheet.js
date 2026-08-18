@@ -18,11 +18,13 @@ import {
   SHEET_FOCUS_ACTION_LABEL,
   SHEET_FOOTER_FADE_RATIO,
   SHEET_HALF_SNAP_RATIO,
+  SHEET_KIND_INFRA,
   SHEET_KIND_ZONE,
   SHEET_SWIPE_ACTIVATION_DISTANCE,
   SHEET_TOP_PEEK,
   SHEET_TRANSLATE_Y,
 } from './constants';
+import { InfraSheetBody } from './InfraSheetBody';
 import { InvestmentSheetBody } from './InvestmentSheetBody';
 import { clampSnapValue, resolveSheetSnapTarget } from './snapAnchors';
 import { sheetStyles } from './styles';
@@ -311,6 +313,8 @@ function InvestmentSheet({
           <SheetScroll viewKey="detail" tailSpace={scrollTailSpace}>
             {kind === SHEET_KIND_ZONE ? (
               <ZoneSheetBody info={info} onPressProjects={onPressProjects} />
+            ) : kind === SHEET_KIND_INFRA ? (
+              <InfraSheetBody info={info} />
             ) : (
               <InvestmentSheetBody info={info} />
             )}

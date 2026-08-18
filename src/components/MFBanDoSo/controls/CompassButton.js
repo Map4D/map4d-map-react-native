@@ -11,7 +11,11 @@ import { controlStyles } from './styles';
 function CompassButton({ bearing, onPress }) {
   return (
     <Pressable
-      style={[sharedStyles.mapButton, controlStyles.compassButton]}
+      style={[
+        sharedStyles.mapButton,
+        sharedStyles.mapButtonTopRight,
+        controlStyles.compassButton,
+      ]}
       onPress={onPress}
     >
       <View

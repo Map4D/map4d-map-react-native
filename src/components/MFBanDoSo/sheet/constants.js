@@ -28,6 +28,20 @@ const SHEET_FOCUS_ACTION_LABEL = 'Xem tỉnh trên bản đồ';
 // Which body the sheet draws: a province by default, a zone when a KCN/KKT
 // feature was tapped.
 const SHEET_KIND_ZONE = 'zone';
+const SHEET_KIND_INFRA = 'infra';
+
+// Sheet shown for a connectivity feature picked out of the advanced search.
+const SHEET_INFRA_TITLE = 'Chi tiết hạ tầng';
+const SHEET_INFRA_LOADING_TEXT = 'Đang tải thông tin hạ tầng...';
+const SHEET_INFRA_EMPTY_TEXT = 'Không có thông tin chi tiết cho hạ tầng này.';
+const INFRA_TYPE_LABEL = 'Loại hạ tầng';
+const INFRA_LAYER_LABEL = 'Lớp';
+const INFRA_DESCRIPTION_TITLE = 'Mô tả';
+const INFRA_ACTIVE_TEXT = 'Đang hoạt động';
+const INFRA_INACTIVE_TEXT = 'Ngừng hoạt động';
+// A point has no extent to frame, so the camera is fitted to a small box
+// around it — that way the sheet is cleared the same way a zone clears it.
+const INFRA_FOCUS_DELTA = 0.004;
 
 // Sheet shown when a KCN/KKT feature is tapped instead of bare map.
 const SHEET_ZONE_TITLE = 'Chi tiết khu';
@@ -94,6 +108,16 @@ export {
   SHEET_HALF_SNAP_RATIO,
   SHEET_INDUSTRIAL_ZONES_TITLE,
   SHEET_INITIAL_SNAP_RATIO,
+  SHEET_KIND_INFRA,
+  SHEET_INFRA_TITLE,
+  SHEET_INFRA_LOADING_TEXT,
+  SHEET_INFRA_EMPTY_TEXT,
+  INFRA_TYPE_LABEL,
+  INFRA_LAYER_LABEL,
+  INFRA_DESCRIPTION_TITLE,
+  INFRA_ACTIVE_TEXT,
+  INFRA_INACTIVE_TEXT,
+  INFRA_FOCUS_DELTA,
   SHEET_KIND_ZONE,
   SHEET_LOADING_TEXT,
   SHEET_MARKER_ID,

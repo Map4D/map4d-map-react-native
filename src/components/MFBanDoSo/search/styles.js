@@ -1,12 +1,25 @@
 import { StyleSheet } from 'react-native';
 
+import { SEARCH_BAR_HEIGHT, SEARCH_BAR_TOP } from '../shared/constants';
+
 const searchStyles = StyleSheet.create({
-  searchBar: {
+  // The bar and whatever sits beside it share one row, so the bar takes the
+  // width that is left rather than being pinned to both edges itself.
+  searchTopRow: {
     position: 'absolute',
-    top: 12,
+    top: SEARCH_BAR_TOP,
     left: 12,
     right: 12,
-    height: 46,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  // The suggestions hang off the bar, so they are positioned against this
+  // column and line up with it however wide the row's trailing side gets.
+  searchColumn: {
+    flex: 1,
+  },
+  searchBar: {
+    height: SEARCH_BAR_HEIGHT,
     borderRadius: 23,
     backgroundColor: '#ffffff',
     flexDirection: 'row',
@@ -77,9 +90,9 @@ const searchStyles = StyleSheet.create({
   },
   searchResults: {
     position: 'absolute',
-    top: 66,
-    left: 12,
-    right: 12,
+    top: 54,
+    left: 0,
+    right: 0,
     maxHeight: 320,
     borderRadius: 14,
     backgroundColor: '#ffffff',
