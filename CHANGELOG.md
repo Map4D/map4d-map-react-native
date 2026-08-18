@@ -1,3 +1,14 @@
+## 0.1.9
+
+* Update legend view
+* Add advange search
+* Add compass button
+
+## 0.1.8
+
+* Add direction view
+* Support fabric on iOS
+
 ## 0.1.7
 
 * Add investment bottom sheet
