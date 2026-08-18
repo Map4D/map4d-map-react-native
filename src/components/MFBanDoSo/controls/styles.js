@@ -1,9 +1,11 @@
 import { StyleSheet } from 'react-native';
 
+import { MAP_BUTTON_PITCH, MAP_BUTTON_STACK_TOP } from '../shared/constants';
+
 const controlStyles = StyleSheet.create({
-  // Third in the top-right stack, under the layer and legend buttons.
+  // Third in the stack.
   compassButton: {
-    top: 170,
+    top: MAP_BUTTON_STACK_TOP + MAP_BUTTON_PITCH * 2,
   },
   // A needle, red half pointing north and grey half pointing south. The whole
   // box is turned by the map's bearing so the red half keeps facing north.

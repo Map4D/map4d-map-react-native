@@ -112,13 +112,19 @@ function SearchResults({ sections, loading, onSelectResult }) {
   );
 }
 
-/** The search bar and its suggestion list, floating over the top of the map. */
+/**
+ * The search bar and its suggestion list, floating over the top of the map.
+ * `trailing` is whatever sits to the right of the bar — the advanced search
+ * button, which belongs beside the plain search rather than off in the map's
+ * own button stack.
+ */
 function SearchBox({
   show,
   keyword,
   sections,
   loading,
   showResults,
+  trailing,
   onChangeKeyword,
   onClear,
   onFocus,
@@ -130,31 +136,38 @@ function SearchBox({
 
   return (
     <View style={sharedStyles.topSlot} pointerEvents="box-none">
-      <View style={searchStyles.searchBar}>
-        <View style={searchStyles.searchIconBox}>
-          <View style={searchStyles.searchIconGlass} />
-          <View style={searchStyles.searchIconHandle} />
-        </View>
-        <TextInput
-          style={searchStyles.searchInput}
-          value={keyword}
-          placeholder={SEARCH_PLACEHOLDER}
-          placeholderTextColor="#9ca3af"
-          returnKeyType="search"
-          autoCorrect={false}
-          onChangeText={onChangeKeyword}
-          onFocus={onFocus}
-        />
-        {keyword.length > 0 ? <SearchClearButton onPress={onClear} /> : null}
-      </View>
+      <View style={searchStyles.searchTopRow}>
+        <View style={searchStyles.searchColumn}>
+          <View style={searchStyles.searchBar}>
+            <View style={searchStyles.searchIconBox}>
+              <View style={searchStyles.searchIconGlass} />
+              <View style={searchStyles.searchIconHandle} />
+            </View>
+            <TextInput
+              style={searchStyles.searchInput}
+              value={keyword}
+              placeholder={SEARCH_PLACEHOLDER}
+              placeholderTextColor="#9ca3af"
+              returnKeyType="search"
+              autoCorrect={false}
+              onChangeText={onChangeKeyword}
+              onFocus={onFocus}
+            />
+            {keyword.length > 0 ? (
+              <SearchClearButton onPress={onClear} />
+            ) : null}
+          </View>
 
-      {showResults ? (
-        <SearchResults
-          sections={sections}
-          loading={loading}
-          onSelectResult={onSelectResult}
-        />
-      ) : null}
+          {showResults ? (
+            <SearchResults
+              sections={sections}
+              loading={loading}
+              onSelectResult={onSelectResult}
+            />
+          ) : null}
+        </View>
+        {trailing}
+      </View>
     </View>
   );
 }

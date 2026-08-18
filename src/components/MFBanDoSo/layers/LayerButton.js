@@ -10,6 +10,7 @@ function LayerButton({ show, isActive, onPress }) {
     <Pressable
       style={[
         sharedStyles.mapButton,
+        sharedStyles.mapButtonTopRight,
         isActive && sharedStyles.mapButtonActive,
         !show && sharedStyles.hiddenButton,
       ]}

@@ -1,8 +1,11 @@
 import { StyleSheet } from 'react-native';
 
+import { MAP_BUTTON_PITCH, MAP_BUTTON_STACK_TOP } from '../shared/constants';
+
 const legendStyles = StyleSheet.create({
+  // Second in the stack.
   legendButton: {
-    top: 120,
+    top: MAP_BUTTON_STACK_TOP + MAP_BUTTON_PITCH,
   },
   legendToggleIconRow: {
     width: 16,

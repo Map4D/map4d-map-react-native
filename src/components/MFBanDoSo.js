@@ -22,6 +22,23 @@ import {
   getRouteUrl,
   resolveRoute,
 } from './MFBanDoSo/directions';
+import {
+  ADVANCED_TARGET_ZONE,
+  AdvancedSearchButton,
+  AdvancedSearchView,
+  getAdvancedInfraSearchUrl,
+  getAdvancedZoneSearchUrl,
+  getInfraLayerOptionsUrl,
+  getInfraTypeOptionsUrl,
+  getProvinceOptionsUrl,
+  getWardOptionsUrl,
+  getZoneFormTypeOptionsUrl,
+  getZoneTypeOptionsUrl,
+  resolveInfraResults,
+  resolveListOptions,
+  resolveMapOptions,
+  resolveZoneResults,
+} from './MFBanDoSo/advancedSearch';
 import { CompassButton } from './MFBanDoSo/controls';
 import {
   LayerButton,
@@ -63,6 +80,11 @@ import {
   SHEET_FOCUS_PADDING,
   SHEET_HALF_SNAP_RATIO,
   SHEET_INITIAL_SNAP_RATIO,
+  INFRA_FOCUS_DELTA,
+  SHEET_INFRA_EMPTY_TEXT,
+  SHEET_INFRA_LOADING_TEXT,
+  SHEET_INFRA_TITLE,
+  SHEET_KIND_INFRA,
   SHEET_KIND_ZONE,
   SHEET_LOADING_TEXT,
   SHEET_MARKER_ID,
@@ -78,9 +100,11 @@ import {
   ZONE_POLYGON_ID_PREFIX,
   ZONE_PROJECTS_LOADING_TEXT,
   ZONE_PROJECT_KINDS,
+  getInfraDetailUrl,
   getProvinceInvestmentInfoUrl,
   getZoneDetailUrl,
   getZoneProjectsUrl,
+  resolveInfraDetailInfo,
   resolveProvinceInvestmentInfo,
   resolveZoneDetailInfo,
   resolveZoneFeatureId,
@@ -94,6 +118,26 @@ import { buildGeojsonStyle } from './internal/GeojsonStyleUtils';
 import { MFMapView } from './MFMapView';
 
 const SHEET_KIND_PROVINCE = 'province';
+// Every advanced filter is optional, so "unset" is what they all start at and
+// what "Xóa lọc" puts them back to.
+const EMPTY_ADVANCED_FILTERS = {
+  keyword: '',
+  zoneTypeId: null,
+  formTypeId: null,
+  status: null,
+  provinceId: null,
+  wardId: null,
+  infraTypeId: null,
+  infraLayerId: null,
+};
+const EMPTY_ADVANCED_OPTIONS = {
+  zoneTypes: [],
+  formTypes: [],
+  provinces: [],
+  wards: [],
+  infraTypes: [],
+  infraLayers: [],
+};
 // A tap that hit a data source feature suppresses the plain map press that may
 // follow it for the same tap.
 const SHEET_FEATURE_PRESS_CLAIM_MS = 400;
@@ -113,6 +157,8 @@ class MFBanDoSo extends MFMapView {
     this._searchRequestId = 0;
     this._searchDebounceTimer = null;
     this._routeRequestId = 0;
+    this._advancedRequestId = 0;
+    this._hasAdvancedOptions = false;
     this._sheetPin = null;
     this._selectorAnim = new Animated.Value(0);
     this._legendAnim = new Animated.Value(0);
@@ -149,6 +195,13 @@ class MFBanDoSo extends MFMapView {
       directionsDestination: null,
       pickingEndpoint: null,
       mapBearing: 0,
+      isAdvancedSearchVisible: false,
+      advancedTarget: ADVANCED_TARGET_ZONE,
+      advancedFilters: EMPTY_ADVANCED_FILTERS,
+      advancedOptions: EMPTY_ADVANCED_OPTIONS,
+      advancedResults: null,
+      isAdvancedLoading: false,
+      isAdvancedLoadingMore: false,
     };
 
     this._closeSheet = this._closeSheet.bind(this);
@@ -176,6 +229,14 @@ class MFBanDoSo extends MFMapView {
     this._closeLegend = this._closeLegend.bind(this);
     this._snapLegendOpen = this._snapLegendOpen.bind(this);
     this._resetBearing = this._resetBearing.bind(this);
+    this._openAdvancedSearch = this._openAdvancedSearch.bind(this);
+    this._closeAdvancedSearch = this._closeAdvancedSearch.bind(this);
+    this._changeAdvancedTarget = this._changeAdvancedTarget.bind(this);
+    this._changeAdvancedFilter = this._changeAdvancedFilter.bind(this);
+    this._resetAdvancedFilters = this._resetAdvancedFilters.bind(this);
+    this._runAdvancedSearch = this._runAdvancedSearch.bind(this);
+    this._loadMoreAdvancedResults = this._loadMoreAdvancedResults.bind(this);
+    this._onSelectAdvancedResult = this._onSelectAdvancedResult.bind(this);
   }
 
   componentDidMount() {
@@ -350,6 +411,308 @@ class MFBanDoSo extends MFMapView {
         padding: this._makeRoomForCameraFit(),
       });
     }
+  }
+
+  async _fetchJson(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  _openAdvancedSearch() {
+    this.setState({ isAdvancedSearchVisible: true });
+    this._loadAdvancedOptions();
+  }
+
+  _closeAdvancedSearch() {
+    this.setState({ isAdvancedSearchVisible: false });
+  }
+
+  /**
+   * The dictionaries behind the filters never change within a session, so they
+   * are fetched once, the first time the screen is opened. A dictionary that
+   * fails leaves its filter with an empty list rather than blocking the rest.
+   */
+  async _loadAdvancedOptions() {
+    if (this._hasAdvancedOptions) {
+      return;
+    }
+
+    this._hasAdvancedOptions = true;
+    const isStaging = this.props.isStaging;
+    const sources = [
+      ['zoneTypes', getZoneTypeOptionsUrl(isStaging), resolveListOptions],
+      ['infraTypes', getInfraTypeOptionsUrl(isStaging), resolveListOptions],
+      ['infraLayers', getInfraLayerOptionsUrl(isStaging), resolveListOptions],
+      ['provinces', getProvinceOptionsUrl(isStaging), resolveMapOptions],
+    ];
+
+    const loaded = await Promise.all(
+      sources.map(async ([name, url, resolve]) => {
+        try {
+          return [name, resolve(await this._fetchJson(url))];
+        } catch (error) {
+          console.warn(`Cannot load ${name} options`, error);
+          return [name, []];
+        }
+      })
+    );
+
+    if (!this._isMounted) {
+      return;
+    }
+
+    this.setState((prevState) => ({
+      advancedOptions: {
+        ...prevState.advancedOptions,
+        ...Object.fromEntries(loaded),
+      },
+    }));
+  }
+
+  /**
+   * The two dependent lists. Each belongs to whatever its parent filter is set
+   * to, so it is refetched whenever that moves, and a reply that arrives after
+   * the parent has moved again is dropped rather than shown against the wrong
+   * one.
+   */
+  async _loadDependentOptions(name, parentName, parentValue, url, resolve) {
+    if (!Number.isFinite(parentValue)) {
+      return;
+    }
+
+    try {
+      const json = await this._fetchJson(url);
+
+      if (
+        !this._isMounted ||
+        this.state.advancedFilters[parentName] !== parentValue
+      ) {
+        return;
+      }
+
+      this.setState((prevState) => ({
+        advancedOptions: {
+          ...prevState.advancedOptions,
+          [name]: resolve(json),
+        },
+      }));
+    } catch (error) {
+      console.warn(`Cannot load ${name} options`, error);
+    }
+  }
+
+  _loadWardOptions(provinceId) {
+    return this._loadDependentOptions(
+      'wards',
+      'provinceId',
+      provinceId,
+      getWardOptionsUrl(this.props.isStaging, provinceId),
+      resolveMapOptions
+    );
+  }
+
+  _loadFormTypeOptions(zoneTypeId) {
+    return this._loadDependentOptions(
+      'formTypes',
+      'zoneTypeId',
+      zoneTypeId,
+      getZoneFormTypeOptionsUrl(this.props.isStaging, zoneTypeId),
+      resolveListOptions
+    );
+  }
+
+  // Results belong to the target they were asked for, so switching drops them.
+  _changeAdvancedTarget(target) {
+    this.setState({ advancedTarget: target, advancedResults: null });
+    this._advancedRequestId += 1;
+  }
+
+  // Each dependent filter, by the filter it hangs off and the list it fills.
+  static get ADVANCED_DEPENDENTS() {
+    return {
+      provinceId: {
+        child: 'wardId',
+        options: 'wards',
+        load: '_loadWardOptions',
+      },
+      zoneTypeId: {
+        child: 'formTypeId',
+        options: 'formTypes',
+        load: '_loadFormTypeOptions',
+      },
+    };
+  }
+
+  _changeAdvancedFilter(name, value) {
+    const dependent = MFBanDoSo.ADVANCED_DEPENDENTS[name];
+
+    this.setState((prevState) => {
+      const advancedFilters = { ...prevState.advancedFilters, [name]: value };
+
+      // A ward only means anything inside its province, and a form type only
+      // inside its zone type — both are dropped when their parent moves.
+      if (dependent) {
+        advancedFilters[dependent.child] = null;
+      }
+
+      return {
+        advancedFilters,
+        advancedOptions: dependent
+          ? { ...prevState.advancedOptions, [dependent.options]: [] }
+          : prevState.advancedOptions,
+      };
+    });
+
+    if (dependent) {
+      this[dependent.load](value);
+    }
+  }
+
+  _resetAdvancedFilters() {
+    this._advancedRequestId += 1;
+    this.setState((prevState) => ({
+      advancedFilters: EMPTY_ADVANCED_FILTERS,
+      advancedOptions: {
+        ...prevState.advancedOptions,
+        wards: [],
+        formTypes: [],
+      },
+      advancedResults: null,
+    }));
+  }
+
+  _runAdvancedSearch() {
+    Keyboard.dismiss();
+    this._loadAdvancedPage(1);
+  }
+
+  _loadMoreAdvancedResults() {
+    const results = this.state.advancedResults;
+    if (!results?.hasMore) {
+      return;
+    }
+
+    this._loadAdvancedPage(results.page + 1);
+  }
+
+  /**
+   * One page of results. Page 1 replaces whatever was showing; later pages are
+   * appended, so a scroll to the bottom grows the list rather than reloading it.
+   */
+  async _loadAdvancedPage(page) {
+    const requestId = this._advancedRequestId + 1;
+    this._advancedRequestId = requestId;
+    const isFirstPage = page <= 1;
+    const isZone = this.state.advancedTarget === ADVANCED_TARGET_ZONE;
+    const filters = this.state.advancedFilters;
+    const url = isZone
+      ? getAdvancedZoneSearchUrl(this.props.isStaging, filters, page)
+      : getAdvancedInfraSearchUrl(this.props.isStaging, filters, page);
+
+    this.setState({
+      isAdvancedLoading: isFirstPage,
+      isAdvancedLoadingMore: !isFirstPage,
+      advancedResults: isFirstPage ? null : this.state.advancedResults,
+    });
+
+    try {
+      const json = await this._fetchJson(url);
+      const resolved = isZone
+        ? resolveZoneResults(json, page)
+        : resolveInfraResults(json, page);
+
+      if (!this._isMounted || this._advancedRequestId !== requestId) {
+        return;
+      }
+
+      this.setState((prevState) => ({
+        isAdvancedLoading: false,
+        isAdvancedLoadingMore: false,
+        advancedResults: {
+          ...resolved,
+          items: isFirstPage
+            ? resolved.items
+            : [...(prevState.advancedResults?.items ?? []), ...resolved.items],
+        },
+      }));
+    } catch (error) {
+      if (!this._isMounted || this._advancedRequestId !== requestId) {
+        return;
+      }
+
+      console.warn('Cannot run advanced search', error);
+      this.setState((prevState) => ({
+        isAdvancedLoading: false,
+        isAdvancedLoadingMore: false,
+        advancedResults: isFirstPage
+          ? { items: [], total: 0, page, hasMore: false, failed: true }
+          : prevState.advancedResults,
+      }));
+    }
+  }
+
+  /**
+   * Either hit opens the sheet on its own detail — the zone one a tap on the
+   * map would open, or the connectivity one, which only this search reaches.
+   */
+  _onSelectAdvancedResult(item) {
+    this._closeAdvancedSearch();
+    this._prepareSheetForTap(item.pin?.latitude, item.pin?.longitude);
+
+    if (this.state.advancedTarget === ADVANCED_TARGET_ZONE) {
+      this._loadZoneInfo(item.id);
+      return;
+    }
+
+    this._loadInfraInfo(item.id);
+  }
+
+  async _loadInfraInfo(infraId) {
+    const isCurrentRequest = this._beginSheetRequest(
+      SHEET_KIND_INFRA,
+      SHEET_INFRA_LOADING_TEXT
+    );
+
+    try {
+      const json = await this._fetchJson(
+        getInfraDetailUrl(this.props.isStaging, infraId)
+      );
+      const info = resolveInfraDetailInfo(json);
+
+      if (isCurrentRequest() && info?.pin) {
+        // The detail's own point wins over whatever the result carried, the
+        // same way a zone's pin replaces the point that opened its sheet.
+        this._sheetPin = info.pin;
+        this._addMarker({ id: SHEET_MARKER_ID, coordinate: info.pin });
+        this._fitCameraToInfra(info.pin);
+      }
+
+      this._resolveSheetResult(isCurrentRequest, info, SHEET_INFRA_EMPTY_TEXT);
+    } catch (error) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      console.warn('Cannot load infrastructure detail', error);
+      this._resolveSheetResult(isCurrentRequest, null, SHEET_INFRA_EMPTY_TEXT);
+    }
+  }
+
+  /**
+   * A point has no extent to frame, so a small box is put around it and fitted
+   * like any other — which is what keeps it clear of the sheet.
+   */
+  _fitCameraToInfra(pin) {
+    this._fitCameraToBounds({
+      minLat: pin.latitude - INFRA_FOCUS_DELTA,
+      minLng: pin.longitude - INFRA_FOCUS_DELTA,
+      maxLat: pin.latitude + INFRA_FOCUS_DELTA,
+      maxLng: pin.longitude + INFRA_FOCUS_DELTA,
+    });
   }
 
   async _loadCategoryItems() {
@@ -1309,7 +1672,11 @@ class MFBanDoSo extends MFMapView {
     const showProjects = isZoneSheet && projectsConfig != null;
     const zoneTitle = showProjects ? projectsConfig.title : SHEET_ZONE_TITLE;
     const showDirections = this.state.isDirectionsVisible;
-    const detailTitle = isZoneSheet ? zoneTitle : SHEET_TITLE;
+    const detailTitle = isZoneSheet
+      ? zoneTitle
+      : this.state.sheetKind === SHEET_KIND_INFRA
+      ? SHEET_INFRA_TITLE
+      : SHEET_TITLE;
     const sheetTitle = showDirections ? DIRECTIONS_ACTION_LABEL : detailTitle;
     // Only one drill-down is open at a time, so one back handler covers both.
     const projectsBack = showProjects ? this._closeZoneProjects : null;
@@ -1392,6 +1759,12 @@ class MFBanDoSo extends MFMapView {
             sections={this.state.searchSections}
             loading={this.state.isSearchLoading}
             showResults={this.state.isSearchOpen}
+            trailing={
+              <AdvancedSearchButton
+                isActive={this.state.isAdvancedSearchVisible}
+                onPress={this._openAdvancedSearch}
+              />
+            }
             onChangeKeyword={this._onSearchKeywordChange}
             onClear={this._clearSearch}
             onFocus={this._onSearchFocus}
@@ -1454,6 +1827,23 @@ class MFBanDoSo extends MFMapView {
             show={pickingEndpoint != null}
             text={pickHintText}
             onCancel={this._cancelPickOrigin}
+          />
+          {/* Last, so it covers everything else: it is a screen, not a panel. */}
+          <AdvancedSearchView
+            show={this.state.isAdvancedSearchVisible}
+            target={this.state.advancedTarget}
+            filters={this.state.advancedFilters}
+            options={this.state.advancedOptions}
+            results={this.state.advancedResults}
+            loading={this.state.isAdvancedLoading}
+            loadingMore={this.state.isAdvancedLoadingMore}
+            onClose={this._closeAdvancedSearch}
+            onChangeTarget={this._changeAdvancedTarget}
+            onChangeFilter={this._changeAdvancedFilter}
+            onReset={this._resetAdvancedFilters}
+            onSearch={this._runAdvancedSearch}
+            onLoadMore={this._loadMoreAdvancedResults}
+            onSelectResult={this._onSelectAdvancedResult}
           />
         </View>
       </React.Fragment>

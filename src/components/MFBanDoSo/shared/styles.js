@@ -1,5 +1,7 @@
 import { StyleSheet } from 'react-native';
 
+import { MAP_BUTTON_SIZE, MAP_BUTTON_STACK_TOP } from './constants';
+
 // Workaround for a React Native Fabric/Android Yoga bug: an absolutely-positioned
 // view stretched via top+bottom (e.g. StyleSheet.absoluteFillObject) can have its
 // top offset silently dropped, collapsing the view to zero height pinned at the
@@ -33,15 +35,13 @@ const sharedStyles = StyleSheet.create({
   topSlot: {
     ...fullFill,
   },
-  // The round white button every map control is built from. It sits first in
-  // the top-right stack; the ones below it override `top`.
+  // The round white button every map control is built from. It carries no
+  // position of its own: one of them sits beside the search bar, the rest are
+  // stacked under it.
   mapButton: {
-    position: 'absolute',
-    top: 70,
-    right: 12,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: MAP_BUTTON_SIZE,
+    height: MAP_BUTTON_SIZE,
+    borderRadius: MAP_BUTTON_SIZE / 2,
     borderWidth: 1,
     borderColor: '#d1d5db',
     backgroundColor: '#ffffff',
@@ -54,6 +54,12 @@ const sharedStyles = StyleSheet.create({
       width: 0,
       height: 3,
     },
+  },
+  // First slot of the stack under the search bar; the ones below override `top`.
+  mapButtonTopRight: {
+    position: 'absolute',
+    top: MAP_BUTTON_STACK_TOP,
+    right: 12,
   },
   mapButtonActive: {
     borderColor: '#3b82f6',
