@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -141,10 +141,30 @@ function AdvancedSearchView({
   onSearch,
   onLoadMore,
   onSelectResult,
+  scrollOffset,
+  onScrollOffsetChange,
 }) {
   // Which filter's list is open, if any. Only one can be, so it is a name
   // rather than a flag per field.
   const [openField, setOpenField] = useState(null);
+  // The ScrollView itself unmounts on close and remounts fresh on reopen —
+  // this component does not, so this survives to restore its position by
+  // hand. Reset per open rather than once, or a second visit would restore
+  // nothing; guarded so a later content-size change (loading another page)
+  // does not keep snapping the list back to it.
+  //
+  // Done in render rather than an effect: the ScrollView can fire its first
+  // `onContentSizeChange` before an effect from this same commit would have
+  // run, so an effect-based reset arrives too late to matter.
+  const scrollRef = useRef(null);
+  const hasRestoredRef = useRef(false);
+  const wasShownRef = useRef(show);
+
+  if (show && !wasShownRef.current) {
+    hasRestoredRef.current = false;
+  }
+
+  wasShownRef.current = show;
 
   if (!show) {
     return null;
@@ -209,12 +229,17 @@ function AdvancedSearchView({
   const openConfig = fields.find((field) => field.name === openField);
 
   const onScroll = (event) => {
+    const { layoutMeasurement, contentOffset, contentSize } =
+      event?.nativeEvent ?? {};
+
+    if (contentOffset && typeof onScrollOffsetChange === 'function') {
+      onScrollOffsetChange(contentOffset.y);
+    }
+
     if (loading || loadingMore || !results?.hasMore) {
       return;
     }
 
-    const { layoutMeasurement, contentOffset, contentSize } =
-      event?.nativeEvent ?? {};
     if (!layoutMeasurement || !contentOffset || !contentSize) {
       return;
     }
@@ -226,17 +251,27 @@ function AdvancedSearchView({
     }
   };
 
+  const onContentSizeChange = () => {
+    if (!hasRestoredRef.current && scrollOffset > 0) {
+      scrollRef.current?.scrollTo({ y: scrollOffset, animated: false });
+    }
+
+    hasRestoredRef.current = true;
+  };
+
   return (
     <View style={styles.screen}>
       <ScreenHeader title={ADVANCED_SEARCH_TITLE} onClose={onClose} />
       <TargetTabs target={target} onChange={onChangeTarget} />
 
       <ScrollView
+        ref={scrollRef}
         style={styles.body}
         contentContainerStyle={styles.bodyContent}
         keyboardShouldPersistTaps="handled"
         scrollEventThrottle={80}
         onScroll={onScroll}
+        onContentSizeChange={onContentSizeChange}
       >
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>{ADVANCED_KEYWORD_LABEL}</Text>
