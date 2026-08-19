@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 
+import { NO_GEOMETRY_LABEL } from '../shared/constants';
 import {
   ADVANCED_EMPTY_TEXT,
   ADVANCED_ERROR_TEXT,
@@ -68,7 +69,11 @@ function TargetTabs({ target, onChange }) {
 }
 
 function ResultCard({ item, onPress }) {
-  const tags = [item.typeLabel, item.statusLabel].filter(Boolean);
+  const tags = [
+    item.typeLabel ? { text: item.typeLabel } : null,
+    item.statusLabel ? { text: item.statusLabel } : null,
+    item.hasGeometry ? null : { text: NO_GEOMETRY_LABEL, warning: true },
+  ].filter(Boolean);
 
   return (
     <Pressable style={styles.resultCard} onPress={() => onPress(item)}>
@@ -77,9 +82,19 @@ function ResultCard({ item, onPress }) {
       </Text>
       {tags.length > 0 ? (
         <View style={styles.resultMetaRow}>
-          {tags.map((tag) => (
-            <View key={tag} style={styles.resultTag}>
-              <Text style={styles.resultTagText}>{tag}</Text>
+          {tags.map((tag, index) => (
+            <View
+              key={`${tag.text}-${index}`}
+              style={[styles.resultTag, tag.warning && styles.resultTagWarning]}
+            >
+              <Text
+                style={[
+                  styles.resultTagText,
+                  tag.warning && styles.resultTagTextWarning,
+                ]}
+              >
+                {tag.text}
+              </Text>
             </View>
           ))}
         </View>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 
+import { NO_GEOMETRY_LABEL } from '../shared/constants';
 import { sharedStyles } from '../shared/styles';
 import { INFRA_DESCRIPTION_TITLE, ZONE_MAIN_INFO_TITLE } from './constants';
 import { SheetHero, SheetStatGrid } from './SheetHero';
@@ -23,23 +24,42 @@ function InfraSheetBody({ info }) {
         subtitle={info.subtitle}
       />
 
-      {info.status ? (
+      {info.status || !info.hasGeometry ? (
         <View style={sheetStyles.zoneStatusRow}>
-          <View
-            style={[
-              sheetStyles.zoneStatusPill,
-              !info.isPublished && sheetStyles.zoneStatusPillMuted,
-            ]}
-          >
-            <Text
+          {info.status ? (
+            <View
               style={[
-                sheetStyles.zoneStatusText,
-                !info.isPublished && sheetStyles.zoneStatusTextMuted,
+                sheetStyles.zoneStatusPill,
+                !info.isPublished && sheetStyles.zoneStatusPillMuted,
               ]}
             >
-              {info.status}
-            </Text>
-          </View>
+              <Text
+                style={[
+                  sheetStyles.zoneStatusText,
+                  !info.isPublished && sheetStyles.zoneStatusTextMuted,
+                ]}
+              >
+                {info.status}
+              </Text>
+            </View>
+          ) : null}
+          {!info.hasGeometry ? (
+            <View
+              style={[
+                sheetStyles.zoneStatusPill,
+                sheetStyles.zoneGeometryMissingPill,
+              ]}
+            >
+              <Text
+                style={[
+                  sheetStyles.zoneStatusText,
+                  sheetStyles.zoneGeometryMissingText,
+                ]}
+              >
+                {NO_GEOMETRY_LABEL}
+              </Text>
+            </View>
+          ) : null}
         </View>
       ) : null}
 

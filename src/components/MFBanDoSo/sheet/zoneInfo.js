@@ -231,6 +231,10 @@ function resolveZoneDetailInfo(json) {
     investors: normalizeInvestors(data.dsChuDauTu),
     pin: normalizePin(data.pin),
     geometry: normalizeGeometry(data.geometry),
+    // Distinct from `geometry` above: that one is null for a shape the map
+    // can't draw too, which would mislabel real-but-unsupported data as
+    // missing. This tracks only whether the API sent anything at all.
+    hasGeometry: data.geometry != null,
     bannerImage: resolveBannerImage(intro),
     attractedSectors: normalizeTagList(intro?.nganhNgheThuHutDauTu),
     restrictedSectors: normalizeTagList(intro?.nganhNgheHanCheDauTu),
