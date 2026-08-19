@@ -25,6 +25,7 @@ const ADVANCED_INFRA_LAYER_LABEL = 'Lớp';
 const ADVANCED_SELECT_PLACEHOLDER = 'Tất cả';
 // A ward list runs to thousands of entries, so its picker is searchable.
 const ADVANCED_PICKER_SEARCH_PLACEHOLDER = 'Tìm trong danh sách...';
+const ADVANCED_PICKER_EMPTY_TEXT = 'Không có dữ liệu';
 const ADVANCED_WARD_DISABLED_HINT = 'Chọn tỉnh/thành trước';
 const ADVANCED_FORM_TYPE_DISABLED_HINT = 'Chọn loại khu trước';
 
@@ -68,6 +69,7 @@ export {
   ADVANCED_LOAD_MORE_THRESHOLD,
   ADVANCED_MORE_LOADING_TEXT,
   ADVANCED_PAGE_SIZE,
+  ADVANCED_PICKER_EMPTY_TEXT,
   ADVANCED_PICKER_SEARCH_PLACEHOLDER,
   ADVANCED_PROVINCE_LABEL,
   ADVANCED_RESET_ACTION,
