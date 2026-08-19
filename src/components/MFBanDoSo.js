@@ -157,6 +157,10 @@ class MFBanDoSo extends MFMapView {
     this._legendRequestId = 0;
     this._sheetRequestId = 0;
     this._hasFocusedFromSheet = false;
+    // Set only by picking a result out of advanced search, so closing the
+    // sheet knows to reopen that screen rather than just dropping to the map
+    // — a tap on the map itself never sets it, and never returns to it.
+    this._sheetOpenedFromAdvancedSearch = false;
     this._sheetPanelHeight = 0;
     this._featurePressAt = 0;
     this._zonePolygonIds = [];
@@ -165,6 +169,10 @@ class MFBanDoSo extends MFMapView {
     this._searchDebounceTimer = null;
     this._routeRequestId = 0;
     this._advancedRequestId = 0;
+    // The results list's scroll offset, kept outside state since redrawing on
+    // every scroll tick would be wasteful — read back only once, to restore
+    // the list where it was when its screen is reopened after a detail visit.
+    this._advancedScrollOffset = 0;
     this._hasAdvancedOptions = false;
     this._sheetPin = null;
     this._selectorAnim = new Animated.Value(0);
@@ -242,6 +250,7 @@ class MFBanDoSo extends MFMapView {
     this._changeAdvancedTarget = this._changeAdvancedTarget.bind(this);
     this._changeAdvancedFilter = this._changeAdvancedFilter.bind(this);
     this._resetAdvancedFilters = this._resetAdvancedFilters.bind(this);
+    this._onAdvancedScrollOffsetChange = this._onAdvancedScrollOffsetChange.bind(this);
     this._runAdvancedSearch = this._runAdvancedSearch.bind(this);
     this._loadMoreAdvancedResults = this._loadMoreAdvancedResults.bind(this);
     this._onSelectAdvancedResult = this._onSelectAdvancedResult.bind(this);
@@ -539,6 +548,11 @@ class MFBanDoSo extends MFMapView {
   _changeAdvancedTarget(target) {
     this.setState({ advancedTarget: target, advancedResults: null });
     this._advancedRequestId += 1;
+    this._advancedScrollOffset = 0;
+  }
+
+  _onAdvancedScrollOffsetChange(offsetY) {
+    this._advancedScrollOffset = offsetY;
   }
 
   // Each dependent filter, by the filter it hangs off and the list it fills.
@@ -584,6 +598,7 @@ class MFBanDoSo extends MFMapView {
 
   _resetAdvancedFilters() {
     this._advancedRequestId += 1;
+    this._advancedScrollOffset = 0;
     this.setState((prevState) => ({
       advancedFilters: EMPTY_ADVANCED_FILTERS,
       advancedOptions: {
@@ -597,6 +612,7 @@ class MFBanDoSo extends MFMapView {
 
   _runAdvancedSearch() {
     Keyboard.dismiss();
+    this._advancedScrollOffset = 0;
     this._loadAdvancedPage(1);
   }
 
@@ -672,6 +688,7 @@ class MFBanDoSo extends MFMapView {
   _onSelectAdvancedResult(item) {
     this._closeAdvancedSearch();
     this._prepareSheetForTap(item.pin?.latitude, item.pin?.longitude);
+    this._sheetOpenedFromAdvancedSearch = true;
 
     if (this.state.advancedTarget === ADVANCED_TARGET_ZONE) {
       this._loadZoneInfo(item.id);
@@ -894,6 +911,12 @@ class MFBanDoSo extends MFMapView {
       this._hasFocusedFromSheet = false;
       this.clearFocusedArea();
     }
+
+    // Same reachable-while-open case as above: a tap that repurposes the
+    // sheet for something new disowns wherever the previous content came
+    // from, or closing it would reopen advanced search behind a detail it
+    // never produced.
+    this._sheetOpenedFromAdvancedSearch = false;
 
     this._clearZoneOverlays();
 
@@ -1189,6 +1212,9 @@ class MFBanDoSo extends MFMapView {
           return;
         }
 
+        const reopenAdvancedSearch = this._sheetOpenedFromAdvancedSearch;
+        this._sheetOpenedFromAdvancedSearch = false;
+
         this.setState({
           sheetInfo: null,
           isSheetLoading: false,
@@ -1201,6 +1227,10 @@ class MFBanDoSo extends MFMapView {
           directionsOrigin: null,
           directionsDestination: null,
           pickingEndpoint: null,
+          // A result picked from advanced search closes back into it, the way
+          // picking one from the plain search box closes back onto the map —
+          // each returns to what it was opened from.
+          ...(reopenAdvancedSearch ? { isAdvancedSearchVisible: true } : null),
         });
       }
     );
@@ -1888,6 +1918,8 @@ class MFBanDoSo extends MFMapView {
             onSearch={this._runAdvancedSearch}
             onLoadMore={this._loadMoreAdvancedResults}
             onSelectResult={this._onSelectAdvancedResult}
+            scrollOffset={this._advancedScrollOffset}
+            onScrollOffsetChange={this._onAdvancedScrollOffsetChange}
           />
         </View>
       </React.Fragment>
