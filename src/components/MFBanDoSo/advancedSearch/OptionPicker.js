@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import {
+  ADVANCED_PICKER_EMPTY_TEXT,
   ADVANCED_PICKER_SEARCH_PLACEHOLDER,
   ADVANCED_SELECT_PLACEHOLDER,
 } from './constants';
@@ -81,12 +82,13 @@ function SelectField({
  */
 function OptionPicker({ title, options, value, onSelect, onClose }) {
   const [keyword, setKeyword] = useState('');
+  const hasOptions = options.length > 0;
   const normalizeText = (text) =>
     text
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/đ/g, "d")
-      .replace(/Đ/g, "D")
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
       .toLowerCase();
 
   const normalizedOptions = useMemo(
@@ -113,16 +115,37 @@ function OptionPicker({ title, options, value, onSelect, onClose }) {
   return (
     <View style={styles.pickerScreen}>
       <ScreenHeader title={title} onBack={onClose} />
-      <View style={styles.pickerSearchBox}>
-        <TextInput
-          style={styles.input}
-          value={keyword}
-          placeholder={ADVANCED_PICKER_SEARCH_PLACEHOLDER}
-          placeholderTextColor="#9ca3af"
-          autoCorrect={false}
-          onChangeText={setKeyword}
-        />
-      </View>
+      {hasOptions ? (
+        <View style={styles.pickerSearchBox}>
+          <TextInput
+            style={styles.input}
+            value={keyword}
+            placeholder={ADVANCED_PICKER_SEARCH_PLACEHOLDER}
+            placeholderTextColor="#9ca3af"
+            autoCorrect={false}
+            onChangeText={setKeyword}
+          />
+        </View>
+      ) : (
+        <View style={styles.pickerEmptyState}>
+          <View style={styles.pickerEmptyIcon}>
+            <View style={styles.pickerEmptyIconPage} />
+            <View style={styles.pickerEmptyIconTitle} />
+            <View
+              style={[styles.pickerEmptyIconLine, { top: 22, width: 24 }]}
+            />
+            <View
+              style={[styles.pickerEmptyIconLine, { top: 29, width: 18 }]}
+            />
+            <View
+              style={[styles.pickerEmptyIconLine, { top: 36, width: 13 }]}
+            />
+          </View>
+          <Text style={styles.pickerEmptyText}>
+            {ADVANCED_PICKER_EMPTY_TEXT}
+          </Text>
+        </View>
+      )}
       <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
         {visible.map((option) => (
           <Pressable

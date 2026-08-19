@@ -287,6 +287,55 @@ const advancedSearchStyles = StyleSheet.create({
     color: '#b91c1c',
     fontWeight: '700',
   },
+  // Stands in for the search box when the list behind it has nothing to
+  // search, so it takes roughly the same vertical space rather than leaving
+  // the screen looking cut off.
+  pickerEmptyState: {
+    paddingVertical: 28,
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  // A sheet of paper, built only from straight-edged rectangles: a bold
+  // title bar over three fading content lines. Reads as "an empty document"
+  // without any diagonal edges, which View borders can't render cleanly.
+  pickerEmptyIcon: {
+    width: 42,
+    height: 48,
+    marginBottom: 10,
+  },
+  pickerEmptyIconPage: {
+    width: 42,
+    height: 48,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#d1d5db',
+    backgroundColor: '#ffffff',
+  },
+  pickerEmptyIconTitle: {
+    position: 'absolute',
+    top: 10,
+    left: 9,
+    width: 24,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#d1d5db',
+  },
+  pickerEmptyIconLine: {
+    position: 'absolute',
+    left: 9,
+    height: 3,
+    borderRadius: 1.5,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    backgroundColor: '#f3f4f6',
+  },
+  pickerEmptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
 });
 
 export { advancedSearchStyles };

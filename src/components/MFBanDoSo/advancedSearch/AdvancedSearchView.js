@@ -185,6 +185,12 @@ function AdvancedSearchView({
           options: options.infraLayers,
         },
       ];
+  // A field waiting on its parent (disabled) still has something to say —
+  // the hint. One that has already resolved to no options never will, so it
+  // is dropped rather than shown as a dead end.
+  const visibleFields = fields.filter(
+    (field) => field.disabled || field.options.length > 0
+  );
   const openConfig = fields.find((field) => field.name === openField);
 
   const onScroll = (event) => {
@@ -231,7 +237,7 @@ function AdvancedSearchView({
           />
         </View>
 
-        {fields.map((field) => (
+        {visibleFields.map((field) => (
           <SelectField
             key={field.name}
             label={field.label}
