@@ -1,3 +1,7 @@
+## 0.1.10
+
+* Update advange search logic
+
 ## 0.1.9
 
 * Update legend view
