@@ -39,8 +39,8 @@ function LegendItem({ item }) {
 
 /**
  * Mirrors how the map is styled: a group holds category items, and each item
- * paints several named rules. The legend lists one row per rule, since that is
- * what a reader sees on the map, not the item it happens to belong to.
+ * paints several named configs. The legend lists one row per config, since that
+ * is what a reader sees on the map, not the item it happens to belong to.
  */
 function LegendDrawer({
   show,
@@ -66,8 +66,8 @@ function LegendDrawer({
         {groupSections.map((group) => (
           <View key={group.key} style={legendStyles.legendGroup}>
             <Text style={legendStyles.legendGroupTitle}>{group.title}</Text>
-            {group.items.map(({ item, index }) => (
-              <LegendItem key={`${item?.key ?? index}`} item={item} />
+            {group.items.map((item) => (
+              <LegendItem key={item.key} item={item} />
             ))}
           </View>
         ))}

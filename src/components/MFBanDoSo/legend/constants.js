@@ -5,7 +5,6 @@ const LEGEND_TITLE = 'Chú giải';
 // glyph takes the rule's colour through `tintColor`.
 const SPRITE_ICONS_URL =
   'https://cmcdtqg-test.dieuhanhso.vn/ban-do-so/spriteIcons.png';
-const SPRITE_ICONS_NAME = 'pois';
 const SPRITE_ICONS_WIDTH = 1198;
 const SPRITE_ICONS_HEIGHT = 390;
 const SPRITE_ICONS_COLUMNS = 15;
@@ -29,7 +28,6 @@ export {
   SPRITE_ICONS_GLYPH_CENTER_Y,
   SPRITE_ICONS_GLYPH_SIZE,
   SPRITE_ICONS_HEIGHT,
-  SPRITE_ICONS_NAME,
   SPRITE_ICONS_ROWS,
   SPRITE_ICONS_URL,
   SPRITE_ICONS_WIDTH,
