@@ -56,7 +56,13 @@ import {
   toggleCategoryGroupChecked,
   toggleCategoryItemChecked,
 } from './MFBanDoSo/layers';
-import { LEGEND_TITLE, LegendButton, LegendDrawer } from './MFBanDoSo/legend';
+import {
+  LEGEND_TITLE,
+  LegendButton,
+  LegendDrawer,
+  getLegendConfigUrl,
+  resolveLegendGroupSections,
+} from './MFBanDoSo/legend';
 import { banDoSoPropTypes } from './MFBanDoSo/propTypes';
 import {
   SEARCH_DEBOUNCE_MS,
@@ -148,6 +154,7 @@ class MFBanDoSo extends MFMapView {
     this._appliedGeojsonStyle = null;
     this._isMounted = false;
     this._categoryRequestId = 0;
+    this._legendRequestId = 0;
     this._sheetRequestId = 0;
     this._hasFocusedFromSheet = false;
     this._sheetPanelHeight = 0;
@@ -169,6 +176,7 @@ class MFBanDoSo extends MFMapView {
       expandedGroupKeys: {},
       groupTitleByKey: {},
       groupOrderedKeys: [],
+      legendSections: [],
       isLegendVisible: false,
       isLegendMounted: false,
       isSelectorVisible: false,
@@ -242,6 +250,7 @@ class MFBanDoSo extends MFMapView {
   componentDidMount() {
     this._isMounted = true;
     this._loadCategoryItems();
+    this._loadLegendItems();
     this._syncGeojsonStyle();
   }
 
@@ -252,6 +261,7 @@ class MFBanDoSo extends MFMapView {
 
     if (isStagingChanged) {
       this._loadCategoryItems();
+      this._loadLegendItems();
     }
 
     const itemsChanged =
@@ -756,6 +766,38 @@ class MFBanDoSo extends MFMapView {
         return;
       }
       console.warn('Cannot load category items', error);
+    }
+  }
+
+  /**
+   * The legend is drawn from its own config, which describes the same
+   * categories as the selector's but is the one that names and colours their
+   * rules correctly. Nothing is toggled here, so the sections it resolves to
+   * are what the drawer renders as they are.
+   */
+  async _loadLegendItems() {
+    const requestId = this._legendRequestId + 1;
+    this._legendRequestId = requestId;
+
+    try {
+      const response = await fetch(getLegendConfigUrl(this.props.isStaging));
+      if (!response.ok) {
+        throw new Error(`Failed to fetch legend config: ${response.status}`);
+      }
+
+      const json = await response.json();
+      const legendSections = resolveLegendGroupSections(json);
+
+      if (!this._isMounted || requestId !== this._legendRequestId) {
+        return;
+      }
+
+      this.setState({ legendSections });
+    } catch (error) {
+      if (requestId !== this._legendRequestId) {
+        return;
+      }
+      console.warn('Cannot load legend items', error);
     }
   }
 
@@ -1660,11 +1702,13 @@ class MFBanDoSo extends MFMapView {
       this.state.groupTitleByKey,
       this.state.groupOrderedKeys
     );
+    const legendGroupSections = this.state.legendSections;
     const hasItems = Array.isArray(items) && items.length > 0;
+    const hasLegendItems = legendGroupSections.length > 0;
     const showLayerButton = hasItems;
     const showSelector = this.state.isSelectorMounted && hasItems;
-    const showLegendButton = hasItems;
-    const showLegend = this.state.isLegendMounted && hasItems;
+    const showLegendButton = hasLegendItems;
+    const showLegend = this.state.isLegendMounted && hasLegendItems;
     const selectorTitle = SELECTOR_TITLE;
     const legendTitle = LEGEND_TITLE;
     const isZoneSheet = this.state.sheetKind === SHEET_KIND_ZONE;
@@ -1787,7 +1831,7 @@ class MFBanDoSo extends MFMapView {
           <LegendDrawer
             show={showLegend}
             title={legendTitle}
-            groupSections={groupSections}
+            groupSections={legendGroupSections}
             dragAnim={this._legendAnim}
             backdropAnimatedStyle={legendBackdropAnimatedStyle}
             panelAnimatedStyle={legendPanelAnimatedStyle}
