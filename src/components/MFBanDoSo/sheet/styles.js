@@ -292,9 +292,14 @@ const sheetStyles = StyleSheet.create({
     color: '#e5e7eb',
     letterSpacing: 0.4,
   },
+  // Row rather than a single slot: a zone with no geometry shows a second
+  // pill alongside the status one, and both need to wrap on a narrow sheet.
   zoneStatusRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: 16,
     paddingTop: 14,
+    marginHorizontal: -4,
   },
   zoneStatusPill: {
     alignSelf: 'flex-start',
@@ -304,11 +309,22 @@ const sheetStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#bbf7d0',
     backgroundColor: '#f0fdf4',
+    marginHorizontal: 4,
+    marginBottom: 8,
   },
   zoneStatusText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#15803d',
+  },
+  // Amber rather than the status pill's green/grey, so a missing shape reads
+  // as a heads-up rather than another state of the same kind.
+  zoneGeometryMissingPill: {
+    borderColor: '#fde68a',
+    backgroundColor: '#fef3c7',
+  },
+  zoneGeometryMissingText: {
+    color: '#b45309',
   },
   zoneLabeledBox: {
     borderWidth: 1,

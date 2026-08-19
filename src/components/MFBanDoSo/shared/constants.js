@@ -9,6 +9,11 @@ const DRAWER_SWIPE_ACTIVATION_DISTANCE = 10;
 const DRAWER_SWIPE_CLOSE_DISTANCE = 80;
 const DRAWER_SWIPE_CLOSE_VELOCITY = 0.5;
 
+// Shown wherever an item — a search result row, its detail sheet — has no
+// usable shape or point of its own, so the user knows why it won't focus on
+// the map rather than reading that as a bug.
+const NO_GEOMETRY_LABEL = 'Chưa có dữ liệu không gian';
+
 // Geometry of the round map buttons. They appear in two places — beside the
 // search bar and stacked under it — and the gap has to read as the same one
 // throughout, so every position is derived from these rather than written out.
@@ -30,6 +35,7 @@ export {
   MAP_BUTTON_PITCH,
   MAP_BUTTON_SIZE,
   MAP_BUTTON_STACK_TOP,
+  NO_GEOMETRY_LABEL,
   SEARCH_BAR_HEIGHT,
   SEARCH_BAR_TOP,
   DRAWER_TRANSLATE_X,

@@ -79,6 +79,11 @@ function resolveInfraDetailInfo(json) {
     introParagraphs: description ? [description] : [],
     bannerImage: resolveBannerImage(data),
     pin: normalizePoint(data.geometry),
+    // Distinct from `pin` above: that one is also null for a shape the map
+    // can't drop a pin on (a line rather than a point), which would mislabel
+    // real-but-unsupported data as missing. This tracks only whether the API
+    // sent anything at all.
+    hasGeometry: data.geometry != null,
   };
 }
 

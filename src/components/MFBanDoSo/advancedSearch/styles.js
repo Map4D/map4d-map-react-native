@@ -260,6 +260,14 @@ const advancedSearchStyles = StyleSheet.create({
     fontSize: 12,
     color: '#475569',
   },
+  // Calls out a result with no spatial data of its own — amber rather than
+  // the neutral grey the type/status tags use, so it reads as a heads-up.
+  resultTagWarning: {
+    backgroundColor: '#fef3c7',
+  },
+  resultTagTextWarning: {
+    color: '#b45309',
+  },
   // The picker is a second full screen laid over the first, so a list of three
   // thousand wards gets the whole height to scroll in.
   pickerScreen: {

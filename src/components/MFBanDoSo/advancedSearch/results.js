@@ -74,8 +74,10 @@ function resolveZoneResults(json, page) {
         id,
         name,
         typeLabel: firstNonEmptyString([entry?.tenLoai]),
-        statusLabel: firstNonEmptyString([entry?.tenTinhTrang]),
         pin: normalizePin(entry?.pin),
+        // Unlike the infra list below, a zone hit carries no `geometry` of its
+        // own to check the presence of — only this precomputed flag.
+        hasGeometry: entry?.coGeometry === true,
       };
     })
     .filter((item) => item != null);
@@ -104,6 +106,7 @@ function resolveInfraResults(json, page) {
         typeLabel: firstNonEmptyString([entry?.tenLoaiHaTang]),
         statusLabel: firstNonEmptyString([entry?.tenLop]),
         pin: normalizePin(entry?.geometry),
+        hasGeometry: entry?.geometry != null,
       };
     })
     .filter((item) => item != null);
