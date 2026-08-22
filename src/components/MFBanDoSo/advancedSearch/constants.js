@@ -14,7 +14,11 @@ const ADVANCED_TARGET_LABELS = {
 };
 
 const ADVANCED_KEYWORD_LABEL = 'Từ khóa';
-const ADVANCED_KEYWORD_PLACEHOLDER = 'Nhập tên khu, mã khu...';
+// The two targets name their subjects differently, so the hint follows the tab.
+const ADVANCED_KEYWORD_PLACEHOLDERS = {
+  [ADVANCED_TARGET_ZONE]: 'Nhập tên khu, mã khu...',
+  [ADVANCED_TARGET_INFRA]: 'Nhập tên hạ tầng kết nối...',
+};
 const ADVANCED_ZONE_TYPE_LABEL = 'Loại khu';
 const ADVANCED_FORM_TYPE_LABEL = 'Loại hình';
 const ADVANCED_STATUS_LABEL = 'Tình trạng';
@@ -64,7 +68,7 @@ export {
   ADVANCED_INFRA_LAYER_LABEL,
   ADVANCED_INFRA_TYPE_LABEL,
   ADVANCED_KEYWORD_LABEL,
-  ADVANCED_KEYWORD_PLACEHOLDER,
+  ADVANCED_KEYWORD_PLACEHOLDERS,
   ADVANCED_LOADING_TEXT,
   ADVANCED_LOAD_MORE_THRESHOLD,
   ADVANCED_MORE_LOADING_TEXT,

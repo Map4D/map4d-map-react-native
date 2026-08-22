@@ -18,7 +18,7 @@ import {
   ADVANCED_INFRA_LAYER_LABEL,
   ADVANCED_INFRA_TYPE_LABEL,
   ADVANCED_KEYWORD_LABEL,
-  ADVANCED_KEYWORD_PLACEHOLDER,
+  ADVANCED_KEYWORD_PLACEHOLDERS,
   ADVANCED_LOADING_TEXT,
   ADVANCED_LOAD_MORE_THRESHOLD,
   ADVANCED_MORE_LOADING_TEXT,
@@ -278,7 +278,7 @@ function AdvancedSearchView({
           <TextInput
             style={styles.input}
             value={filters.keyword}
-            placeholder={ADVANCED_KEYWORD_PLACEHOLDER}
+            placeholder={ADVANCED_KEYWORD_PLACEHOLDERS[target]}
             placeholderTextColor="#9ca3af"
             returnKeyType="search"
             autoCorrect={false}
