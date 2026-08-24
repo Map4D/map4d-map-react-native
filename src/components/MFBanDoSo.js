@@ -904,6 +904,9 @@ class MFBanDoSo extends MFMapView {
    * the tapped spot and bring the sheet up before its request is started.
    */
   _prepareSheetForTap(latitude, longitude) {
+    // Dismissing the keyboard before the sheet opens
+    Keyboard.dismiss();
+
     // Reachable while the sheet is already open, since the map stays
     // interactive: drop the previous highlights so they cannot outlive the info
     // they belong to.
