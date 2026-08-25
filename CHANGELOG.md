@@ -1,3 +1,7 @@
+## 0.1.11
+
+* Fix bugs UI
+
 ## 0.1.10
 
 * Update advange search logic
