@@ -6,29 +6,25 @@ function deepClone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+// The bundled roadmap is the last resort: it is used only when neither the caller's
+// style nor the style read back from the map itself could be parsed. It is cloned
+// lazily so the common path does not pay for a copy it throws away.
 function toStyleObject(mapStyle) {
-  const defaultStyle = deepClone(defaultRoadmapStyle);
-  if (mapStyle == null) {
-    return defaultStyle;
-  }
-
-  if (typeof mapStyle === 'string') {
+  if (mapStyle != null) {
     try {
-      return JSON.parse(mapStyle);
+      if (typeof mapStyle === 'string') {
+        return JSON.parse(mapStyle);
+      }
+
+      if (typeof mapStyle === 'object' && !Array.isArray(mapStyle)) {
+        return deepClone(mapStyle);
+      }
     } catch (error) {
-      return defaultStyle;
+      // Unusable style, fall through to the bundled roadmap.
     }
   }
 
-  if (typeof mapStyle === 'object' && !Array.isArray(mapStyle)) {
-    try {
-      return deepClone(mapStyle);
-    } catch (error) {
-      return defaultStyle;
-    }
-  }
-
-  return defaultStyle;
+  return deepClone(defaultRoadmapStyle);
 }
 
 function generateLayerStyle(source, items) {
