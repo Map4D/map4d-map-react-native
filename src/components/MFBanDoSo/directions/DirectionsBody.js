@@ -1,56 +1,155 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import { sharedStyles } from '../shared/styles';
 import {
-  DIRECTIONS_CHANGE_HINT,
   DIRECTIONS_DESTINATION_LABEL,
+  DIRECTIONS_DESTINATION_PLACEHOLDER,
   DIRECTIONS_ENDPOINT_DESTINATION,
   DIRECTIONS_ENDPOINT_ORIGIN,
   DIRECTIONS_ORIGIN_LABEL,
-  DIRECTIONS_PICK_DESTINATION_TEXT,
-  DIRECTIONS_PICK_ORIGIN_TEXT,
+  DIRECTIONS_ORIGIN_PLACEHOLDER,
+  DIRECTIONS_PICK_ON_MAP_LABEL,
   DIRECTIONS_STEPS_TITLE,
+  DIRECTIONS_SUGGEST_EMPTY_TEXT,
+  DIRECTIONS_SUGGEST_LOADING_TEXT,
 } from './constants';
 import { ManeuverArrow } from './ManeuverArrow';
+import { ModeSelector } from './ModeSelector';
 import { directionsStyles } from './styles';
+import { SwapEndpointsButton } from './SwapEndpointsButton';
 
-function DirectionsEndpointRow({
-  label,
-  text,
-  placeholder,
-  markerStyle,
-  isPicking,
-  onPress,
-}) {
+const PICK_ON_MAP_COLOR = '#6b7280';
+const PICK_ON_MAP_ACTIVE_COLOR = '#2563eb';
+
+/**
+ * Hands the row back to the map. Typing covers the places the service knows by
+ * name; this covers everywhere else — a spot in a field, a gate on the far side
+ * of a zone — which is why it sits beside the field rather than replacing it.
+ */
+function PickOnMapButton({ isPicking, onPress }) {
+  const color = isPicking ? PICK_ON_MAP_ACTIVE_COLOR : PICK_ON_MAP_COLOR;
+
   return (
     <Pressable
       style={[
-        directionsStyles.directionsEndpointRow,
-        isPicking && directionsStyles.directionsEndpointRowPicking,
+        directionsStyles.pickOnMapButton,
+        isPicking && directionsStyles.pickOnMapButtonActive,
       ]}
+      accessibilityRole="button"
+      accessibilityLabel={DIRECTIONS_PICK_ON_MAP_LABEL}
       onPress={onPress}
+    >
+      <View style={directionsStyles.pickOnMapIcon}>
+        <View
+          style={[directionsStyles.pickOnMapHead, { borderColor: color }]}
+        />
+        <View
+          style={[directionsStyles.pickOnMapTail, { borderTopColor: color }]}
+        />
+      </View>
+    </Pressable>
+  );
+}
+
+function DirectionsEndpointRow({
+  label,
+  value,
+  placeholder,
+  markerStyle,
+  isActive,
+  isPicking,
+  onChangeText,
+  onFocus,
+  onPickOnMap,
+}) {
+  return (
+    <View
+      style={[
+        directionsStyles.directionsEndpointRow,
+        isActive && directionsStyles.directionsEndpointRowActive,
+      ]}
     >
       <View style={markerStyle} />
       <View style={directionsStyles.directionsEndpointBody}>
         <Text style={directionsStyles.directionsEndpointLabel}>{label}</Text>
-        <Text
-          style={[
-            directionsStyles.directionsEndpointText,
-            !text && directionsStyles.directionsEndpointPlaceholder,
-          ]}
-          numberOfLines={2}
-        >
-          {text || placeholder}
+        <TextInput
+          style={directionsStyles.directionsEndpointInput}
+          value={value}
+          placeholder={placeholder}
+          placeholderTextColor="#9ca3af"
+          returnKeyType="search"
+          autoCorrect={false}
+          onChangeText={onChangeText}
+          onFocus={onFocus}
+        />
+      </View>
+      <PickOnMapButton isPicking={isPicking} onPress={onPickOnMap} />
+    </View>
+  );
+}
+
+/**
+ * One place the service knows, under the address that tells it from its
+ * namesakes — there are a great many streets called Nguyễn Huệ.
+ */
+function SuggestionRow({ item, isFirst, onPress }) {
+  return (
+    <Pressable
+      style={[
+        directionsStyles.suggestRow,
+        !isFirst && directionsStyles.suggestRowDivider,
+      ]}
+      onPress={() => onPress(item)}
+    >
+      <View style={directionsStyles.suggestRowIcon}>
+        <View style={directionsStyles.suggestRowDot} />
+      </View>
+      <View style={directionsStyles.suggestRowBody}>
+        <Text style={directionsStyles.suggestRowTitle} numberOfLines={1}>
+          {item.name}
+        </Text>
+        {item.address ? (
+          <Text style={directionsStyles.suggestRowSubtitle} numberOfLines={2}>
+            {item.address}
+          </Text>
+        ) : null}
+      </View>
+    </Pressable>
+  );
+}
+
+function SuggestionList({ loading, items, onSelect }) {
+  if (loading || items.length === 0) {
+    return (
+      <View style={sharedStyles.statusBox}>
+        {loading ? <ActivityIndicator color="#b91c1c" /> : null}
+        <Text style={sharedStyles.statusText}>
+          {loading
+            ? DIRECTIONS_SUGGEST_LOADING_TEXT
+            : DIRECTIONS_SUGGEST_EMPTY_TEXT}
         </Text>
       </View>
-      {/* Nothing to change yet when the row is still asking for a point. */}
-      {text ? (
-        <Text style={directionsStyles.directionsEndpointHint}>
-          {DIRECTIONS_CHANGE_HINT}
-        </Text>
-      ) : null}
-    </Pressable>
+    );
+  }
+
+  return (
+    <View style={directionsStyles.suggestList}>
+      {items.map((item, index) => (
+        <SuggestionRow
+          key={item.key}
+          item={item}
+          isFirst={index === 0}
+          onPress={onSelect}
+        />
+      ))}
+    </View>
   );
 }
 
@@ -103,57 +202,108 @@ function DirectionsBody({
   loading,
   statusText,
   route,
+  mode,
   originText,
   destinationText,
   pickingEndpoint,
+  canSwapEndpoints,
+  editingEndpoint,
+  query,
+  suggestions,
+  suggestLoading,
   onPickEndpoint,
+  onSwapEndpoints,
+  onChangeMode,
+  onChangeQuery,
+  onFocusEndpoint,
+  onSelectSuggestion,
 }) {
   const steps = route && Array.isArray(route.steps) ? route.steps : [];
+  // While a field is being typed into, the suggestions take the panel. What is
+  // below them describes the endpoints as they stand, not as they are being
+  // changed — and the keyboard would bury it anyway.
+  const isEditing = editingEndpoint != null;
+  const valueFor = (endpoint, text) =>
+    editingEndpoint === endpoint ? query : text ?? '';
 
   return (
     <React.Fragment>
-      {/* Always drawn, even with no route yet: these rows are what a missing
-          endpoint gets picked from. */}
+      <ModeSelector mode={mode} onChangeMode={onChangeMode} />
+
+      {/* Always drawn, even with no route yet: these rows are where a missing
+          endpoint gets named or picked from. */}
       <View style={directionsStyles.directionsEndpoints}>
-        <DirectionsEndpointRow
-          label={DIRECTIONS_ORIGIN_LABEL}
-          text={originText}
-          placeholder={DIRECTIONS_PICK_ORIGIN_TEXT}
-          markerStyle={directionsStyles.directionsEndpointDot}
-          isPicking={pickingEndpoint === DIRECTIONS_ENDPOINT_ORIGIN}
-          onPress={() => onPickEndpoint(DIRECTIONS_ENDPOINT_ORIGIN)}
-        />
-        <View style={directionsStyles.directionsEndpointLine} />
-        <DirectionsEndpointRow
-          label={DIRECTIONS_DESTINATION_LABEL}
-          text={destinationText}
-          placeholder={DIRECTIONS_PICK_DESTINATION_TEXT}
-          markerStyle={directionsStyles.directionsEndpointSquare}
-          isPicking={pickingEndpoint === DIRECTIONS_ENDPOINT_DESTINATION}
-          onPress={() => onPickEndpoint(DIRECTIONS_ENDPOINT_DESTINATION)}
+        <View style={directionsStyles.directionsEndpointColumn}>
+          <DirectionsEndpointRow
+            label={DIRECTIONS_ORIGIN_LABEL}
+            value={valueFor(DIRECTIONS_ENDPOINT_ORIGIN, originText)}
+            placeholder={DIRECTIONS_ORIGIN_PLACEHOLDER}
+            markerStyle={directionsStyles.directionsEndpointDot}
+            isActive={
+              editingEndpoint === DIRECTIONS_ENDPOINT_ORIGIN ||
+              pickingEndpoint === DIRECTIONS_ENDPOINT_ORIGIN
+            }
+            isPicking={pickingEndpoint === DIRECTIONS_ENDPOINT_ORIGIN}
+            onChangeText={(text) =>
+              onChangeQuery(DIRECTIONS_ENDPOINT_ORIGIN, text)
+            }
+            onFocus={() => onFocusEndpoint(DIRECTIONS_ENDPOINT_ORIGIN)}
+            onPickOnMap={() => onPickEndpoint(DIRECTIONS_ENDPOINT_ORIGIN)}
+          />
+          <View style={directionsStyles.directionsEndpointLine} />
+          <DirectionsEndpointRow
+            label={DIRECTIONS_DESTINATION_LABEL}
+            value={valueFor(DIRECTIONS_ENDPOINT_DESTINATION, destinationText)}
+            placeholder={DIRECTIONS_DESTINATION_PLACEHOLDER}
+            markerStyle={directionsStyles.directionsEndpointSquare}
+            isActive={
+              editingEndpoint === DIRECTIONS_ENDPOINT_DESTINATION ||
+              pickingEndpoint === DIRECTIONS_ENDPOINT_DESTINATION
+            }
+            isPicking={pickingEndpoint === DIRECTIONS_ENDPOINT_DESTINATION}
+            onChangeText={(text) =>
+              onChangeQuery(DIRECTIONS_ENDPOINT_DESTINATION, text)
+            }
+            onFocus={() => onFocusEndpoint(DIRECTIONS_ENDPOINT_DESTINATION)}
+            onPickOnMap={() => onPickEndpoint(DIRECTIONS_ENDPOINT_DESTINATION)}
+          />
+        </View>
+        <SwapEndpointsButton
+          disabled={!canSwapEndpoints}
+          onPress={onSwapEndpoints}
         />
       </View>
 
-      {loading || !route ? (
-        <View style={sharedStyles.statusBox}>
-          {loading ? <ActivityIndicator color="#b91c1c" /> : null}
-          <Text style={sharedStyles.statusText}>{statusText}</Text>
-        </View>
-      ) : null}
+      {isEditing ? (
+        <SuggestionList
+          loading={suggestLoading}
+          items={Array.isArray(suggestions) ? suggestions : []}
+          onSelect={onSelectSuggestion}
+        />
+      ) : (
+        <React.Fragment>
+          {loading || !route ? (
+            <View style={sharedStyles.statusBox}>
+              {loading ? <ActivityIndicator color="#b91c1c" /> : null}
+              <Text style={sharedStyles.statusText}>{statusText}</Text>
+            </View>
+          ) : null}
 
-      {route ? <DirectionsSummary route={route} /> : null}
+          {route ? <DirectionsSummary route={route} /> : null}
 
-      {steps.length > 0 ? (
-        <View style={sharedStyles.section}>
-          <Text style={sharedStyles.sectionTitle}>
-            {DIRECTIONS_STEPS_TITLE}
-          </Text>
-        </View>
-      ) : null}
+          {steps.length > 0 ? (
+            <View style={sharedStyles.section}>
+              <Text style={sharedStyles.sectionTitle}>
+                {DIRECTIONS_STEPS_TITLE}
+              </Text>
+            </View>
+          ) : null}
 
-      {steps.map((step) => (
-        <DirectionsStep key={step.key} step={step} />
-      ))}
+          {steps.map((step) => (
+            <DirectionsStep key={step.key} step={step} />
+          ))}
+        </React.Fragment>
+      )}
     </React.Fragment>
   );
 }

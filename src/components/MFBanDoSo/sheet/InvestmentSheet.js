@@ -60,6 +60,7 @@ function SheetScroll({ viewKey, tailSpace, children }) {
       style={sheetStyles.sheetScroll}
       contentContainerStyle={sheetStyles.sheetScrollContent}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
       {children}
       {tailSpace > 0 ? <View style={{ height: tailSpace }} /> : null}
@@ -146,6 +147,12 @@ function InvestmentSheet({
   directionsStatusText,
   directionsOriginText,
   directionsDestinationText,
+  directionsMode,
+  canSwapEndpoints,
+  directionsEditingEndpoint,
+  directionsQuery,
+  directionsSuggestions,
+  directionsSuggestLoading,
   pickingEndpoint,
   dragAnim,
   snapValue,
@@ -157,6 +164,11 @@ function InvestmentSheet({
   onPressProjects,
   onPressDirections,
   onPickEndpoint,
+  onSwapEndpoints,
+  onChangeDirectionsMode,
+  onChangeDirectionsQuery,
+  onFocusDirectionsEndpoint,
+  onSelectDirectionsSuggestion,
 }) {
   const [containerHeight, setContainerHeight] = useState(0);
   const [footerHeight, setFooterHeight] = useState(0);
@@ -289,10 +301,21 @@ function InvestmentSheet({
               loading={directionsLoading}
               statusText={directionsStatusText}
               route={directionsRoute}
+              mode={directionsMode}
               originText={directionsOriginText}
               destinationText={directionsDestinationText}
               pickingEndpoint={pickingEndpoint}
+              canSwapEndpoints={canSwapEndpoints}
+              editingEndpoint={directionsEditingEndpoint}
+              query={directionsQuery}
+              suggestions={directionsSuggestions}
+              suggestLoading={directionsSuggestLoading}
               onPickEndpoint={onPickEndpoint}
+              onSwapEndpoints={onSwapEndpoints}
+              onChangeMode={onChangeDirectionsMode}
+              onChangeQuery={onChangeDirectionsQuery}
+              onFocusEndpoint={onFocusDirectionsEndpoint}
+              onSelectSuggestion={onSelectDirectionsSuggestion}
             />
           </SheetScroll>
         ) : showProjects ? (

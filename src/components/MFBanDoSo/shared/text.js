@@ -17,10 +17,21 @@ function firstNonEmptyString(values) {
   return found ? found.trim() : null;
 }
 
+/**
+ * The map's own `{latitude, longitude}` from the `{lat, lng}` the SDK
+ * endpoints answer with. Null unless both halves are real numbers.
+ */
+function toCoordinate(location) {
+  const latitude = toFiniteNumber(location?.lat);
+  const longitude = toFiniteNumber(location?.lng);
+
+  return latitude != null && longitude != null ? { latitude, longitude } : null;
+}
+
 /** A finite number, or null for anything that does not convert to one. */
 function toFiniteNumber(value) {
   const number = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(number) ? number : null;
 }
 
-export { firstNonEmptyString, toFiniteNumber };
+export { firstNonEmptyString, toCoordinate, toFiniteNumber };

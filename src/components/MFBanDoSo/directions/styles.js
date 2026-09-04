@@ -100,9 +100,77 @@ const directionsStyles = StyleSheet.create({
     fontSize: 13,
     color: '#9ca3af',
   },
+  // The two rows and the swap button sit side by side, so the button spans
+  // both of them and reads as acting on the pair rather than on one row.
   directionsEndpoints: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 14,
+  },
+  directionsEndpointColumn: {
+    flex: 1,
+  },
+  directionsSwapButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginLeft: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  directionsSwapButtonDisabled: {
+    opacity: 0.35,
+  },
+  // Two stems in a 20x20 box, drawn the way the maneuver arrows are: the head
+  // is a square carrying only its top and right borders, rotated so the corner
+  // where they meet points along the stem.
+  directionsSwapIcon: {
+    width: 20,
+    height: 20,
+  },
+  swapUpStem: {
+    position: 'absolute',
+    left: 5,
+    top: 5,
+    width: 2,
+    height: 11,
+    borderRadius: 1,
+    backgroundColor: '#2563eb',
+  },
+  swapUpHead: {
+    position: 'absolute',
+    left: 3,
+    top: 4.5,
+    width: 6,
+    height: 6,
+    borderTopWidth: 2,
+    borderRightWidth: 2,
+    borderColor: '#2563eb',
+    transform: [{ rotate: '-45deg' }],
+  },
+  swapDownStem: {
+    position: 'absolute',
+    left: 13,
+    top: 4,
+    width: 2,
+    height: 11,
+    borderRadius: 1,
+    backgroundColor: '#2563eb',
+  },
+  swapDownHead: {
+    position: 'absolute',
+    left: 11,
+    top: 9.5,
+    width: 6,
+    height: 6,
+    borderTopWidth: 2,
+    borderRightWidth: 2,
+    borderColor: '#2563eb',
+    transform: [{ rotate: '135deg' }],
   },
   directionsEndpointRow: {
     flexDirection: 'row',
@@ -112,18 +180,58 @@ const directionsStyles = StyleSheet.create({
     marginHorizontal: -8,
     borderRadius: 10,
   },
-  directionsEndpointRowPicking: {
+  // Tinted while the row is the one being named, whether that is happening in
+  // its field or out on the map.
+  directionsEndpointRowActive: {
     backgroundColor: '#eff6ff',
   },
-  directionsEndpointPlaceholder: {
-    color: '#9ca3af',
-    fontWeight: '400',
+  // The field is the row's own text, so it carries no border or box of its
+  // own: the row already reads as one.
+  directionsEndpointInput: {
+    marginTop: 2,
+    padding: 0,
+    minHeight: 22,
+    fontSize: 14,
+    color: '#1f2937',
+    fontWeight: '500',
   },
-  directionsEndpointHint: {
-    marginLeft: 10,
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#2563eb',
+  pickOnMapButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginLeft: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pickOnMapButtonActive: {
+    backgroundColor: '#dbeafe',
+  },
+  // A map pin: a ring for the head and a triangle for the point, meeting just
+  // inside the ring's bottom so the two read as one shape.
+  pickOnMapIcon: {
+    width: 18,
+    height: 20,
+  },
+  pickOnMapHead: {
+    position: 'absolute',
+    left: 2,
+    top: 0,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2.4,
+  },
+  pickOnMapTail: {
+    position: 'absolute',
+    left: 5,
+    top: 12.5,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 4,
+    borderRightWidth: 4,
+    borderTopWidth: 6,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
   },
   directionsEndpointDot: {
     width: 12,
@@ -151,17 +259,98 @@ const directionsStyles = StyleSheet.create({
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
-  directionsEndpointText: {
-    marginTop: 2,
+  // The suggestions sit in their own card under the rows rather than floating
+  // over them: the sheet already scrolls, and an overlay inside it would be
+  // clipped by the panel long before the list ran out.
+  suggestList: {
+    marginTop: 10,
+    marginHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    backgroundColor: '#ffffff',
+    overflow: 'hidden',
+  },
+  suggestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  suggestRowDivider: {
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  suggestRowIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  suggestRowDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2.4,
+    borderColor: '#6b7280',
+  },
+  suggestRowBody: {
+    flex: 1,
+  },
+  suggestRowTitle: {
     fontSize: 14,
-    color: '#1f2937',
     fontWeight: '500',
+    color: '#1f2937',
+  },
+  suggestRowSubtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    lineHeight: 16,
+    color: '#9ca3af',
   },
   directionsEndpointLine: {
     width: 2,
     height: 14,
     marginLeft: 5,
     backgroundColor: '#e5e7eb',
+  },
+  // One segmented row rather than a dropdown: four modes is few enough to show
+  // them all, and each one is a whole re-route, so what is selected has to stay
+  // readable while the new route loads. It heads the panel: the mode decides
+  // which route the endpoints below it will be joined by.
+  directionsModes: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 3,
+    borderRadius: 10,
+    backgroundColor: '#f3f4f6',
+  },
+  directionsModeChip: {
+    flex: 1,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  directionsModeChipActive: {
+    backgroundColor: '#ffffff',
+    shadowColor: '#000000',
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    elevation: 2,
+  },
+  // The vehicle bitmaps are 24dp squares, drawn at 3x and scaled down here.
+  vehicleIcon: {
+    width: 24,
+    height: 24,
   },
   directionsStepRow: {
     flexDirection: 'row',

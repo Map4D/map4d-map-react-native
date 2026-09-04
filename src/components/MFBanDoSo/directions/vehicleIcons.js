@@ -1,0 +1,33 @@
+// The four travel modes, drawn from the Material Symbols shapes the web build
+// of this map uses — directions_car, two_wheeler, directions_bike and
+// directions_walk — so the two apps offer the same picture of each mode.
+//
+// Source: google/material-design-icons, Apache License 2.0. The 24dp vectors
+// were rasterised to 72x72 (3x) black-on-transparent PNGs and embedded here as
+// data URIs, for the same reason the route POI icons are: react-native-builder-
+// bob copies src/ verbatim, so a PNG file in there would need bundler wiring in
+// every consuming app, and the library ships no binary assets.
+//
+// The bitmaps carry only an alpha channel worth of shape — every pixel is black
+// — so the tint the selector applies is what colours them. To change one,
+// rasterise the new 24dp vector at 72x72 and paste the base64 in.
+
+import {
+  DIRECTIONS_MODE_BIKE,
+  DIRECTIONS_MODE_CAR,
+  DIRECTIONS_MODE_FOOT,
+  DIRECTIONS_MODE_MOTORCYCLE,
+} from './constants';
+
+const VEHICLE_ICONS = {
+  [DIRECTIONS_MODE_CAR]:
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAABZElEQVR42u2a0Y3CMBAFXUJKcAlXCiWkhJTgDlICJaSEK8ElpASXAPcRpBNyAgLsfYtmpOWXpwkPLwkhAAAAAAAAAADAHcPfSwohrCGEi8isW6ZBQU4WEnM/2VpSEpZzm2QpqDgQVKzknCphlu2KWc5vJdfJQtC5EiQKHBo/lVxnhXploZN1ta5ZrV6TkKBkXTPVeknUbNjZN9SoLa5ddqJRvF435krOsccbL+L1OqrZQr2Ma+alXken2Ui9jGoWd24rqLP2uqiTs3odnWZNcmdn9TqqWe5RL+8TW9fL+0yt6+V9Plqzy5cOghDkQFDZVvr478RLnW/ov5qhuaCy7Rl7+0fpJOfVDM0FPXrmlASeeyVLQVFgwXwnQ3NBCl/wrfPzCeI7iFNM9xRjD2KTRhCCEIQgBCEIQQhC0LuC1EAQghxlLk/8WFSja+b5wZvNTv7V0TTzXLkqRVSO58wAAAAA4IErG4ojnSYqztEAAAAASUVORK5CYII=',
+  [DIRECTIONS_MODE_MOTORCYCLE]:
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAAB4UlEQVR42u2Zba2EMBBFK2ElIKESkPAkVAIS1gESKgUJT8JKqIS+vA0khEA/mM60wD0Jfzaw3J6UmVKUAgAAAAAAAAAAAAAE/InDQhAkkQU9RpKvKKlXSk13F3RG0iJmuf72ghZJr0wxlxCUg41I+j2QdCTmdoJyJcXE3FJQqqQp4/FUT5Tkny6opCQFSYUFUW42EAfcZ9aPKituaiDTiBg2SSUCDY2IYZHkBSRJiikuyTNKqiUmZcVdRdAiSVrMh1vSEd084P/Busoz4ehw8+Bt5jXTPLburBjbqJDQY20JtSpZlGl4tuw9Wlsmwkw0KXL8hY6eIb+5i5zt9ulPwf82ezXHXUzQuma8Cud325oUK26jUkqvztfzb7XkjJkvsWfy2/XsCZnUgZqlK8w8t1nTcOb/zqIhcIJO6Hq6Ylvnzj+E2uKYsW4aG2zrJfJ/G4Ej2JeeRf3OvTnzO1Vw5026rcfuWyo/+w3eDG1dVBD7FC3wXheqJ+z52YscsZC7yFYFe372NkmUFNvOZc/PvtAiSPokbs2w52ddqu/wJrT1M9/LyPk77pc9ZkTyG87tAgFE8puLyhHNf3bL1VWWI5o/d9PeCtecZvIfffYhfzYRFHXl/AAAAAAAAAAAAACl+QOf/QnLi7I7RgAAAABJRU5ErkJggg==',
+  [DIRECTIONS_MODE_BIKE]:
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAACTklEQVR42u2aDc3CMBCGK2ESJgEJSJiESZiEOpiESUDCJExKJcBHvi4hy0rv+ncdfd+kgYRQ3j1cr9cfpSAIgiCOeqXU9PdG29ceSP7VKaUeSqnnSXvYz5uGszng7G1rGdLDA+czkprMOU9Gay4nTUxAU2uANBOQRgQhgpCDMIuhDkr78PoA4P1+PgyXJitpX2SYk6TbzFqMMmz2NiOnAFIUnGYgxcDZ2wI4DS4nUsL5uUjKAednIMXC0bYW8lXQfYtwRtvPjQBpj6ZLgZoTwFFMSHtEvSvse83Ljy4hnBBIx3avDdA9MZzPddj2C4B0Bjif0Tm3FkFjwG+8h9x6VUBdwVrmZvswVwLEncXGhJGr7QbaWjsgZf/Z0pAuJ0AiaCQCMjanXFKDzStnM8dqPxs8kEwBSLE+2bORZlawxn6ni6iGuZBS+yRpiijtXScSO6SN+H1Jn1//jSXxnk0XuNKX9hm0RbHZzrRtS+CpJ+UBa/BJnpJnz35L7ykOl4DfrMmn85oJd8fu24rbNdY5gER8do5EtwRmedfwMY7+qIDEfOoMtyVceUJHABLzaTJdROqJ0zcVkIjPIfMR71lCHAIAifmcM19j6wkPRgEk5nM9GdOptZ2sibiAxHyWOK1cPA9PASTms8TFAJ0BUDGfAMQEhCF28IAk7fGJad7jE4UiwSeWGh6f0ovVmFmmiE/p7Q5Ov2I+JTfMuIcJYj5FtjIT1StFfIpthifKG0V8ihynJMwfxXwWP5Cr7ICz3iPdq/oseimgAZ8QBEEQlFkvbB5JHJ0OT1cAAAAASUVORK5CYII=',
+  [DIRECTIONS_MODE_FOOT]:
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAACB0lEQVR42u2aAY3DMAxFDaEQAmEQCiEQBqEQwqAQAqEQAqEQCiEQejddKk1V28WJO11sfynapE2T+hb/OLYBVCqVSnUkAwDD7xuXXo0i+VMHABMArAdrSp+LhjOfwNnWLBnS9AHO+04S6TkrYonzpAEJaJAGyCEBOd1BuoPUg/QU0zxIM2m9i6kaVw8AHgDCzmee0sE8Mww5SPOcl4+MABAR+U6QEkYTMhFknzV3KYyWCjDbipxCzSTTjQRgWGXPdncS3bH6lgGtX1hLy6GG9ZRSSI4roCWdRh1BKPacAL0M+0EcjvHgN5sFtNeDyI9iazspF9CT2LhdK8adC2i8wdCXBL7jAAhr0Db5WC5Mn2D1rQLChtC2K1xFGDYDyBQkhnv/ipwBWeSDhZO7XuAKiLJ7ahGVgmYAhRsy5j7DxJsBFAsNGlNRcOmPmP8boJw6UY1BsxfWoGdpgFxhFVFMV6O0xCGmF19TJGMPyRDc2llDsh8KarN0SFcGvfXgveTTLWSO0vmWrg7fMOh48F0vDZAp6JZ6SYBs4W3dSwHkKm7rIgCFigcVAShWDEaxB3Rl0KMCujZoq4CuDdoooHODzq0WsgcUK8fpWAMyBFOrrAFZggEo1oAcwQOyBhQIJudZA4oEQ5hsAZnKBJE9IEvUTmYLyBG1k9kCChcdDAV0YdCDAlKpVG/6AZkW6Au6HVbxAAAAAElFTkSuQmCC',
+};
+
+export { VEHICLE_ICONS };

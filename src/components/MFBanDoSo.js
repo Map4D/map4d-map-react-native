@@ -6,6 +6,7 @@ import {
   DIRECTIONS_ACTIVE_OUTLINE_WIDTH,
   DIRECTIONS_ACTIVE_STROKE_COLOR,
   DIRECTIONS_ACTIVE_STROKE_WIDTH,
+  DIRECTIONS_DEFAULT_MODE,
   DIRECTIONS_DESTINATION_ICON,
   DIRECTIONS_DESTINATION_LABEL,
   DIRECTIONS_DESTINATION_POI_COLOR,
@@ -18,9 +19,13 @@ import {
   DIRECTIONS_PICKED_POINT_TEXT,
   DIRECTIONS_PICK_DESTINATION_TEXT,
   DIRECTIONS_PICK_ORIGIN_TEXT,
+  DIRECTIONS_SUGGEST_DEBOUNCE_MS,
+  DIRECTIONS_SUGGEST_MIN_LENGTH,
   PickOriginBanner,
   getRouteUrl,
+  getSuggestUrl,
   resolveRoute,
+  resolveSuggestions,
 } from './MFBanDoSo/directions';
 import {
   ADVANCED_TARGET_ZONE,
@@ -84,6 +89,7 @@ import {
   SHEET_CLOSE_DURATION_MS,
   SHEET_EMPTY_TEXT,
   SHEET_FOCUS_PADDING,
+  SHEET_FULL_SNAP_RATIO,
   SHEET_HALF_SNAP_RATIO,
   SHEET_INITIAL_SNAP_RATIO,
   INFRA_FOCUS_DELTA,
@@ -124,6 +130,16 @@ import { buildGeojsonStyle } from './internal/GeojsonStyleUtils';
 import { MFMapView } from './MFMapView';
 
 const SHEET_KIND_PROVINCE = 'province';
+// What an endpoint field holds when nothing is being typed into it. Reset in
+// several places — closing the panel, opening another sheet — so it is spelled
+// out once here.
+const EMPTY_DIRECTIONS_EDIT = {
+  directionsEditingEndpoint: null,
+  directionsQuery: '',
+  directionsSuggestions: [],
+  isDirectionsSuggestLoading: false,
+};
+
 // Every advanced filter is optional, so "unset" is what they all start at and
 // what "Xóa lọc" puts them back to.
 const EMPTY_ADVANCED_FILTERS = {
@@ -168,6 +184,12 @@ class MFBanDoSo extends MFMapView {
     this._searchRequestId = 0;
     this._searchDebounceTimer = null;
     this._routeRequestId = 0;
+    this._suggestRequestId = 0;
+    this._suggestDebounceTimer = null;
+    // Where the map is looking, kept off state: it only biases the place
+    // suggestions, and re-rendering on every frame of a pan to follow it would
+    // be absurd.
+    this._cameraCenter = null;
     this._advancedRequestId = 0;
     // The results list's scroll offset, kept outside state since redrawing on
     // every scroll tick would be wasteful — read back only once, to restore
@@ -209,6 +231,10 @@ class MFBanDoSo extends MFMapView {
       directionsStatusText: DIRECTIONS_LOADING_TEXT,
       directionsOrigin: null,
       directionsDestination: null,
+      // Kept across openings of the panel: the mode says how the user travels,
+      // which is not something about the place being routed to.
+      directionsMode: DIRECTIONS_DEFAULT_MODE,
+      ...EMPTY_DIRECTIONS_EDIT,
       pickingEndpoint: null,
       mapBearing: 0,
       isAdvancedSearchVisible: false,
@@ -233,6 +259,13 @@ class MFBanDoSo extends MFMapView {
     this._closeDirections = this._closeDirections.bind(this);
     this._cancelPickOrigin = this._cancelPickOrigin.bind(this);
     this._pickDirectionsEndpoint = this._pickDirectionsEndpoint.bind(this);
+    this._swapDirectionsEndpoints = this._swapDirectionsEndpoints.bind(this);
+    this._changeDirectionsMode = this._changeDirectionsMode.bind(this);
+    this._onDirectionsQueryChange = this._onDirectionsQueryChange.bind(this);
+    this._onDirectionsEndpointFocus =
+      this._onDirectionsEndpointFocus.bind(this);
+    this._onSelectDirectionsSuggestion =
+      this._onSelectDirectionsSuggestion.bind(this);
     this._snapSheetTo = this._snapSheetTo.bind(this);
     this._toggleItem = this._toggleItem.bind(this);
     this._toggleGroupChecked = this._toggleGroupChecked.bind(this);
@@ -290,6 +323,7 @@ class MFBanDoSo extends MFMapView {
   componentWillUnmount() {
     this._isMounted = false;
     this._cancelPendingSearch();
+    this._cancelPendingSuggest();
   }
 
   _cancelPendingSearch() {
@@ -1005,6 +1039,7 @@ class MFBanDoSo extends MFMapView {
       zoneProjects: [],
       isDirectionsVisible: false,
       directionsRoute: null,
+      ...EMPTY_DIRECTIONS_EDIT,
     });
 
     return () => this._isMounted && requestId === this._sheetRequestId;
@@ -1230,6 +1265,7 @@ class MFBanDoSo extends MFMapView {
           directionsOrigin: null,
           directionsDestination: null,
           pickingEndpoint: null,
+          ...EMPTY_DIRECTIONS_EDIT,
           // A result picked from advanced search closes back into it, the way
           // picking one from the plain search box closes back onto the map —
           // each returns to what it was opened from.
@@ -1353,7 +1389,7 @@ class MFBanDoSo extends MFMapView {
     });
 
     if (origin) {
-      this._loadRoute(origin, destination);
+      this._loadRoute(origin, destination, this.state.directionsMode);
       return;
     }
 
@@ -1369,8 +1405,141 @@ class MFBanDoSo extends MFMapView {
    * either.
    */
   _pickDirectionsEndpoint(endpoint) {
-    this.setState({ pickingEndpoint: endpoint });
+    // The map is the other way of naming this end, so whatever was being typed
+    // into the field is done with — and its keyboard is in the way of the map.
+    Keyboard.dismiss();
+    this._cancelPendingSuggest();
+    this._suggestRequestId += 1;
+
+    this.setState({
+      ...EMPTY_DIRECTIONS_EDIT,
+      pickingEndpoint: endpoint,
+    });
     this._snapSheetTo(SHEET_HALF_SNAP_RATIO);
+  }
+
+  _cancelPendingSuggest() {
+    if (this._suggestDebounceTimer != null) {
+      clearTimeout(this._suggestDebounceTimer);
+      this._suggestDebounceTimer = null;
+    }
+  }
+
+  /**
+   * Typing in one of the endpoint fields. Same shape as the map's own search
+   * box: a pause before asking, and every keystroke invalidating whatever is
+   * already in flight, so a slow answer for an earlier prefix cannot land on a
+   * later one.
+   */
+  _onDirectionsQueryChange(endpoint, text) {
+    this._cancelPendingSuggest();
+    this._suggestRequestId += 1;
+
+    const trimmed = text.trim();
+    const canSuggest = trimmed.length >= DIRECTIONS_SUGGEST_MIN_LENGTH;
+
+    this.setState({
+      directionsEditingEndpoint: endpoint,
+      directionsQuery: text,
+      isDirectionsSuggestLoading: canSuggest,
+      // Keeping the old rows under a query too short to ask about would leave
+      // them looking like an answer to it.
+      directionsSuggestions: canSuggest ? this.state.directionsSuggestions : [],
+      pickingEndpoint: null,
+    });
+
+    if (!canSuggest) {
+      return;
+    }
+
+    this._suggestDebounceTimer = setTimeout(() => {
+      this._suggestDebounceTimer = null;
+      this._loadDirectionsSuggestions(trimmed);
+    }, DIRECTIONS_SUGGEST_DEBOUNCE_MS);
+  }
+
+  /**
+   * A field taking focus starts from an empty query rather than from what the
+   * row shows: the label an endpoint carries — "Vị trí của bạn", the name of a
+   * zone — is not something the suggest service could be asked for.
+   */
+  _onDirectionsEndpointFocus(endpoint) {
+    if (this.state.directionsEditingEndpoint === endpoint) {
+      return;
+    }
+
+    this._cancelPendingSuggest();
+    this._suggestRequestId += 1;
+
+    this.setState({
+      ...EMPTY_DIRECTIONS_EDIT,
+      directionsEditingEndpoint: endpoint,
+      pickingEndpoint: null,
+    });
+
+    // The list needs the room, and the keyboard is about to take the bottom
+    // half of the screen.
+    this._snapSheetTo(SHEET_FULL_SNAP_RATIO);
+  }
+
+  _stopEditingDirectionsEndpoint() {
+    this._cancelPendingSuggest();
+    this._suggestRequestId += 1;
+    this.setState(EMPTY_DIRECTIONS_EDIT);
+  }
+
+  /**
+   * A picked suggestion carries its own coordinate, so it sets its end of the
+   * route the same way a tap on the map does — and keeps its name, which is
+   * more use on the row than "Điểm bạn đã chọn".
+   */
+  _onSelectDirectionsSuggestion(item) {
+    const endpoint = this.state.directionsEditingEndpoint;
+
+    if (endpoint == null || !item?.coordinate) {
+      return;
+    }
+
+    Keyboard.dismiss();
+    this._stopEditingDirectionsEndpoint();
+    this._setDirectionsEndpoint(endpoint, item.coordinate, item.name);
+  }
+
+  async _loadDirectionsSuggestions(text) {
+    const requestId = this._suggestRequestId + 1;
+    this._suggestRequestId = requestId;
+
+    const isCurrentRequest = () =>
+      this._isMounted && requestId === this._suggestRequestId;
+
+    try {
+      const response = await fetch(
+        getSuggestUrl(this.props.isStaging, text, this._cameraCenter)
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to suggest places: ${response.status}`);
+      }
+
+      const json = await response.json();
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      this.setState({
+        directionsSuggestions: resolveSuggestions(json),
+        isDirectionsSuggestLoading: false,
+      });
+    } catch (error) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      console.warn('Cannot suggest places', error);
+      this.setState({
+        directionsSuggestions: [],
+        isDirectionsSuggestLoading: false,
+      });
+    }
   }
 
   /**
@@ -1378,8 +1547,8 @@ class MFBanDoSo extends MFMapView {
    * ends are known. Reading the next pair here rather than from state avoids
    * routing against the value `setState` has not applied yet.
    */
-  _setDirectionsEndpoint(endpoint, coordinate) {
-    const picked = { coordinate, label: DIRECTIONS_PICKED_POINT_TEXT };
+  _setDirectionsEndpoint(endpoint, coordinate, label) {
+    const picked = { coordinate, label: label ?? DIRECTIONS_PICKED_POINT_TEXT };
     const isOrigin = endpoint === DIRECTIONS_ENDPOINT_ORIGIN;
     const origin = isOrigin ? picked : this.state.directionsOrigin;
     const destination = isOrigin ? this.state.directionsDestination : picked;
@@ -1391,7 +1560,48 @@ class MFBanDoSo extends MFMapView {
     });
 
     if (origin && destination) {
-      this._loadRoute(origin, destination);
+      this._loadRoute(origin, destination, this.state.directionsMode);
+    }
+  }
+
+  /**
+   * Turns the route around. Only reachable with both ends known: with one of
+   * them still missing there is nothing to trade places with, and the swap
+   * would just move the single point to the other slot.
+   */
+  _swapDirectionsEndpoints() {
+    const origin = this.state.directionsDestination;
+    const destination = this.state.directionsOrigin;
+
+    if (!origin || !destination) {
+      return;
+    }
+
+    this.setState({
+      directionsOrigin: origin,
+      directionsDestination: destination,
+    });
+    this._loadRoute(origin, destination, this.state.directionsMode);
+  }
+
+  /**
+   * Each mode is a route of its own — a motorbike and a car are not given the
+   * same streets — so picking one asks the service again rather than re-reading
+   * what is already drawn. The mode is passed on rather than read back off
+   * state, which `setState` has not applied yet.
+   */
+  _changeDirectionsMode(mode) {
+    if (mode === this.state.directionsMode) {
+      return;
+    }
+
+    this.setState({ directionsMode: mode });
+
+    const origin = this.state.directionsOrigin;
+    const destination = this.state.directionsDestination;
+
+    if (origin && destination) {
+      this._loadRoute(origin, destination, mode);
     }
   }
 
@@ -1427,6 +1637,17 @@ class MFBanDoSo extends MFMapView {
   _onCameraMove(event) {
     super._onCameraMove(event);
 
+    const center = event?.nativeEvent?.center;
+    if (
+      typeof center?.latitude === 'number' &&
+      typeof center?.longitude === 'number'
+    ) {
+      this._cameraCenter = {
+        latitude: center.latitude,
+        longitude: center.longitude,
+      };
+    }
+
     const bearing = event?.nativeEvent?.bearing;
     if (typeof bearing !== 'number' || !Number.isFinite(bearing)) {
       return;
@@ -1443,6 +1664,8 @@ class MFBanDoSo extends MFMapView {
 
   _closeDirections() {
     this._routeRequestId += 1;
+    this._cancelPendingSuggest();
+    this._suggestRequestId += 1;
     this._clearDirections();
 
     // Back on the detail view the sheet owns the map again, so its marker comes
@@ -1460,14 +1683,16 @@ class MFBanDoSo extends MFMapView {
       directionsOrigin: null,
       directionsDestination: null,
       pickingEndpoint: null,
+      ...EMPTY_DIRECTIONS_EDIT,
     });
   }
 
-  async _loadRoute(origin, destination) {
+  async _loadRoute(origin, destination, mode) {
     const url = getRouteUrl(
       this.props.isStaging,
       origin?.coordinate,
-      destination?.coordinate
+      destination?.coordinate,
+      mode
     );
     if (!url) {
       return;
@@ -1772,6 +1997,10 @@ class MFBanDoSo extends MFMapView {
         }
       : sharedStyles.mapOverlayRoot;
     const pickingEndpoint = this.state.pickingEndpoint;
+    // Nothing to turn around until both ends are known.
+    const canSwapEndpoints =
+      this.state.directionsOrigin != null &&
+      this.state.directionsDestination != null;
     const pickHintText =
       pickingEndpoint === DIRECTIONS_ENDPOINT_ORIGIN
         ? DIRECTIONS_PICK_ORIGIN_TEXT
@@ -1888,6 +2117,12 @@ class MFBanDoSo extends MFMapView {
             directionsStatusText={this.state.directionsStatusText}
             directionsOriginText={this.state.directionsOrigin?.label}
             directionsDestinationText={this.state.directionsDestination?.label}
+            directionsMode={this.state.directionsMode}
+            canSwapEndpoints={canSwapEndpoints}
+            directionsEditingEndpoint={this.state.directionsEditingEndpoint}
+            directionsQuery={this.state.directionsQuery}
+            directionsSuggestions={this.state.directionsSuggestions}
+            directionsSuggestLoading={this.state.isDirectionsSuggestLoading}
             pickingEndpoint={pickingEndpoint}
             dragAnim={this._sheetAnim}
             snapValue={this.state.sheetSnapValue}
@@ -1899,6 +2134,11 @@ class MFBanDoSo extends MFMapView {
             onPressProjects={this._openZoneProjects}
             onPressDirections={this._startDirections}
             onPickEndpoint={this._pickDirectionsEndpoint}
+            onSwapEndpoints={this._swapDirectionsEndpoints}
+            onChangeDirectionsMode={this._changeDirectionsMode}
+            onChangeDirectionsQuery={this._onDirectionsQueryChange}
+            onFocusDirectionsEndpoint={this._onDirectionsEndpointFocus}
+            onSelectDirectionsSuggestion={this._onSelectDirectionsSuggestion}
           />
           <PickOriginBanner
             show={pickingEndpoint != null}
