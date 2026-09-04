@@ -1,3 +1,7 @@
+## 0.1.12
+
+* Update direction view
+
 ## 0.1.11
 
 * Fix bugs UI
