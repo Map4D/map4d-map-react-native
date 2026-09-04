@@ -1,4 +1,4 @@
-import { firstNonEmptyString } from '../shared/text';
+import { firstNonEmptyString, toCoordinate } from '../shared/text';
 
 /**
  * Distances and durations arrive pre-formatted as `{text, value}`, so the text
@@ -29,15 +29,6 @@ function normalizeSteps(steps) {
       };
     })
     .filter((step) => step != null);
-}
-
-function toCoordinate(location) {
-  const latitude = location?.lat;
-  const longitude = location?.lng;
-
-  return Number.isFinite(latitude) && Number.isFinite(longitude)
-    ? { latitude, longitude }
-    : null;
 }
 
 /**

@@ -1,10 +1,11 @@
-export { getRouteUrl } from './api';
+export { getRouteUrl, getSuggestUrl } from './api';
 export {
   DIRECTIONS_ACTION_LABEL,
   DIRECTIONS_ACTIVE_OUTLINE_COLOR,
   DIRECTIONS_ACTIVE_OUTLINE_WIDTH,
   DIRECTIONS_ACTIVE_STROKE_COLOR,
   DIRECTIONS_ACTIVE_STROKE_WIDTH,
+  DIRECTIONS_DEFAULT_MODE,
   DIRECTIONS_DESTINATION_LABEL,
   DIRECTIONS_DESTINATION_POI_COLOR,
   DIRECTIONS_EMPTY_TEXT,
@@ -16,6 +17,8 @@ export {
   DIRECTIONS_PICKED_POINT_TEXT,
   DIRECTIONS_PICK_DESTINATION_TEXT,
   DIRECTIONS_PICK_ORIGIN_TEXT,
+  DIRECTIONS_SUGGEST_DEBOUNCE_MS,
+  DIRECTIONS_SUGGEST_MIN_LENGTH,
 } from './constants';
 export { DirectionsBody } from './DirectionsBody';
 export { DirectionsIcon } from './DirectionsIcon';
@@ -25,3 +28,4 @@ export {
   DIRECTIONS_ORIGIN_ICON,
 } from './poiIcons';
 export { resolveRoute } from './route';
+export { resolveSuggestions } from './suggestions';
