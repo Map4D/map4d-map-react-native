@@ -27,6 +27,28 @@ const CameraShape = PropTypes.shape({
 // if ViewPropTypes is not defined fall back to View.propType (to support RN < 0.44)
 const viewPropTypes = ViewPropTypes || View.propTypes;
 
+/**
+ * Identity of the route POIs, used as the renderer's key so that renaming an
+ * end of the route remounts it.
+ *
+ * The Android SDK reads a POI's title once, on the branch of setupStartAndEndPoint that
+ * creates that POI. Hand it a new title afterwards and setStartLabel does store
+ * it and does ask for an update, but the update path finds the POI already
+ * there and only repositions it — the label on screen stays whatever it was
+ * drawn with. Rebuilding the renderer is what gets the POI created again, and
+ * dropping it removes both POIs with it, so nothing is left behind.
+ *
+ * Only the titles go into the key. Positions the SDK does update in place, and
+ * keying on those would throw the drawn route away on every re-route — a mode
+ * change, say — for nothing.
+ */
+function resolveDirectionsKey(options) {
+  const origin = options?.originPOIOptions?.title ?? '';
+  const destination = options?.destinationPOIOptions?.title ?? '';
+
+  return `directions:${origin}|${destination}`;
+}
+
 const propTypes = {
   ...viewPropTypes,
 
@@ -592,6 +614,9 @@ class MFMapView extends React.Component {
             ))}
             {this.state.managedDirections ? (
               <MFDirectionsRenderer
+                key={resolveDirectionsKey(
+                  this.state.managedDirections.options
+                )}
                 directions={this.state.managedDirections.directions}
                 {...this.state.managedDirections.options}
               />
