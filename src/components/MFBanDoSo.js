@@ -259,6 +259,7 @@ class MFBanDoSo extends MFMapView {
     this._isMounted = false;
     this._cancelPendingSearch();
     this._cancelPendingSuggest();
+    this._cancelMapStyleRetry();
   }
 
   async _loadInfraInfo(infraId) {
