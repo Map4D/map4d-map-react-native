@@ -121,6 +121,9 @@ const sheetStyles = StyleSheet.create({
   sheetStatGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    // Cards in the same row stretch to the tallest of them, so a wrapped value
+    // in one card lengthens its neighbour's box instead of leaving it short.
+    alignItems: 'stretch',
     marginHorizontal: -5,
   },
   sheetStatCard: {
@@ -129,6 +132,9 @@ const sheetStyles = StyleSheet.create({
     marginBottom: 10,
   },
   sheetStatCardInner: {
+    // The stretched height lands on the card, so the bordered box has to fill
+    // it for the two cards in a row to actually look the same size.
+    flex: 1,
     borderWidth: 1,
     borderColor: '#f1d7d7',
     borderRadius: 10,
@@ -148,6 +154,12 @@ const sheetStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#b91c1c',
+  },
+  sheetStatValueProse: {
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 20,
+    color: '#374151',
   },
   sheetOverviewBox: {
     borderWidth: 1,
