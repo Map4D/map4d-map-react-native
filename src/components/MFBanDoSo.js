@@ -2,48 +2,23 @@ import React from 'react';
 import { Animated, Dimensions, Easing, Keyboard, View } from 'react-native';
 import {
   DIRECTIONS_ACTION_LABEL,
-  DIRECTIONS_ACTIVE_OUTLINE_COLOR,
-  DIRECTIONS_ACTIVE_OUTLINE_WIDTH,
-  DIRECTIONS_ACTIVE_STROKE_COLOR,
-  DIRECTIONS_ACTIVE_STROKE_WIDTH,
   DIRECTIONS_DEFAULT_MODE,
-  DIRECTIONS_DESTINATION_ICON,
-  DIRECTIONS_DESTINATION_LABEL,
-  DIRECTIONS_DESTINATION_POI_COLOR,
-  DIRECTIONS_EMPTY_TEXT,
   DIRECTIONS_ENDPOINT_ORIGIN,
   DIRECTIONS_LOADING_TEXT,
-  DIRECTIONS_MY_LOCATION_TEXT,
-  DIRECTIONS_ORIGIN_ICON,
-  DIRECTIONS_ORIGIN_POI_COLOR,
-  DIRECTIONS_PICKED_POINT_TEXT,
   DIRECTIONS_PICK_DESTINATION_TEXT,
   DIRECTIONS_PICK_ORIGIN_TEXT,
-  DIRECTIONS_SUGGEST_DEBOUNCE_MS,
-  DIRECTIONS_SUGGEST_MIN_LENGTH,
+  EMPTY_DIRECTIONS_EDIT,
   PickOriginBanner,
-  getRouteUrl,
-  getSuggestUrl,
-  resolveRoute,
-  resolveSuggestions,
 } from './MFBanDoSo/directions';
+import { attachDirectionsHandlers } from './MFBanDoSo/directions/handlers';
 import {
   ADVANCED_TARGET_ZONE,
   AdvancedSearchButton,
   AdvancedSearchView,
-  getAdvancedInfraSearchUrl,
-  getAdvancedZoneSearchUrl,
-  getInfraLayerOptionsUrl,
-  getInfraTypeOptionsUrl,
-  getProvinceOptionsUrl,
-  getWardOptionsUrl,
-  getZoneFormTypeOptionsUrl,
-  getZoneTypeOptionsUrl,
-  resolveInfraResults,
-  resolveListOptions,
-  resolveMapOptions,
-  resolveZoneResults,
+  EMPTY_ADVANCED_FILTERS,
+  EMPTY_ADVANCED_OPTIONS,
 } from './MFBanDoSo/advancedSearch';
+import { attachAdvancedSearchHandlers } from './MFBanDoSo/advancedSearch/handlers';
 import { CompassButton } from './MFBanDoSo/controls';
 import {
   LayerButton,
@@ -51,45 +26,21 @@ import {
   SelectorDrawer,
   createCategoryGroupSections,
   createSelectedCategoryItemsSignature,
-  getCategoryConfigUrl,
-  getSelectedCategoryItems,
-  getSourceUrl,
-  normalizeCategoryItems,
-  reconcileExpandedGroupKeys,
-  resolveCategoryGroupMetadataFromResponse,
-  resolveItemsFromCategoryResponse,
-  toggleCategoryGroupChecked,
-  toggleCategoryItemChecked,
 } from './MFBanDoSo/layers';
-import {
-  LEGEND_TITLE,
-  LegendButton,
-  LegendDrawer,
-  getLegendConfigUrl,
-  resolveLegendGroupSections,
-} from './MFBanDoSo/legend';
+import { attachLayerHandlers } from './MFBanDoSo/layers/handlers';
+import { LEGEND_TITLE, LegendButton, LegendDrawer } from './MFBanDoSo/legend';
+import { attachLegendHandlers } from './MFBanDoSo/legend/handlers';
 import { banDoSoPropTypes } from './MFBanDoSo/propTypes';
-import {
-  SEARCH_DEBOUNCE_MS,
-  SEARCH_MIN_KEYWORD_LENGTH,
-  SEARCH_ZONE_KIND,
-  SearchBox,
-  countSearchResults,
-  getSearchUrl,
-  resolveSearchSections,
-} from './MFBanDoSo/search';
-import {
-  DRAWER_CLOSE_DURATION_MS,
-  DRAWER_OPEN_DURATION_MS,
-  DRAWER_TRANSLATE_X,
-} from './MFBanDoSo/shared/constants';
+import { SearchBox } from './MFBanDoSo/search';
+import { attachSearchHandlers } from './MFBanDoSo/search/handlers';
+import { fetchJson } from './MFBanDoSo/shared/api';
+import { DRAWER_TRANSLATE_X } from './MFBanDoSo/shared/constants';
 import { sharedStyles } from './MFBanDoSo/shared/styles';
 import {
   InvestmentSheet,
   SHEET_CLOSE_DURATION_MS,
   SHEET_EMPTY_TEXT,
   SHEET_FOCUS_PADDING,
-  SHEET_FULL_SNAP_RATIO,
   SHEET_HALF_SNAP_RATIO,
   SHEET_INITIAL_SNAP_RATIO,
   INFRA_FOCUS_DELTA,
@@ -126,40 +77,12 @@ import {
   areaGeometryToPolygonPaths,
   getViewboxFromGeometry,
 } from './extends/area/AreaFocusGeometryUtils';
-import { buildGeojsonStyle } from './internal/GeojsonStyleUtils';
 import { MFMapView } from './MFMapView';
 
 const SHEET_KIND_PROVINCE = 'province';
-// What an endpoint field holds when nothing is being typed into it. Reset in
-// several places — closing the panel, opening another sheet — so it is spelled
-// out once here.
-const EMPTY_DIRECTIONS_EDIT = {
-  directionsEditingEndpoint: null,
-  directionsQuery: '',
-  directionsSuggestions: [],
-  isDirectionsSuggestLoading: false,
-};
+// Handed to the drawer on the renders that skip the grouping work.
+const EMPTY_GROUP_SECTIONS = [];
 
-// Every advanced filter is optional, so "unset" is what they all start at and
-// what "Xóa lọc" puts them back to.
-const EMPTY_ADVANCED_FILTERS = {
-  keyword: '',
-  zoneTypeId: null,
-  formTypeId: null,
-  status: null,
-  provinceId: null,
-  wardId: null,
-  infraTypeId: null,
-  infraLayerId: null,
-};
-const EMPTY_ADVANCED_OPTIONS = {
-  zoneTypes: [],
-  formTypes: [],
-  provinces: [],
-  wards: [],
-  infraTypes: [],
-  infraLayers: [],
-};
 // A tap that hit a data source feature suppresses the plain map press that may
 // follow it for the same tap.
 const SHEET_FEATURE_PRESS_CLAIM_MS = 400;
@@ -167,10 +90,7 @@ const SHEET_FEATURE_PRESS_CLAIM_MS = 400;
 class MFBanDoSo extends MFMapView {
   constructor(props) {
     super(props);
-    this._appliedGeojsonStyle = null;
     this._isMounted = false;
-    this._categoryRequestId = 0;
-    this._legendRequestId = 0;
     this._sheetRequestId = 0;
     this._hasFocusedFromSheet = false;
     // Set only by picking a result out of advanced search, so closing the
@@ -181,25 +101,54 @@ class MFBanDoSo extends MFMapView {
     this._featurePressAt = 0;
     this._zonePolygonIds = [];
     this._zoneProjectsRequestId = 0;
-    this._searchRequestId = 0;
-    this._searchDebounceTimer = null;
     this._routeRequestId = 0;
-    this._suggestRequestId = 0;
-    this._suggestDebounceTimer = null;
     // Where the map is looking, kept off state: it only biases the place
     // suggestions, and re-rendering on every frame of a pan to follow it would
     // be absurd.
     this._cameraCenter = null;
-    this._advancedRequestId = 0;
     // The results list's scroll offset, kept outside state since redrawing on
     // every scroll tick would be wasteful — read back only once, to restore
     // the list where it was when its screen is reopened after a detail visit.
     this._advancedScrollOffset = 0;
-    this._hasAdvancedOptions = false;
     this._sheetPin = null;
     this._selectorAnim = new Animated.Value(0);
     this._legendAnim = new Animated.Value(0);
     this._sheetAnim = new Animated.Value(0);
+    // Same values, same ranges, every render — so the interpolations are built
+    // here once instead of as four fresh nodes on every state change.
+    this._selectorBackdropStyle = {
+      opacity: this._selectorAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 1],
+      }),
+    };
+    this._selectorPanelStyle = {
+      transform: [
+        {
+          translateX: this._selectorAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [DRAWER_TRANSLATE_X, 0],
+          }),
+        },
+      ],
+    };
+    // The legend rides its own value so the two drawers animate independently.
+    this._legendBackdropStyle = {
+      opacity: this._legendAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 1],
+      }),
+    };
+    this._legendPanelStyle = {
+      transform: [
+        {
+          translateX: this._legendAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [DRAWER_TRANSLATE_X, 0],
+          }),
+        },
+      ],
+    };
     this.state = {
       ...this.state,
       categoryItems: [],
@@ -251,42 +200,17 @@ class MFBanDoSo extends MFMapView {
     this._onSheetPanelHeightChange = this._onSheetPanelHeightChange.bind(this);
     this._openZoneProjects = this._openZoneProjects.bind(this);
     this._closeZoneProjects = this._closeZoneProjects.bind(this);
-    this._onSearchKeywordChange = this._onSearchKeywordChange.bind(this);
-    this._onSearchFocus = this._onSearchFocus.bind(this);
-    this._clearSearch = this._clearSearch.bind(this);
-    this._onSelectSearchResult = this._onSelectSearchResult.bind(this);
-    this._startDirections = this._startDirections.bind(this);
-    this._closeDirections = this._closeDirections.bind(this);
-    this._cancelPickOrigin = this._cancelPickOrigin.bind(this);
-    this._pickDirectionsEndpoint = this._pickDirectionsEndpoint.bind(this);
-    this._swapDirectionsEndpoints = this._swapDirectionsEndpoints.bind(this);
-    this._changeDirectionsMode = this._changeDirectionsMode.bind(this);
-    this._onDirectionsQueryChange = this._onDirectionsQueryChange.bind(this);
-    this._onDirectionsEndpointFocus =
-      this._onDirectionsEndpointFocus.bind(this);
-    this._onSelectDirectionsSuggestion =
-      this._onSelectDirectionsSuggestion.bind(this);
     this._snapSheetTo = this._snapSheetTo.bind(this);
-    this._toggleItem = this._toggleItem.bind(this);
-    this._toggleGroupChecked = this._toggleGroupChecked.bind(this);
-    this._toggleGroup = this._toggleGroup.bind(this);
-    this._toggleSelectorVisibility = this._toggleSelectorVisibility.bind(this);
-    this._toggleLegendVisibility = this._toggleLegendVisibility.bind(this);
-    this._openSelector = this._openSelector.bind(this);
-    this._closeSelector = this._closeSelector.bind(this);
-    this._snapSelectorOpen = this._snapSelectorOpen.bind(this);
-    this._closeLegend = this._closeLegend.bind(this);
-    this._snapLegendOpen = this._snapLegendOpen.bind(this);
     this._resetBearing = this._resetBearing.bind(this);
-    this._openAdvancedSearch = this._openAdvancedSearch.bind(this);
-    this._closeAdvancedSearch = this._closeAdvancedSearch.bind(this);
-    this._changeAdvancedTarget = this._changeAdvancedTarget.bind(this);
-    this._changeAdvancedFilter = this._changeAdvancedFilter.bind(this);
-    this._resetAdvancedFilters = this._resetAdvancedFilters.bind(this);
-    this._onAdvancedScrollOffsetChange = this._onAdvancedScrollOffsetChange.bind(this);
-    this._runAdvancedSearch = this._runAdvancedSearch.bind(this);
-    this._loadMoreAdvancedResults = this._loadMoreAdvancedResults.bind(this);
-    this._onSelectAdvancedResult = this._onSelectAdvancedResult.bind(this);
+
+    // Each feature's handlers live with that feature and are wired on here.
+    // What stays a method above is what the map itself owns: the sheet it
+    // opens, and the two overlays that answer to nothing else.
+    attachSearchHandlers(this);
+    attachDirectionsHandlers(this);
+    attachLayerHandlers(this);
+    attachLegendHandlers(this);
+    attachAdvancedSearchHandlers(this);
   }
 
   componentDidMount() {
@@ -306,9 +230,14 @@ class MFBanDoSo extends MFMapView {
       this._loadLegendItems();
     }
 
+    // The same array cannot hold a different selection, and the array is only
+    // ever replaced wholesale — so the reference check spares two passes over
+    // the items on every unrelated update. The signature still decides the
+    // rest: a toggle and its undo make a new array but no new selection.
     const itemsChanged =
+      prevState.categoryItems !== this.state.categoryItems &&
       createSelectedCategoryItemsSignature(prevState.categoryItems) !==
-      createSelectedCategoryItemsSignature(this.state.categoryItems);
+        createSelectedCategoryItemsSignature(this.state.categoryItems);
 
     if (
       mapReadyChanged ||
@@ -326,412 +255,6 @@ class MFBanDoSo extends MFMapView {
     this._cancelPendingSuggest();
   }
 
-  _cancelPendingSearch() {
-    if (this._searchDebounceTimer != null) {
-      clearTimeout(this._searchDebounceTimer);
-      this._searchDebounceTimer = null;
-    }
-  }
-
-  /**
-   * Typing schedules a search rather than firing one per keystroke, and every
-   * change invalidates whatever was already in flight, so a slow response for
-   * an earlier prefix cannot overwrite the results for what is typed now.
-   */
-  _onSearchKeywordChange(keyword) {
-    this._cancelPendingSearch();
-    this._searchRequestId += 1;
-
-    const trimmed = keyword.trim();
-    const canSearch = trimmed.length >= SEARCH_MIN_KEYWORD_LENGTH;
-
-    this.setState({
-      searchKeyword: keyword,
-      isSearchOpen: canSearch,
-      isSearchLoading: canSearch,
-      searchSections: canSearch ? this.state.searchSections : [],
-    });
-
-    if (!canSearch) {
-      return;
-    }
-
-    this._searchDebounceTimer = setTimeout(() => {
-      this._searchDebounceTimer = null;
-      this._loadSearchResults(trimmed);
-    }, SEARCH_DEBOUNCE_MS);
-  }
-
-  _onSearchFocus() {
-    if (countSearchResults(this.state.searchSections) > 0) {
-      this.setState({ isSearchOpen: true });
-    }
-  }
-
-  _clearSearch() {
-    this._cancelPendingSearch();
-    this._searchRequestId += 1;
-
-    this.setState({
-      searchKeyword: '',
-      searchSections: [],
-      isSearchLoading: false,
-      isSearchOpen: false,
-    });
-  }
-
-  _closeSearchResults() {
-    if (!this.state.isSearchOpen) {
-      return;
-    }
-
-    // The list is gone, so the keyboard has nothing left to type into and would
-    // just be sitting over the map.
-    Keyboard.dismiss();
-    this.setState({ isSearchOpen: false });
-  }
-
-  async _loadSearchResults(keyword) {
-    const requestId = this._searchRequestId + 1;
-    this._searchRequestId = requestId;
-
-    const isCurrentRequest = () =>
-      this._isMounted && requestId === this._searchRequestId;
-
-    try {
-      const response = await fetch(getSearchUrl(this.props.isStaging, keyword));
-      if (!response.ok) {
-        throw new Error(`Failed to search: ${response.status}`);
-      }
-
-      const json = await response.json();
-      if (!isCurrentRequest()) {
-        return;
-      }
-
-      this.setState({
-        searchSections: resolveSearchSections(json),
-        isSearchLoading: false,
-      });
-    } catch (error) {
-      if (!isCurrentRequest()) {
-        return;
-      }
-
-      console.warn('Cannot search', error);
-      this.setState({ searchSections: [], isSearchLoading: false });
-    }
-  }
-
-  /**
-   * A picked result is handled as a tap on the thing it names: a zone opens its
-   * own detail by id, exactly as tapping that zone on the map would, and
-   * anything else is reverse-geocoded from its pin into the province sheet.
-   *
-   * A zone needs no pin of its own to be worth opening — its detail carries the
-   * pin and the geometry both — so the id alone is enough.
-   */
-  _onSelectSearchResult(item) {
-    this._closeSearchResults();
-
-    if (item?.kind === SEARCH_ZONE_KIND && item?.id != null) {
-      this._prepareSheetForTap(item.pin?.latitude, item.pin?.longitude);
-      this._loadZoneInfo(item.id);
-      return;
-    }
-
-    if (item?.pin) {
-      this._prepareSheetForTap(item.pin.latitude, item.pin.longitude);
-      this._loadProvinceInfo(item.pin.latitude, item.pin.longitude, {
-        highlightProvince: true,
-      });
-      return;
-    }
-
-    // No pin to look up, so the best that can be done is framing the result.
-    if (item?.bounds) {
-      this.fitBounds({
-        bounds: {
-          southWest: {
-            latitude: item.bounds.minLat,
-            longitude: item.bounds.minLng,
-          },
-          northEast: {
-            latitude: item.bounds.maxLat,
-            longitude: item.bounds.maxLng,
-          },
-        },
-        padding: this._makeRoomForCameraFit(),
-      });
-    }
-  }
-
-  async _fetchJson(url) {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Request failed: ${response.status}`);
-    }
-
-    return response.json();
-  }
-
-  _openAdvancedSearch() {
-    this.setState({ isAdvancedSearchVisible: true });
-    this._loadAdvancedOptions();
-  }
-
-  _closeAdvancedSearch() {
-    this.setState({ isAdvancedSearchVisible: false });
-  }
-
-  /**
-   * The dictionaries behind the filters never change within a session, so they
-   * are fetched once, the first time the screen is opened. A dictionary that
-   * fails leaves its filter with an empty list rather than blocking the rest.
-   */
-  async _loadAdvancedOptions() {
-    if (this._hasAdvancedOptions) {
-      return;
-    }
-
-    this._hasAdvancedOptions = true;
-    const isStaging = this.props.isStaging;
-    const sources = [
-      ['zoneTypes', getZoneTypeOptionsUrl(isStaging), resolveListOptions],
-      ['infraTypes', getInfraTypeOptionsUrl(isStaging), resolveListOptions],
-      ['infraLayers', getInfraLayerOptionsUrl(isStaging), resolveListOptions],
-      ['provinces', getProvinceOptionsUrl(isStaging), resolveMapOptions],
-    ];
-
-    const loaded = await Promise.all(
-      sources.map(async ([name, url, resolve]) => {
-        try {
-          return [name, resolve(await this._fetchJson(url))];
-        } catch (error) {
-          console.warn(`Cannot load ${name} options`, error);
-          return [name, []];
-        }
-      })
-    );
-
-    if (!this._isMounted) {
-      return;
-    }
-
-    this.setState((prevState) => ({
-      advancedOptions: {
-        ...prevState.advancedOptions,
-        ...Object.fromEntries(loaded),
-      },
-    }));
-  }
-
-  /**
-   * The two dependent lists. Each belongs to whatever its parent filter is set
-   * to, so it is refetched whenever that moves, and a reply that arrives after
-   * the parent has moved again is dropped rather than shown against the wrong
-   * one.
-   */
-  async _loadDependentOptions(name, parentName, parentValue, url, resolve) {
-    if (!Number.isFinite(parentValue)) {
-      return;
-    }
-
-    try {
-      const json = await this._fetchJson(url);
-
-      if (
-        !this._isMounted ||
-        this.state.advancedFilters[parentName] !== parentValue
-      ) {
-        return;
-      }
-
-      this.setState((prevState) => ({
-        advancedOptions: {
-          ...prevState.advancedOptions,
-          [name]: resolve(json),
-        },
-      }));
-    } catch (error) {
-      console.warn(`Cannot load ${name} options`, error);
-    }
-  }
-
-  _loadWardOptions(provinceId) {
-    return this._loadDependentOptions(
-      'wards',
-      'provinceId',
-      provinceId,
-      getWardOptionsUrl(this.props.isStaging, provinceId),
-      resolveMapOptions
-    );
-  }
-
-  _loadFormTypeOptions(zoneTypeId) {
-    return this._loadDependentOptions(
-      'formTypes',
-      'zoneTypeId',
-      zoneTypeId,
-      getZoneFormTypeOptionsUrl(this.props.isStaging, zoneTypeId),
-      resolveListOptions
-    );
-  }
-
-  // Results belong to the target they were asked for, so switching drops them.
-  _changeAdvancedTarget(target) {
-    this.setState({ advancedTarget: target, advancedResults: null });
-    this._advancedRequestId += 1;
-    this._advancedScrollOffset = 0;
-  }
-
-  _onAdvancedScrollOffsetChange(offsetY) {
-    this._advancedScrollOffset = offsetY;
-  }
-
-  // Each dependent filter, by the filter it hangs off and the list it fills.
-  static get ADVANCED_DEPENDENTS() {
-    return {
-      provinceId: {
-        child: 'wardId',
-        options: 'wards',
-        load: '_loadWardOptions',
-      },
-      zoneTypeId: {
-        child: 'formTypeId',
-        options: 'formTypes',
-        load: '_loadFormTypeOptions',
-      },
-    };
-  }
-
-  _changeAdvancedFilter(name, value) {
-    const dependent = MFBanDoSo.ADVANCED_DEPENDENTS[name];
-
-    this.setState((prevState) => {
-      const advancedFilters = { ...prevState.advancedFilters, [name]: value };
-
-      // A ward only means anything inside its province, and a form type only
-      // inside its zone type — both are dropped when their parent moves.
-      if (dependent) {
-        advancedFilters[dependent.child] = null;
-      }
-
-      return {
-        advancedFilters,
-        advancedOptions: dependent
-          ? { ...prevState.advancedOptions, [dependent.options]: [] }
-          : prevState.advancedOptions,
-      };
-    });
-
-    if (dependent) {
-      this[dependent.load](value);
-    }
-  }
-
-  _resetAdvancedFilters() {
-    this._advancedRequestId += 1;
-    this._advancedScrollOffset = 0;
-    this.setState((prevState) => ({
-      advancedFilters: EMPTY_ADVANCED_FILTERS,
-      advancedOptions: {
-        ...prevState.advancedOptions,
-        wards: [],
-        formTypes: [],
-      },
-      advancedResults: null,
-    }));
-  }
-
-  _runAdvancedSearch() {
-    Keyboard.dismiss();
-    this._advancedScrollOffset = 0;
-    this._loadAdvancedPage(1);
-  }
-
-  _loadMoreAdvancedResults() {
-    const results = this.state.advancedResults;
-    if (!results?.hasMore) {
-      return;
-    }
-
-    this._loadAdvancedPage(results.page + 1);
-  }
-
-  /**
-   * One page of results. Page 1 replaces whatever was showing; later pages are
-   * appended, so a scroll to the bottom grows the list rather than reloading it.
-   */
-  async _loadAdvancedPage(page) {
-    const requestId = this._advancedRequestId + 1;
-    this._advancedRequestId = requestId;
-    const isFirstPage = page <= 1;
-    const isZone = this.state.advancedTarget === ADVANCED_TARGET_ZONE;
-    const filters = this.state.advancedFilters;
-    const url = isZone
-      ? getAdvancedZoneSearchUrl(this.props.isStaging, filters, page)
-      : getAdvancedInfraSearchUrl(this.props.isStaging, filters, page);
-
-    this.setState({
-      isAdvancedLoading: isFirstPage,
-      isAdvancedLoadingMore: !isFirstPage,
-      advancedResults: isFirstPage ? null : this.state.advancedResults,
-    });
-
-    try {
-      const json = await this._fetchJson(url);
-      const resolved = isZone
-        ? resolveZoneResults(json, page)
-        : resolveInfraResults(json, page);
-
-      if (!this._isMounted || this._advancedRequestId !== requestId) {
-        return;
-      }
-
-      this.setState((prevState) => ({
-        isAdvancedLoading: false,
-        isAdvancedLoadingMore: false,
-        advancedResults: {
-          ...resolved,
-          items: isFirstPage
-            ? resolved.items
-            : [...(prevState.advancedResults?.items ?? []), ...resolved.items],
-        },
-      }));
-    } catch (error) {
-      if (!this._isMounted || this._advancedRequestId !== requestId) {
-        return;
-      }
-
-      console.warn('Cannot run advanced search', error);
-      this.setState((prevState) => ({
-        isAdvancedLoading: false,
-        isAdvancedLoadingMore: false,
-        advancedResults: isFirstPage
-          ? { items: [], total: 0, page, hasMore: false, failed: true }
-          : prevState.advancedResults,
-      }));
-    }
-  }
-
-  /**
-   * Either hit opens the sheet on its own detail — the zone one a tap on the
-   * map would open, or the connectivity one, which only this search reaches.
-   */
-  _onSelectAdvancedResult(item) {
-    this._closeAdvancedSearch();
-    this._prepareSheetForTap(item.pin?.latitude, item.pin?.longitude);
-    this._sheetOpenedFromAdvancedSearch = true;
-
-    if (this.state.advancedTarget === ADVANCED_TARGET_ZONE) {
-      this._loadZoneInfo(item.id);
-      return;
-    }
-
-    this._loadInfraInfo(item.id);
-  }
-
   async _loadInfraInfo(infraId) {
     const isCurrentRequest = this._beginSheetRequest(
       SHEET_KIND_INFRA,
@@ -739,7 +262,7 @@ class MFBanDoSo extends MFMapView {
     );
 
     try {
-      const json = await this._fetchJson(
+      const json = await fetchJson(
         getInfraDetailUrl(this.props.isStaging, infraId)
       );
       const info = resolveInfraDetailInfo(json);
@@ -774,82 +297,6 @@ class MFBanDoSo extends MFMapView {
       maxLat: pin.latitude + INFRA_FOCUS_DELTA,
       maxLng: pin.longitude + INFRA_FOCUS_DELTA,
     });
-  }
-
-  async _loadCategoryItems() {
-    const requestId = this._categoryRequestId + 1;
-    this._categoryRequestId = requestId;
-
-    try {
-      const response = await fetch(getCategoryConfigUrl(this.props.isStaging));
-      if (!response.ok) {
-        throw new Error(`Failed to fetch category config: ${response.status}`);
-      }
-
-      const json = await response.json();
-      const nextItems = resolveItemsFromCategoryResponse(json);
-      const groupMetadata = resolveCategoryGroupMetadataFromResponse(json);
-
-      if (!this._isMounted || requestId !== this._categoryRequestId) {
-        return;
-      }
-
-      this.setState((prevState) => {
-        const categoryItems = normalizeCategoryItems(nextItems);
-        const groupSections = createCategoryGroupSections(
-          categoryItems,
-          groupMetadata.titleByKey,
-          groupMetadata.orderedKeys
-        );
-
-        return {
-          categoryItems,
-          groupTitleByKey: groupMetadata.titleByKey,
-          groupOrderedKeys: groupMetadata.orderedKeys,
-          expandedGroupKeys: reconcileExpandedGroupKeys(
-            groupSections,
-            prevState.expandedGroupKeys
-          ),
-        };
-      });
-    } catch (error) {
-      if (requestId !== this._categoryRequestId) {
-        return;
-      }
-      console.warn('Cannot load category items', error);
-    }
-  }
-
-  /**
-   * The legend is drawn from its own config, which describes the same
-   * categories as the selector's but is the one that names and colours their
-   * rules correctly. Nothing is toggled here, so the sections it resolves to
-   * are what the drawer renders as they are.
-   */
-  async _loadLegendItems() {
-    const requestId = this._legendRequestId + 1;
-    this._legendRequestId = requestId;
-
-    try {
-      const response = await fetch(getLegendConfigUrl(this.props.isStaging));
-      if (!response.ok) {
-        throw new Error(`Failed to fetch legend config: ${response.status}`);
-      }
-
-      const json = await response.json();
-      const legendSections = resolveLegendGroupSections(json);
-
-      if (!this._isMounted || requestId !== this._legendRequestId) {
-        return;
-      }
-
-      this.setState({ legendSections });
-    } catch (error) {
-      if (requestId !== this._legendRequestId) {
-        return;
-      }
-      console.warn('Cannot load legend items', error);
-    }
   }
 
   _onPress(event) {
@@ -1064,14 +511,10 @@ class MFBanDoSo extends MFMapView {
     );
 
     try {
-      const response = await fetch(
-        getProvinceInvestmentInfoUrl(this.props.isStaging, latitude, longitude)
+      const json = await fetchJson(
+        getProvinceInvestmentInfoUrl(this.props.isStaging, latitude, longitude),
+        'investment info'
       );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch investment info: ${response.status}`);
-      }
-
-      const json = await response.json();
       const info = resolveProvinceInvestmentInfo(json);
 
       this._resolveSheetResult(isCurrentRequest, info, SHEET_EMPTY_TEXT);
@@ -1096,14 +539,10 @@ class MFBanDoSo extends MFMapView {
     );
 
     try {
-      const response = await fetch(
-        getZoneDetailUrl(this.props.isStaging, zoneId)
+      const json = await fetchJson(
+        getZoneDetailUrl(this.props.isStaging, zoneId),
+        'zone detail'
       );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch zone detail: ${response.status}`);
-      }
-
-      const json = await response.json();
       const info = resolveZoneDetailInfo(json);
 
       if (isCurrentRequest()) {
@@ -1160,12 +599,7 @@ class MFBanDoSo extends MFMapView {
       this._isMounted && requestId === this._zoneProjectsRequestId;
 
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch zone projects: ${response.status}`);
-      }
-
-      const json = await response.json();
+      const json = await fetchJson(url, 'zone projects');
       if (!isCurrentRequest()) {
         return;
       }
@@ -1350,278 +784,6 @@ class MFBanDoSo extends MFMapView {
   }
 
   /**
-   * The destination is whatever the sheet's marker sits on: the point it was
-   * opened from — the tapped spot or a picked search result, since the province
-   * payload carries no coordinate of its own — or, once a zone's detail has
-   * arrived, that zone's own pin. It is kept outside state because it survives
-   * sheet reloads.
-   */
-  async _startDirections() {
-    if (!this._sheetPin) {
-      return;
-    }
-
-    const destination = {
-      coordinate: this._sheetPin,
-      label: this.state.sheetInfo?.name ?? DIRECTIONS_DESTINATION_LABEL,
-    };
-    const deviceCoordinate = await this._getDeviceCoordinate();
-    const origin = deviceCoordinate
-      ? { coordinate: deviceCoordinate, label: DIRECTIONS_MY_LOCATION_TEXT }
-      : null;
-
-    // The renderer marks both ends of the route itself, so the sheet's own
-    // marker would just sit on top of the destination POI.
-    this._removeMarker(SHEET_MARKER_ID);
-
-    // Without a fix there is nothing to route from yet, so the panel opens on
-    // the endpoints alone and the map supplies the missing one.
-    this.setState({
-      isDirectionsVisible: true,
-      directionsOrigin: origin,
-      directionsDestination: destination,
-      directionsRoute: null,
-      isDirectionsLoading: origin != null,
-      directionsStatusText: origin
-        ? DIRECTIONS_LOADING_TEXT
-        : DIRECTIONS_PICK_ORIGIN_TEXT,
-      pickingEndpoint: origin ? null : DIRECTIONS_ENDPOINT_ORIGIN,
-    });
-
-    if (origin) {
-      this._loadRoute(origin, destination, this.state.directionsMode);
-      return;
-    }
-
-    // Same reason as _pickDirectionsEndpoint: the map has to be reachable for
-    // the tap that supplies the missing point.
-    this._snapSheetTo(SHEET_HALF_SNAP_RATIO);
-  }
-
-  /**
-   * Collapsing is not cosmetic here: a fully open sheet covers the whole map,
-   * leaving nowhere to tap for the point being picked — and the prompt banner
-   * would sit over the sheet's own header, so there would be no way back
-   * either.
-   */
-  _pickDirectionsEndpoint(endpoint) {
-    // The map is the other way of naming this end, so whatever was being typed
-    // into the field is done with — and its keyboard is in the way of the map.
-    Keyboard.dismiss();
-    this._cancelPendingSuggest();
-    this._suggestRequestId += 1;
-
-    this.setState({
-      ...EMPTY_DIRECTIONS_EDIT,
-      pickingEndpoint: endpoint,
-    });
-    this._snapSheetTo(SHEET_HALF_SNAP_RATIO);
-  }
-
-  _cancelPendingSuggest() {
-    if (this._suggestDebounceTimer != null) {
-      clearTimeout(this._suggestDebounceTimer);
-      this._suggestDebounceTimer = null;
-    }
-  }
-
-  /**
-   * Typing in one of the endpoint fields. Same shape as the map's own search
-   * box: a pause before asking, and every keystroke invalidating whatever is
-   * already in flight, so a slow answer for an earlier prefix cannot land on a
-   * later one.
-   */
-  _onDirectionsQueryChange(endpoint, text) {
-    this._cancelPendingSuggest();
-    this._suggestRequestId += 1;
-
-    const trimmed = text.trim();
-    const canSuggest = trimmed.length >= DIRECTIONS_SUGGEST_MIN_LENGTH;
-
-    this.setState({
-      directionsEditingEndpoint: endpoint,
-      directionsQuery: text,
-      isDirectionsSuggestLoading: canSuggest,
-      // Keeping the old rows under a query too short to ask about would leave
-      // them looking like an answer to it.
-      directionsSuggestions: canSuggest ? this.state.directionsSuggestions : [],
-      pickingEndpoint: null,
-    });
-
-    if (!canSuggest) {
-      return;
-    }
-
-    this._suggestDebounceTimer = setTimeout(() => {
-      this._suggestDebounceTimer = null;
-      this._loadDirectionsSuggestions(trimmed);
-    }, DIRECTIONS_SUGGEST_DEBOUNCE_MS);
-  }
-
-  /**
-   * A field taking focus starts from an empty query rather than from what the
-   * row shows: the label an endpoint carries — "Vị trí của bạn", the name of a
-   * zone — is not something the suggest service could be asked for.
-   */
-  _onDirectionsEndpointFocus(endpoint) {
-    if (this.state.directionsEditingEndpoint === endpoint) {
-      return;
-    }
-
-    this._cancelPendingSuggest();
-    this._suggestRequestId += 1;
-
-    this.setState({
-      ...EMPTY_DIRECTIONS_EDIT,
-      directionsEditingEndpoint: endpoint,
-      pickingEndpoint: null,
-    });
-
-    // The list needs the room, and the keyboard is about to take the bottom
-    // half of the screen.
-    this._snapSheetTo(SHEET_FULL_SNAP_RATIO);
-  }
-
-  _stopEditingDirectionsEndpoint() {
-    this._cancelPendingSuggest();
-    this._suggestRequestId += 1;
-    this.setState(EMPTY_DIRECTIONS_EDIT);
-  }
-
-  /**
-   * A picked suggestion carries its own coordinate, so it sets its end of the
-   * route the same way a tap on the map does — and keeps its name, which is
-   * more use on the row than "Điểm bạn đã chọn".
-   */
-  _onSelectDirectionsSuggestion(item) {
-    const endpoint = this.state.directionsEditingEndpoint;
-
-    if (endpoint == null || !item?.coordinate) {
-      return;
-    }
-
-    Keyboard.dismiss();
-    this._stopEditingDirectionsEndpoint();
-    this._setDirectionsEndpoint(endpoint, item.coordinate, item.name);
-  }
-
-  async _loadDirectionsSuggestions(text) {
-    const requestId = this._suggestRequestId + 1;
-    this._suggestRequestId = requestId;
-
-    const isCurrentRequest = () =>
-      this._isMounted && requestId === this._suggestRequestId;
-
-    try {
-      const response = await fetch(
-        getSuggestUrl(this.props.isStaging, text, this._cameraCenter)
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to suggest places: ${response.status}`);
-      }
-
-      const json = await response.json();
-      if (!isCurrentRequest()) {
-        return;
-      }
-
-      this.setState({
-        directionsSuggestions: resolveSuggestions(json),
-        isDirectionsSuggestLoading: false,
-      });
-    } catch (error) {
-      if (!isCurrentRequest()) {
-        return;
-      }
-
-      console.warn('Cannot suggest places', error);
-      this.setState({
-        directionsSuggestions: [],
-        isDirectionsSuggestLoading: false,
-      });
-    }
-  }
-
-  /**
-   * Replaces one end of the route and keeps the other, then re-routes once both
-   * ends are known. Reading the next pair here rather than from state avoids
-   * routing against the value `setState` has not applied yet.
-   */
-  _setDirectionsEndpoint(endpoint, coordinate, label) {
-    const picked = { coordinate, label: label ?? DIRECTIONS_PICKED_POINT_TEXT };
-    const isOrigin = endpoint === DIRECTIONS_ENDPOINT_ORIGIN;
-    const origin = isOrigin ? picked : this.state.directionsOrigin;
-    const destination = isOrigin ? this.state.directionsDestination : picked;
-
-    this.setState({
-      directionsOrigin: origin,
-      directionsDestination: destination,
-      pickingEndpoint: null,
-    });
-
-    if (origin && destination) {
-      this._loadRoute(origin, destination, this.state.directionsMode);
-    }
-  }
-
-  /**
-   * Turns the route around. Only reachable with both ends known: with one of
-   * them still missing there is nothing to trade places with, and the swap
-   * would just move the single point to the other slot.
-   */
-  _swapDirectionsEndpoints() {
-    const origin = this.state.directionsDestination;
-    const destination = this.state.directionsOrigin;
-
-    if (!origin || !destination) {
-      return;
-    }
-
-    this.setState({
-      directionsOrigin: origin,
-      directionsDestination: destination,
-    });
-    this._loadRoute(origin, destination, this.state.directionsMode);
-  }
-
-  /**
-   * Each mode is a route of its own — a motorbike and a car are not given the
-   * same streets — so picking one asks the service again rather than re-reading
-   * what is already drawn. The mode is passed on rather than read back off
-   * state, which `setState` has not applied yet.
-   */
-  _changeDirectionsMode(mode) {
-    if (mode === this.state.directionsMode) {
-      return;
-    }
-
-    this.setState({ directionsMode: mode });
-
-    const origin = this.state.directionsOrigin;
-    const destination = this.state.directionsDestination;
-
-    if (origin && destination) {
-      this._loadRoute(origin, destination, mode);
-    }
-  }
-
-  async _getDeviceCoordinate() {
-    try {
-      const location = await this.getMyLocation();
-      const coordinate = location?.coordinate;
-
-      return typeof coordinate?.latitude === 'number' &&
-        typeof coordinate?.longitude === 'number'
-        ? coordinate
-        : null;
-    } catch (error) {
-      // Permission denied or my-location not enabled: not an error worth
-      // reporting, the caller falls back to picking a point.
-      return null;
-    }
-  }
-
-  /**
    * Turns the map back to north. Tilt is left alone — the needle only speaks
    * for the bearing, and a 3D view the user set up is not ours to flatten.
    */
@@ -1658,118 +820,6 @@ class MFBanDoSo extends MFMapView {
     }
   }
 
-  _cancelPickOrigin() {
-    this.setState({ pickingEndpoint: null });
-  }
-
-  _closeDirections() {
-    this._routeRequestId += 1;
-    this._cancelPendingSuggest();
-    this._suggestRequestId += 1;
-    this._clearDirections();
-
-    // Back on the detail view the sheet owns the map again, so its marker comes
-    // back to the point the info belongs to.
-    if (this._sheetPin) {
-      this._addMarker({
-        id: SHEET_MARKER_ID,
-        coordinate: this._sheetPin,
-      });
-    }
-
-    this.setState({
-      isDirectionsVisible: false,
-      directionsRoute: null,
-      directionsOrigin: null,
-      directionsDestination: null,
-      pickingEndpoint: null,
-      ...EMPTY_DIRECTIONS_EDIT,
-    });
-  }
-
-  async _loadRoute(origin, destination, mode) {
-    const url = getRouteUrl(
-      this.props.isStaging,
-      origin?.coordinate,
-      destination?.coordinate,
-      mode
-    );
-    if (!url) {
-      return;
-    }
-
-    const requestId = this._routeRequestId + 1;
-    this._routeRequestId = requestId;
-
-    this.setState({
-      pickingEndpoint: null,
-      isDirectionsVisible: true,
-      isDirectionsLoading: true,
-      directionsRoute: null,
-      directionsStatusText: DIRECTIONS_LOADING_TEXT,
-    });
-
-    const isCurrentRequest = () =>
-      this._isMounted && requestId === this._routeRequestId;
-
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch route: ${response.status}`);
-      }
-
-      // The renderer decodes the payload natively, so the untouched response
-      // text is what gets handed to it — no polyline decoding in JS.
-      const text = await response.text();
-      const route = resolveRoute(JSON.parse(text));
-
-      if (!isCurrentRequest()) {
-        return;
-      }
-
-      if (route) {
-        this._setDirections(text, {
-          activeStrokeColor: DIRECTIONS_ACTIVE_STROKE_COLOR,
-          activeStrokeWidth: DIRECTIONS_ACTIVE_STROKE_WIDTH,
-          activeOutlineColor: DIRECTIONS_ACTIVE_OUTLINE_COLOR,
-          activeOutlineWidth: DIRECTIONS_ACTIVE_OUTLINE_WIDTH,
-          originPOIOptions: {
-            coordinate: origin.coordinate,
-            icon: { uri: DIRECTIONS_ORIGIN_ICON },
-            title: origin.label,
-            titleColor: DIRECTIONS_ORIGIN_POI_COLOR,
-            visible: true,
-          },
-          destinationPOIOptions: {
-            coordinate: destination.coordinate,
-            icon: { uri: DIRECTIONS_DESTINATION_ICON },
-            title: destination.label,
-            titleColor: DIRECTIONS_DESTINATION_POI_COLOR,
-            visible: true,
-          },
-        });
-        this._fitCameraToBounds(route.bounds);
-      }
-
-      this.setState({
-        directionsRoute: route,
-        directionsStatusText: DIRECTIONS_EMPTY_TEXT,
-        isDirectionsLoading: false,
-      });
-    } catch (error) {
-      if (!isCurrentRequest()) {
-        return;
-      }
-
-      console.warn('Cannot load route', error);
-      this.setState({
-        directionsRoute: null,
-        directionsStatusText: DIRECTIONS_EMPTY_TEXT,
-        isDirectionsLoading: false,
-      });
-    }
-  }
-
   /**
    * Takes the province to draw as an argument rather than reading it off state,
    * so it can also be called straight after a response lands — at that point
@@ -1793,178 +843,23 @@ class MFBanDoSo extends MFMapView {
     this._focusProvince(this.state.sheetInfo?.focusProvince);
   }
 
-  _toggleItem(targetKey, targetIndex) {
-    this.setState((prevState) => ({
-      categoryItems: toggleCategoryItemChecked(
-        prevState.categoryItems,
-        targetKey,
-        targetIndex
-      ),
-    }));
-  }
-
-  _toggleGroup(groupKey) {
-    if (typeof groupKey !== 'string' || groupKey.length === 0) {
-      return;
-    }
-
-    this.setState((prevState) => ({
-      expandedGroupKeys: {
-        ...prevState.expandedGroupKeys,
-        [groupKey]: !(prevState.expandedGroupKeys[groupKey] !== false),
-      },
-    }));
-  }
-
-  _toggleGroupChecked(groupKey, checkedValue) {
-    this.setState((prevState) => ({
-      categoryItems: toggleCategoryGroupChecked(
-        prevState.categoryItems,
-        groupKey,
-        checkedValue
-      ),
-    }));
-  }
-
-  _toggleSelectorVisibility() {
-    if (this.state.isSelectorVisible) {
-      this._closeSelector();
-      return;
-    }
-
-    this._openSelector();
-  }
-
-  _toggleLegendVisibility() {
-    if (this.state.isLegendVisible) {
-      this._closeLegend();
-      return;
-    }
-
-    this._openLegend();
-  }
-
-  _openLegend() {
-    this.setState(
-      {
-        isLegendMounted: true,
-        isLegendVisible: true,
-      },
-      () => {
-        Animated.timing(this._legendAnim, {
-          toValue: 1,
-          duration: DRAWER_OPEN_DURATION_MS,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }).start();
-      }
-    );
-  }
-
-  _closeLegend() {
-    Animated.timing(this._legendAnim, {
-      toValue: 0,
-      duration: DRAWER_CLOSE_DURATION_MS,
-      easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => {
-      if (!this._isMounted) {
-        return;
-      }
-
-      this.setState({
-        isLegendVisible: false,
-        isLegendMounted: false,
-      });
-    });
-  }
-
-  _snapLegendOpen() {
-    Animated.timing(this._legendAnim, {
-      toValue: 1,
-      duration: DRAWER_OPEN_DURATION_MS,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }
-
-  _openSelector() {
-    this.setState(
-      {
-        isSelectorMounted: true,
-        isSelectorVisible: true,
-      },
-      () => {
-        Animated.timing(this._selectorAnim, {
-          toValue: 1,
-          duration: DRAWER_OPEN_DURATION_MS,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }).start();
-      }
-    );
-  }
-
-  _closeSelector() {
-    Animated.timing(this._selectorAnim, {
-      toValue: 0,
-      duration: DRAWER_CLOSE_DURATION_MS,
-      easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
-    }).start(() => {
-      if (!this._isMounted) {
-        return;
-      }
-
-      this.setState({
-        isSelectorVisible: false,
-        isSelectorMounted: false,
-      });
-    });
-  }
-
-  _snapSelectorOpen() {
-    Animated.timing(this._selectorAnim, {
-      toValue: 1,
-      duration: DRAWER_OPEN_DURATION_MS,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }
-
-  _syncGeojsonStyle() {
-    if (!this.state.isReady) {
-      return;
-    }
-
-    const items = getSelectedCategoryItems(this.state.categoryItems);
-
-    const geojsonStyle = buildGeojsonStyle(
-      this.props.mapStyle,
-      getSourceUrl(this.props.isStaging),
-      items
-    );
-
-    if (!geojsonStyle || geojsonStyle === this._appliedGeojsonStyle) {
-      return;
-    }
-
-    this._appliedGeojsonStyle = geojsonStyle;
-    this._runCommand('setMapStyle', [geojsonStyle]);
-  }
-
   render() {
     const items = this.state.categoryItems;
-    const groupSections = createCategoryGroupSections(
-      items,
-      this.state.groupTitleByKey,
-      this.state.groupOrderedKeys
-    );
     const legendGroupSections = this.state.legendSections;
     const hasItems = Array.isArray(items) && items.length > 0;
     const hasLegendItems = legendGroupSections.length > 0;
     const showLayerButton = hasItems;
     const showSelector = this.state.isSelectorMounted && hasItems;
+    // Grouping walks the items and sorts them, and only the drawer reads the
+    // result — no reason to do it on the renders where the drawer is closed,
+    // which is most of them.
+    const groupSections = showSelector
+      ? createCategoryGroupSections(
+          items,
+          this.state.groupTitleByKey,
+          this.state.groupOrderedKeys
+        )
+      : EMPTY_GROUP_SECTIONS;
     const showLegendButton = hasLegendItems;
     const showLegend = this.state.isLegendMounted && hasLegendItems;
     const selectorTitle = SELECTOR_TITLE;
@@ -2001,43 +896,45 @@ class MFBanDoSo extends MFMapView {
     const canSwapEndpoints =
       this.state.directionsOrigin != null &&
       this.state.directionsDestination != null;
+    // The sheet only decides whether the directions view is showing; every
+    // other part of it belongs to DirectionsBody. Handing them over as one
+    // bundle keeps the sheet out of the business of naming them twice, and
+    // means a new field here never touches the sheet at all.
+    const directions = {
+      loading: this.state.isDirectionsLoading,
+      statusText: this.state.directionsStatusText,
+      route: this.state.directionsRoute,
+      mode: this.state.directionsMode,
+      originText: this.state.directionsOrigin?.label,
+      destinationText: this.state.directionsDestination?.label,
+      pickingEndpoint,
+      canSwapEndpoints,
+      editingEndpoint: this.state.directionsEditingEndpoint,
+      query: this.state.directionsQuery,
+      suggestions: this.state.directionsSuggestions,
+      suggestLoading: this.state.isDirectionsSuggestLoading,
+      onPickEndpoint: this._pickDirectionsEndpoint,
+      onSwapEndpoints: this._swapDirectionsEndpoints,
+      onChangeMode: this._changeDirectionsMode,
+      onChangeQuery: this._onDirectionsQueryChange,
+      onFocusEndpoint: this._onDirectionsEndpointFocus,
+      onSelectSuggestion: this._onSelectDirectionsSuggestion,
+    };
+    // Same bundle for the drilled-down project list. The zone's name is part
+    // of it because the list heads itself with it, not because the sheet has
+    // any use for it.
+    const zoneProjects = {
+      zoneName: this.state.sheetInfo?.name,
+      loading: this.state.isZoneProjectsLoading,
+      statusText: this.state.zoneProjectsStatusText,
+      projects: Array.isArray(this.state.zoneProjects)
+        ? this.state.zoneProjects
+        : [],
+    };
     const pickHintText =
       pickingEndpoint === DIRECTIONS_ENDPOINT_ORIGIN
         ? DIRECTIONS_PICK_ORIGIN_TEXT
         : DIRECTIONS_PICK_DESTINATION_TEXT;
-    const backdropAnimatedStyle = {
-      opacity: this._selectorAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1],
-      }),
-    };
-    const panelAnimatedStyle = {
-      transform: [
-        {
-          translateX: this._selectorAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [DRAWER_TRANSLATE_X, 0],
-          }),
-        },
-      ],
-    };
-    // The legend rides its own value so the two drawers animate independently.
-    const legendBackdropAnimatedStyle = {
-      opacity: this._legendAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [0, 1],
-      }),
-    };
-    const legendPanelAnimatedStyle = {
-      transform: [
-        {
-          translateX: this._legendAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [DRAWER_TRANSLATE_X, 0],
-          }),
-        },
-      ],
-    };
 
     return (
       <React.Fragment>
@@ -2082,8 +979,8 @@ class MFBanDoSo extends MFMapView {
             groupSections={groupSections}
             expandedGroupKeys={this.state.expandedGroupKeys}
             dragAnim={this._selectorAnim}
-            backdropAnimatedStyle={backdropAnimatedStyle}
-            panelAnimatedStyle={panelAnimatedStyle}
+            backdropAnimatedStyle={this._selectorBackdropStyle}
+            panelAnimatedStyle={this._selectorPanelStyle}
             onClose={this._toggleSelectorVisibility}
             onDragCancel={this._snapSelectorOpen}
             onToggleGroup={this._toggleGroup}
@@ -2095,8 +992,8 @@ class MFBanDoSo extends MFMapView {
             title={legendTitle}
             groupSections={legendGroupSections}
             dragAnim={this._legendAnim}
-            backdropAnimatedStyle={legendBackdropAnimatedStyle}
-            panelAnimatedStyle={legendPanelAnimatedStyle}
+            backdropAnimatedStyle={this._legendBackdropStyle}
+            panelAnimatedStyle={this._legendPanelStyle}
             onClose={this._closeLegend}
             onDragCancel={this._snapLegendOpen}
           />
@@ -2108,22 +1005,9 @@ class MFBanDoSo extends MFMapView {
             statusText={this.state.sheetStatusText}
             info={this.state.sheetInfo}
             showProjects={showProjects}
-            projects={this.state.zoneProjects}
-            projectsLoading={this.state.isZoneProjectsLoading}
-            projectsStatusText={this.state.zoneProjectsStatusText}
+            zoneProjects={zoneProjects}
             showDirections={showDirections}
-            directionsRoute={this.state.directionsRoute}
-            directionsLoading={this.state.isDirectionsLoading}
-            directionsStatusText={this.state.directionsStatusText}
-            directionsOriginText={this.state.directionsOrigin?.label}
-            directionsDestinationText={this.state.directionsDestination?.label}
-            directionsMode={this.state.directionsMode}
-            canSwapEndpoints={canSwapEndpoints}
-            directionsEditingEndpoint={this.state.directionsEditingEndpoint}
-            directionsQuery={this.state.directionsQuery}
-            directionsSuggestions={this.state.directionsSuggestions}
-            directionsSuggestLoading={this.state.isDirectionsSuggestLoading}
-            pickingEndpoint={pickingEndpoint}
+            directions={directions}
             dragAnim={this._sheetAnim}
             snapValue={this.state.sheetSnapValue}
             onClose={this._closeSheet}
@@ -2133,12 +1017,6 @@ class MFBanDoSo extends MFMapView {
             onFocusProvince={this._focusProvinceFromSheet}
             onPressProjects={this._openZoneProjects}
             onPressDirections={this._startDirections}
-            onPickEndpoint={this._pickDirectionsEndpoint}
-            onSwapEndpoints={this._swapDirectionsEndpoints}
-            onChangeDirectionsMode={this._changeDirectionsMode}
-            onChangeDirectionsQuery={this._onDirectionsQueryChange}
-            onFocusDirectionsEndpoint={this._onDirectionsEndpointFocus}
-            onSelectDirectionsSuggestion={this._onSelectDirectionsSuggestion}
           />
           <PickOriginBanner
             show={pickingEndpoint != null}

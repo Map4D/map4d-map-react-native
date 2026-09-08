@@ -44,7 +44,18 @@ const DIRECTIONS_ACTIVE_OUTLINE_WIDTH = 2;
 const DIRECTIONS_ORIGIN_POI_COLOR = '#1D4ED8';
 const DIRECTIONS_DESTINATION_POI_COLOR = '#B91C1C';
 
+// What an endpoint field holds when nothing is being typed into it. Reset in
+// several places — closing the panel, opening another sheet — so it is spelled
+// out once here.
+const EMPTY_DIRECTIONS_EDIT = {
+  directionsEditingEndpoint: null,
+  directionsQuery: '',
+  directionsSuggestions: [],
+  isDirectionsSuggestLoading: false,
+};
+
 export {
+  EMPTY_DIRECTIONS_EDIT,
   DIRECTIONS_ACTION_LABEL,
   DIRECTIONS_ACTIVE_OUTLINE_COLOR,
   DIRECTIONS_ACTIVE_OUTLINE_WIDTH,
