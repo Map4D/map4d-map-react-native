@@ -138,22 +138,9 @@ function InvestmentSheet({
   statusText,
   info,
   showProjects,
-  projects,
-  projectsLoading,
-  projectsStatusText,
+  zoneProjects,
   showDirections,
-  directionsRoute,
-  directionsLoading,
-  directionsStatusText,
-  directionsOriginText,
-  directionsDestinationText,
-  directionsMode,
-  canSwapEndpoints,
-  directionsEditingEndpoint,
-  directionsQuery,
-  directionsSuggestions,
-  directionsSuggestLoading,
-  pickingEndpoint,
+  directions,
   dragAnim,
   snapValue,
   onClose,
@@ -163,12 +150,6 @@ function InvestmentSheet({
   onFocusProvince,
   onPressProjects,
   onPressDirections,
-  onPickEndpoint,
-  onSwapEndpoints,
-  onChangeDirectionsMode,
-  onChangeDirectionsQuery,
-  onFocusDirectionsEndpoint,
-  onSelectDirectionsSuggestion,
 }) {
   const [containerHeight, setContainerHeight] = useState(0);
   const [footerHeight, setFooterHeight] = useState(0);
@@ -191,11 +172,15 @@ function InvestmentSheet({
   const snapValueRef = useRef(snapValue);
   snapValueRef.current = snapValue;
   const gestureStartValueRef = useRef(snapValue);
-  const handlersRef = useRef({ onSnapTo });
+  const handlersRef = useRef(null);
   handlersRef.current = { onSnapTo };
 
-  const panResponder = useRef(
-    PanResponder.create({
+  // useRef evaluates whatever it is handed on every render and then keeps
+  // only the first result, so building the gesture inline there built a
+  // whole PanResponder per render just to throw it away.
+  const panResponderRef = useRef(null);
+  if (panResponderRef.current == null) {
+    panResponderRef.current = PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) =>
         Math.abs(gestureState.dy) > SHEET_SWIPE_ACTIVATION_DISTANCE &&
         Math.abs(gestureState.dy) > Math.abs(gestureState.dx),
@@ -225,8 +210,9 @@ function InvestmentSheet({
       onPanResponderTerminate: () => {
         handlersRef.current.onSnapTo(gestureStartValueRef.current);
       },
-    })
-  ).current;
+    });
+  }
+  const panResponder = panResponderRef.current;
 
   if (!show) {
     return null;
@@ -297,35 +283,11 @@ function InvestmentSheet({
 
         {showDirections ? (
           <SheetScroll viewKey="directions" tailSpace={scrollTailSpace}>
-            <DirectionsBody
-              loading={directionsLoading}
-              statusText={directionsStatusText}
-              route={directionsRoute}
-              mode={directionsMode}
-              originText={directionsOriginText}
-              destinationText={directionsDestinationText}
-              pickingEndpoint={pickingEndpoint}
-              canSwapEndpoints={canSwapEndpoints}
-              editingEndpoint={directionsEditingEndpoint}
-              query={directionsQuery}
-              suggestions={directionsSuggestions}
-              suggestLoading={directionsSuggestLoading}
-              onPickEndpoint={onPickEndpoint}
-              onSwapEndpoints={onSwapEndpoints}
-              onChangeMode={onChangeDirectionsMode}
-              onChangeQuery={onChangeDirectionsQuery}
-              onFocusEndpoint={onFocusDirectionsEndpoint}
-              onSelectSuggestion={onSelectDirectionsSuggestion}
-            />
+            <DirectionsBody {...directions} />
           </SheetScroll>
         ) : showProjects ? (
           <SheetScroll viewKey="projects" tailSpace={scrollTailSpace}>
-            <ZoneProjectsBody
-              zoneName={info?.name}
-              loading={projectsLoading}
-              statusText={projectsStatusText}
-              projects={Array.isArray(projects) ? projects : []}
-            />
+            <ZoneProjectsBody {...zoneProjects} />
           </SheetScroll>
         ) : loading || !info ? (
           <View style={sharedStyles.statusBox}>

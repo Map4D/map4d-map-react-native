@@ -59,7 +59,48 @@ const ADVANCED_STATUS_OPTIONS = [
   { value: 5, label: 'Đã thu hồi/chấm dứt' },
 ];
 
+// Every advanced filter is optional, so "unset" is what they all start at and
+// what "Xóa lọc" puts them back to.
+const EMPTY_ADVANCED_FILTERS = {
+  keyword: '',
+  zoneTypeId: null,
+  formTypeId: null,
+  status: null,
+  provinceId: null,
+  wardId: null,
+  infraTypeId: null,
+  infraLayerId: null,
+};
+
+const EMPTY_ADVANCED_OPTIONS = {
+  zoneTypes: [],
+  formTypes: [],
+  provinces: [],
+  wards: [],
+  infraTypes: [],
+  infraLayers: [],
+};
+
+// A ward only means anything inside its province, and a form type only inside
+// its zone type: picking a parent reloads the child list and clears whatever
+// was chosen from the old one.
+const ADVANCED_DEPENDENTS = {
+  provinceId: {
+    child: 'wardId',
+    options: 'wards',
+    load: '_loadWardOptions',
+  },
+  zoneTypeId: {
+    child: 'formTypeId',
+    options: 'formTypes',
+    load: '_loadFormTypeOptions',
+  },
+};
+
 export {
+  ADVANCED_DEPENDENTS,
+  EMPTY_ADVANCED_FILTERS,
+  EMPTY_ADVANCED_OPTIONS,
   ADVANCED_EMPTY_TEXT,
   ADVANCED_ERROR_TEXT,
   ADVANCED_FORM_TYPE_DISABLED_HINT,

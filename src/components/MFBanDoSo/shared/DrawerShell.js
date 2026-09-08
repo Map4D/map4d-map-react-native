@@ -33,11 +33,15 @@ function DrawerShell({
 }) {
   // The gesture is built once, so it reads the handlers through a ref rather
   // than capturing the first render's copies.
-  const handlersRef = useRef({ onClose, onDragCancel });
+  const handlersRef = useRef(null);
   handlersRef.current = { onClose, onDragCancel };
 
-  const panResponder = useRef(
-    PanResponder.create({
+  // useRef evaluates whatever it is handed on every render and then keeps
+  // only the first result, so building the gesture inline there built a
+  // whole PanResponder per render just to throw it away.
+  const panResponderRef = useRef(null);
+  if (panResponderRef.current == null) {
+    panResponderRef.current = PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) =>
         Math.abs(gestureState.dx) > DRAWER_SWIPE_ACTIVATION_DISTANCE &&
         Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
@@ -60,8 +64,9 @@ function DrawerShell({
       onPanResponderTerminate: () => {
         handlersRef.current.onDragCancel();
       },
-    })
-  ).current;
+    });
+  }
+  const panResponder = panResponderRef.current;
 
   if (!show) {
     return null;

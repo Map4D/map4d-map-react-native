@@ -11,4 +11,19 @@ function buildApiUrl(path, isStaging) {
   return `${API_HOST}${stagingSegment}/${path}`;
 }
 
-export { buildApiUrl };
+/**
+ * Every call wants the parsed body, and a failed status to raise rather than
+ * return. `what` names the thing being fetched so the warning that reaches the
+ * console says which request failed, not merely that one did.
+ */
+async function fetchJson(url, what) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    const subject = what ? `Failed to fetch ${what}` : 'Request failed';
+    throw new Error(`${subject}: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export { buildApiUrl, fetchJson };
