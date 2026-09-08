@@ -1,4 +1,7 @@
-import { buildGeojsonStyle } from '../../internal/GeojsonStyleUtils';
+import {
+  buildGeojsonStyle,
+  createBaseStyle,
+} from '../../internal/GeojsonStyleUtils';
 import { Animated, Easing } from 'react-native';
 import {
   DRAWER_CLOSE_DURATION_MS,
@@ -146,18 +149,50 @@ function snapSelectorOpen(self) {
   }).start();
 }
 
+// The style the map itself is showing, read from the SDK once the map is ready.
+// Read once and kept: from the first sync on, the SDK holds the style we wrote,
+// so reading again would build on our own output.
+async function loadMapStyle(self) {
+  if (self._isMapStyleLoaded) {
+    return;
+  }
+
+  let mapStyle = null;
+
+  try {
+    mapStyle = await self.getMapStyle();
+  } catch (error) {
+    // Nothing to build on but the bundled roadmap, which createBaseStyle
+    // falls back to on a null style.
+    console.warn('Cannot read map style', error);
+  }
+
+  if (!self._isMounted) {
+    return;
+  }
+
+  self._sdkMapStyle = mapStyle;
+  self._isMapStyleLoaded = true;
+  self._syncGeojsonStyle();
+}
+
 function syncGeojsonStyle(self) {
   if (!self.state.isReady) {
     return;
   }
 
-  const items = getSelectedCategoryItems(self.state.categoryItems);
+  // A mapStyle the caller gave wins and needs no wait; without one the SDK's
+  // style has to arrive first — loadMapStyle syncs again once it does.
+  if (self.props.mapStyle == null && !self._isMapStyleLoaded) {
+    return;
+  }
 
-  const geojsonStyle = buildGeojsonStyle(
-    self.props.mapStyle,
-    getSourceUrl(self.props.isStaging),
-    items
+  const baseStyle = createBaseStyle(
+    self.props.mapStyle ?? self._sdkMapStyle,
+    getSourceUrl(self.props.isStaging)
   );
+  const items = getSelectedCategoryItems(self.state.categoryItems);
+  const geojsonStyle = buildGeojsonStyle(baseStyle, items);
 
   if (!geojsonStyle || geojsonStyle === self._appliedGeojsonStyle) {
     return;
@@ -178,6 +213,10 @@ function attachLayerHandlers(self) {
   // push it again.
   self._appliedGeojsonStyle = null;
   self._categoryRequestId = 0;
+  // The SDK's own style, and whether the read has finished.
+  self._sdkMapStyle = null;
+  self._isMapStyleLoaded = false;
+  self._loadMapStyle = () => loadMapStyle(self);
   self._loadCategoryItems = () => loadCategoryItems(self);
   self._toggleItem = (targetKey, targetIndex) =>
     toggleItem(self, targetKey, targetIndex);
