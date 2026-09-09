@@ -1,3 +1,8 @@
+## 0.1.13
+
+* Fix bug UI
+* [Android] Fix pushEvent for RMFMapViewManager on new arch
+
 ## 0.1.12
 
 * Update direction view
