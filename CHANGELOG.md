@@ -1,3 +1,8 @@
+## 0.2.0
+
+* Change API from 'https://cmcdtqg-gateway.dieuhanhso.vn' to 'https://kong-cdtmc-devtest.mbfs.vn'
+* Support config API host for MFBanDoSo
+
 ## 0.1.13
 
 * Fix bug UI
