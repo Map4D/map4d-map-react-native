@@ -4,11 +4,24 @@
  * builds its own URLs on top of this, so the host and that segment are decided
  * in a single place.
  */
-const API_HOST = 'https://cmcdtqg-gateway.dieuhanhso.vn';
+const DEFAULT_API_HOST = 'https://kong-cdtmc-devtest.mbfs.vn';
+
+let currentApiHost = DEFAULT_API_HOST;
+
+function configureMFBanDoSo({ apiHost } = {}) {
+  if (typeof apiHost === 'string' && apiHost.length > 0) {
+    currentApiHost = apiHost.replace(/\/+$/, '');
+  }
+}
 
 function buildApiUrl(path, isStaging) {
   const stagingSegment = isStaging ? '/staging' : '';
-  return `${API_HOST}${stagingSegment}/${path}`;
+  return `${currentApiHost}${stagingSegment}/bds/${path}`;
+}
+
+function buildGatewayUrl(path, isStaging) {
+  const stagingSegment = isStaging ? '/staging' : '';
+  return `${currentApiHost}${stagingSegment}/${path}`;
 }
 
 /**
@@ -26,4 +39,4 @@ async function fetchJson(url, what) {
   return response.json();
 }
 
-export { buildApiUrl, fetchJson };
+export { buildApiUrl, buildGatewayUrl, configureMFBanDoSo, fetchJson };

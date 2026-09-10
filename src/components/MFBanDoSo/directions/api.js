@@ -1,4 +1,4 @@
-import { buildApiUrl } from '../shared/api';
+import { buildGatewayUrl } from '../shared/api';
 import { DIRECTIONS_DEFAULT_MODE, DIRECTIONS_MODES } from './constants';
 
 // Routing sits behind its own service and its own key, unlike the rest of the
@@ -33,7 +33,7 @@ function getRouteUrl(isStaging, origin, destination, mode) {
     `key=${SDK_API_KEY}`,
   ].join('&');
 
-  return `${buildApiUrl(ROUTE_URL_PATH, isStaging)}?${query}`;
+  return `${buildGatewayUrl(ROUTE_URL_PATH, isStaging)}?${query}`;
 }
 
 /**
@@ -49,7 +49,7 @@ function getSuggestUrl(isStaging, text, location) {
     query.push(`location=${encodeURIComponent(at)}`);
   }
 
-  return `${buildApiUrl(SUGGEST_URL_PATH, isStaging)}?${query.join('&')}`;
+  return `${buildGatewayUrl(SUGGEST_URL_PATH, isStaging)}?${query.join('&')}`;
 }
 
 export { getRouteUrl, getSuggestUrl };

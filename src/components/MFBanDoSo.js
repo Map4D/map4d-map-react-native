@@ -1051,7 +1051,7 @@ class MFBanDoSo extends MFMapView {
 MFBanDoSo.propTypes = banDoSoPropTypes;
 MFBanDoSo.defaultProps = {
   ...MFMapView.defaultProps,
-  isStaging: true,
+  isStaging: false,
 };
 
 export { MFBanDoSo };

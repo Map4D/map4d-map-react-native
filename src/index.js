@@ -1,5 +1,6 @@
 import {MFMapView} from './components/MFMapView'
 import { MFBanDoSo } from './components/MFBanDoSo'
+import { configureMFBanDoSo } from './components/MFBanDoSo/shared/api'
 import {MFMarker} from './components/MFMarker'
 import {MFCircle} from './components/MFCircle'
 import {MFPolyline} from './components/MFPolyline'
@@ -13,6 +14,7 @@ import {AreaFocuser} from './components/extends/AreaFocuser'
 export {
   MFMapView,
   MFBanDoSo,
+  configureMFBanDoSo,
   MFMarker,
   MFCircle,
   MFPolyline,
