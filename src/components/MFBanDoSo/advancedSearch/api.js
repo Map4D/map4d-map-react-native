@@ -1,16 +1,15 @@
-import { buildApiUrl } from '../shared/api';
+import { buildApiUrl, buildGatewayUrl } from '../shared/api';
 import { ADVANCED_PAGE_SIZE } from './constants';
 
-const ZONE_SEARCH_URL_PATH = 'bds/api/portal/TimKiem/nang-cao';
-const INFRA_SEARCH_URL_PATH = 'bds/api/portal/TimKiem/ha-tang-ket-noi/nang-cao';
-const ZONE_TYPE_URL_PATH = 'bds/api/portal/kcnkkt/danh-sach-loai';
+const ZONE_SEARCH_URL_PATH = 'api/portal/TimKiem/nang-cao';
+const INFRA_SEARCH_URL_PATH = 'api/portal/TimKiem/ha-tang-ket-noi/nang-cao';
+const ZONE_TYPE_URL_PATH = 'api/portal/kcnkkt/danh-sach-loai';
 // Form types are listed per zone type and numbered from one within each, so an
 // id only means anything alongside the zone type it was listed under.
-const ZONE_FORM_TYPE_URL_PATH = 'bds/api/kcnkkt/danh-sach-loai-hinh';
+const ZONE_FORM_TYPE_URL_PATH = 'api/kcnkkt/danh-sach-loai-hinh';
 const INFRA_TYPE_URL_PATH =
-  'bds/api/portal/danh-muc/HaTangKetNoi/lay-danh-sach-chon';
-const INFRA_LAYER_URL_PATH =
-  'bds/api/portal/Lop/HaTangKetNoi/lay-danh-sach-chon';
+  'api/portal/danh-muc/HaTangKetNoi/lay-danh-sach-chon';
+const INFRA_LAYER_URL_PATH = 'api/portal/Lop/HaTangKetNoi/lay-danh-sach-chon';
 // The place dictionaries sit outside the bds service, under the shared admin
 // one, and are the public cut of it.
 const PROVINCE_URL_PATH =
@@ -84,11 +83,11 @@ function getInfraLayerOptionsUrl(isStaging) {
 }
 
 function getProvinceOptionsUrl(isStaging) {
-  return buildApiUrl(PROVINCE_URL_PATH, isStaging);
+  return buildGatewayUrl(PROVINCE_URL_PATH, isStaging);
 }
 
 function getWardOptionsUrl(isStaging, provinceId) {
-  const base = buildApiUrl(WARD_URL_PATH, isStaging);
+  const base = buildGatewayUrl(WARD_URL_PATH, isStaging);
   return `${base}?Query.TinhThanhId=${encodeURIComponent(provinceId)}`;
 }
 

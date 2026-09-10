@@ -5,8 +5,8 @@ const banDoSoPropTypes = {
   ...MFMapView.propTypes,
 
   /**
-   * If `true` (default), fetch category config and vector tiles from the staging API.
-   * If `false`, use the production API (no `/staging` path segment).
+   * If `false` (default), use the production API (no `/staging` path segment).
+   * If `true`, fetch category config and vector tiles from the staging API.
    */
   isStaging: PropTypes.bool,
 };

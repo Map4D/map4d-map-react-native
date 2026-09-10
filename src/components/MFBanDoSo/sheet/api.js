@@ -2,11 +2,11 @@ import { buildApiUrl } from '../shared/api';
 import { ZONE_PROJECT_KINDS } from './constants';
 
 const PROVINCE_INVESTMENT_INFO_URL_PATH =
-  'bds/api/portal/ProvinceInvestmentInfo/reverse';
-const ZONE_DETAIL_URL_PATH = 'bds/api/portal/kcnkkt';
+  'api/portal/ProvinceInvestmentInfo/reverse';
+const ZONE_DETAIL_URL_PATH = 'api/portal/kcnkkt';
 // Connectivity features are served from the bds service directly rather than
 // its portal cut, but the endpoint is public all the same.
-const INFRA_DETAIL_URL_PATH = 'bds/api/HaTangKetNoiDT';
+const INFRA_DETAIL_URL_PATH = 'api/HaTangKetNoiDT';
 
 function getProvinceInvestmentInfoUrl(isStaging, latitude, longitude) {
   const query = `latitude=${encodeURIComponent(

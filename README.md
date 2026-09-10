@@ -146,7 +146,21 @@ Examples:
 
 ## MFBanDoSo usage
 
-`MFBanDoSo` extends `MFMapView`. It fetches a category config from a fixed internal URL, lets the user toggle which categories are shown, and syncs the resulting GeoJSON style to the map against a fixed internal vector tile source. Both URLs are internal to the SDK (only the `/staging` path segment can be toggled via `isStaging`) and are not otherwise configurable via props. It renders its own layer-selector and legend UI on top of the map — there is no prop to disable or reposition this UI.
+`MFBanDoSo` extends `MFMapView`. It fetches its category config, legend config, vector tile source and all other data from a single internal API host, lets the user toggle which categories are shown, and syncs the resulting GeoJSON style to the map. The host is not a prop — call `configureMFBanDoSo` once, before any `MFBanDoSo` mounts, to point it at the right backend (see below). It renders its own layer-selector and legend UI on top of the map — there is no prop to disable or reposition this UI.
+
+### Configuring the API host
+
+The backend host changes independently of this package's releases, so it is set at runtime instead of being baked into a version:
+
+```javascript
+import {configureMFBanDoSo} from 'react-native-map4d-map-dtqg';
+
+configureMFBanDoSo({apiHost: 'https://kong-cdtmc-devtest.mbfs.vn'});
+```
+
+- Call it once, as early as possible (e.g. at the top of your app's entry file) — before any `MFBanDoSo` fetches happen.
+- `apiHost` is the bare gateway host, without a `/bds` (or any other service) path segment — `MFBanDoSo` adds the right segment per endpoint internally.
+- If `configureMFBanDoSo` is never called, `MFBanDoSo` falls back to its built-in default host.
 
 ```javascript
 import {MFBanDoSo} from 'react-native-map4d-map-dtqg';
@@ -186,6 +200,6 @@ export default App;
 ```
 
 Props:
-- `isStaging`: optional `boolean`, default `true`. Selects between the staging and production API for both the category config and vector tile source (toggles the `/staging` path segment on the fixed internal host). Pass `isStaging={false}` to use production.
-- Otherwise no `MFBanDoSo`-specific props — the category config URL and vector tile source URL are fixed internally by the SDK.
+- `isStaging`: optional `boolean`, default `false`. Toggles the `/staging` path segment on the configured API host, for every endpoint `MFBanDoSo` fetches from.
+- Otherwise no `MFBanDoSo`-specific props — the API host is set globally via `configureMFBanDoSo`, not per instance.
 - All `MFMapView` props (`camera`, `mapType`, `mapStyle`, `onDataSourceFeaturePress`, etc.) and children (e.g. `MFBuilding`, `MFMarker`) are supported the same way as on `MFMapView`.
